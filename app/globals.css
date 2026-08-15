@@ -167,6 +167,14 @@ button:not(.nav-overlay):active { transform: scale(.97); }
 
 /* ── Missing motion utilities ── */
 @layer utilities {
+  /* Hide scrollbar for clean custom scrollers */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
   /* Used by check-in progress bar */
   .motion-width {
     transition: width 280ms var(--ease-out);

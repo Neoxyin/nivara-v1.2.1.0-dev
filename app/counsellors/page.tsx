@@ -1,21 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AppShell } from '@/components/layout/nivara-shell';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { Pill } from '@/components/shared/pill';
-import { Button } from '@/components/shared/button';
-import { Clock3, MessageCircle, ShieldCheck, SlidersHorizontal, X } from 'lucide-react';
+import { TiltCard } from '@/components/ui/tilt-card';
+import { Magnetic } from '@/components/ui/magnetic';
+import { StaggerContainer } from '@/components/ui/stagger-container';
+import { Clock3, MessageCircle, ShieldCheck, SlidersHorizontal, X, Calendar } from 'lucide-react';
 import { getCounsellors, requestAppointment } from '@/lib/api/counsellors';
 import { useQuery } from '@tanstack/react-query';
 
 export default function CounsellorsPage() {
   const [selected, setSelected] = useState<string | null>(null);
+  const [dayChoice, setDayChoice] = useState<'today' | 'tomorrow'>('today');
+  const [selectedSlot, setSelectedSlot] = useState<string>('14:30');
+  const [filterTopic, setFilterTopic] = useState<string | null>(null);
   const [requested, setRequested] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { data: counsellors } = useQuery({ queryKey: ['counsellors'], queryFn: getCounsellors });
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent body scroll and close on Escape key when modal is open
+  useEffect(() => {
+    if (selected) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          closeModal();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [selected]);
+
+  const timeSlots = ['10:00 AM', '11:30 AM', '02:30 PM', '04:00 PM'];
+
+  const filteredCounsellors = filterTopic
+    ? counsellors?.filter((c) => c.specializations.includes(filterTopic))
+    : counsellors;
+
   const request = async (name: string) => {
-    await requestAppointment(name, 'pending');
+    await requestAppointment(name, `${dayChoice} at ${selectedSlot}`);
     setRequested(true);
   };
 
@@ -38,104 +74,195 @@ export default function CounsellorsPage() {
           }
         />
 
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-white/40">
-            {counsellors?.length || 0} people available this week
+            {filteredCounsellors?.length || 0} people available this week
           </p>
-          <button
-            data-testid="button-counsellor-filter"
-            className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.08em] text-white/45 transition-colors hover:text-white/80"
-          >
-            <SlidersHorizontal size={14} /> Filter
-          </button>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3">
-          {counsellors?.map((c, i) => (
-            <article
-              key={c.name}
-              className="border border-white/[0.09] bg-[hsl(var(--card))] p-7"
-              data-testid={`card-counsellor-${i}`}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilterTopic(null)}
+              className={`text-[10px] font-bold uppercase tracking-[.08em] px-2.5 py-1 rounded transition-colors ${
+                filterTopic === null ? 'bg-[#c3f340] text-[#0d1408]' : 'text-white/40 hover:text-white/70'
+              }`}
             >
-              <div className="flex items-start justify-between">
-                <div className="grid h-12 w-12 place-items-center rounded-full bg-[#1a1a1a] font-display text-xl text-white/80">
-                  {c.initials}
-                </div>
-                <Pill tone={c.status === 'available' ? 'accent' : 'default'}>
-                  {c.status === 'available' ? 'Available today' : 'Next opening'}
-                </Pill>
-              </div>
-              <h2 className="mt-7 font-display text-3xl">{c.name}</h2>
-              <p className="mt-1 text-xs text-white/40">{c.role}</p>
-              <div className="mt-5 flex flex-wrap gap-1.5">
-                {c.specializations.map((s) => (
-                  <Pill key={s}>{s}</Pill>
-                ))}
-              </div>
-              <div className="mt-6 flex items-center gap-2 border-t border-white/[0.08] pt-4 text-xs text-white/40">
-                <Clock3 size={13} /> {c.availability}
-              </div>
+              All
+            </button>
+            {['Stress & burnout', 'Time management', 'Academic anxiety'].map((topic) => (
               <button
-                onClick={() => { setSelected(c.name); setRequested(false); }}
-                data-testid={`button-connect-counsellor-${i}`}
-                className="mt-5 flex w-full items-center justify-center gap-2 border border-white/[0.14] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-white/60 transition-[border-color,color] duration-150 hover:border-white/30 hover:text-white/90"
+                key={topic}
+                onClick={() => setFilterTopic((prev) => (prev === topic ? null : topic))}
+                className={`text-[10px] font-bold uppercase tracking-[.08em] px-2.5 py-1 rounded border transition-colors ${
+                  filterTopic === topic
+                    ? 'border-[#c3f340] bg-[#c3f340]/10 text-[#dff77d]'
+                    : 'border-white/[0.08] text-white/40 hover:text-white/70'
+                }`}
               >
-                <MessageCircle size={14} /> Request a conversation
+                {topic}
               </button>
-            </article>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Modal */}
-        {selected && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="w-full max-w-md border border-white/[0.12] bg-[#111] p-8 shadow-[0_30px_80px_rgba(0,0,0,.6)]">
-              <div className="mb-6 flex items-center justify-between">
-                <h3 className="font-display text-2xl">Request conversation</h3>
-                <button
-                  onClick={closeModal}
-                  className="rounded-lg p-1.5 text-white/40 transition-colors hover:bg-white/[0.07] hover:text-white/80"
-                  aria-label="Close"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {requested ? (
-                <div className="py-8 text-center">
-                  <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#c3f340]/10">
-                    <span className="text-xl text-[#c3f340]">✓</span>
+        <StaggerContainer stagger={0.06} className="grid grid-cols-3 gap-3">
+          {filteredCounsellors?.map((c, i) => (
+            <div key={c.name} className="stagger-item">
+              <TiltCard
+                maxTilt={4}
+                spotlightColor="rgba(195, 243, 64, 0.12)"
+                onClick={() => { setSelected(c.name); setRequested(false); }}
+                className="group cursor-pointer border border-white/[0.09] bg-[hsl(var(--card))]/90 p-7 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-[#c3f340]/40 rounded-lg flex flex-col justify-between"
+                data-testid={`card-counsellor-${i}`}
+              >
+                <div>
+                  <div className="flex items-start justify-between">
+                    <div className="grid h-12 w-12 place-items-center rounded-full bg-[#1a1a1a] font-display text-xl text-white/80 border border-white/10 shadow-[0_0_12px_rgba(255,255,255,0.05)] group-hover:border-[#c3f340]/30 transition-colors">
+                      {c.initials}
+                    </div>
+                    <Pill tone={c.status === 'available' ? 'accent' : 'default'}>
+                      {c.status === 'available' ? 'Available today' : 'Next opening'}
+                    </Pill>
                   </div>
-                  <p className="font-bold text-[#dff77d]">Request sent</p>
-                  <p className="mt-2 text-sm text-white/45">
-                    You'll receive a confirmation shortly.
-                  </p>
+                  <h2 className="mt-7 font-display text-3xl text-white group-hover:text-[#dff77d] transition-colors">{c.name}</h2>
+                  <p className="mt-1 text-xs text-white/40">{c.role}</p>
+                  <div className="mt-5 flex flex-wrap gap-1.5">
+                    {c.specializations.map((s) => (
+                      <Pill key={s}>{s}</Pill>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-6 border-t border-white/[0.08] pt-4">
+                  <div className="flex items-center gap-2 text-xs text-white/40">
+                    <Clock3 size={13} /> {c.availability}
+                  </div>
+                  <div className="btn-sweep mt-4 flex w-full items-center justify-center gap-2 border border-white/[0.14] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-white/70 transition-all duration-150 group-hover:border-[#c3f340]/40 group-hover:text-[#c3f340] rounded">
+                    <MessageCircle size={14} /> Request a conversation
+                  </div>
+                </div>
+              </TiltCard>
+            </div>
+          ))}
+        </StaggerContainer>
+
+        {/* Modal rendered directly to body via portal to cover entire screen cleanly */}
+        {mounted && selected && createPortal(
+          <div
+            onClick={closeModal}
+            data-testid="modal-backdrop-counsellor"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 transition-opacity duration-200"
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md"
+            >
+              <TiltCard maxTilt={3} className="w-full border border-white/[0.14] bg-[#111]/95 p-7 shadow-[0_30px_90px_rgba(0,0,0,.9)] backdrop-blur-2xl rounded-xl">
+                <div className="mb-5 flex items-center justify-between">
+                  <div>
+                    <p className="serenity-label text-[#c3f340]">20-min confidential chat</p>
+                    <h3 className="mt-1 font-display text-2xl text-white">Request conversation</h3>
+                  </div>
                   <button
                     onClick={closeModal}
-                    className="mt-6 text-[11px] font-bold uppercase tracking-[.08em] text-white/35 transition-colors hover:text-white/70"
+                    data-testid="button-close-counsellor-modal"
+                    className="rounded-lg p-1.5 text-white/40 transition-colors hover:bg-white/[0.07] hover:text-white/80"
+                    aria-label="Close"
                   >
-                    Close
+                    <X size={18} />
                   </button>
                 </div>
-              ) : (
-                <div>
-                  <p className="text-sm text-white/50">
-                    You're requesting a conversation with{' '}
-                    <strong className="text-white/80">{selected}</strong>.
-                  </p>
-                  <p className="mt-2 text-xs text-white/35">
-                    This is not a commitment — it simply opens the door.
-                  </p>
-                  <button
-                    onClick={() => request(selected)}
-                    className="btn-sweep mt-6 w-full border border-[#c3f340]/30 bg-[#141414] px-4 py-3 text-[11px] font-bold uppercase tracking-[.1em] text-[#dff77d] transition-colors hover:text-[#0d1408]"
-                  >
-                    Confirm request
-                  </button>
-                </div>
-              )}
+
+                {requested ? (
+                  <div className="py-8 text-center">
+                    <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#c3f340]/15 shadow-[0_0_15px_rgba(195,243,64,0.3)]">
+                      <span className="text-xl text-[#c3f340]">✓</span>
+                    </div>
+                    <p className="font-bold text-[#dff77d]">Request submitted</p>
+                    <p className="mt-2 text-sm text-white/55">
+                      Reserved for <strong className="text-white">{dayChoice === 'today' ? 'Today' : 'Tomorrow'} at {selectedSlot}</strong> with {selected}.
+                    </p>
+                    <p className="mt-1 text-xs text-white/35">
+                      You will receive calendar details privately.
+                    </p>
+                    <Magnetic>
+                      <button
+                        onClick={closeModal}
+                        className="mt-6 text-[11px] font-bold uppercase tracking-[.08em] text-white/40 transition-colors hover:text-white"
+                      >
+                        Done
+                      </button>
+                    </Magnetic>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-xs text-white/55">
+                      Scheduling with <strong className="text-white">{selected}</strong>. Choose a preferred time:
+                    </p>
+
+                    {/* Day picker */}
+                    <div>
+                      <label className="serenity-label text-[9px] text-white/40 mb-1.5 block">Select day</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => setDayChoice('today')}
+                          className={`flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold rounded border transition-colors ${
+                            dayChoice === 'today'
+                              ? 'border-[#c3f340] bg-[#c3f340]/15 text-[#dff77d]'
+                              : 'border-white/[0.08] text-white/50 hover:border-white/20'
+                          }`}
+                        >
+                          <Calendar size={13} /> Today
+                        </button>
+                        <button
+                          onClick={() => setDayChoice('tomorrow')}
+                          className={`flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold rounded border transition-colors ${
+                            dayChoice === 'tomorrow'
+                              ? 'border-[#c3f340] bg-[#c3f340]/15 text-[#dff77d]'
+                              : 'border-white/[0.08] text-white/50 hover:border-white/20'
+                          }`}
+                        >
+                          <Calendar size={13} /> Tomorrow
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Time slots */}
+                    <div>
+                      <label className="serenity-label text-[9px] text-white/40 mb-1.5 block">Available slots</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {timeSlots.map((slot) => (
+                          <button
+                            key={slot}
+                            onClick={() => setSelectedSlot(slot)}
+                            className={`py-2 px-3 text-xs font-semibold rounded border transition-colors ${
+                              selectedSlot === slot
+                                ? 'border-[#c3f340] bg-[#c3f340]/15 text-[#dff77d]'
+                                : 'border-white/[0.08] text-white/50 hover:border-white/20'
+                            }`}
+                          >
+                            {slot}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-white/35 leading-tight pt-1">
+                      No commitment required — you can cancel or reschedule at any moment.
+                    </p>
+
+                    <Magnetic>
+                      <button
+                        onClick={() => request(selected)}
+                        className="btn-sweep mt-3 w-full border border-[#c3f340] bg-[#c3f340] px-4 py-3 text-[11px] font-bold uppercase tracking-[.1em] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.3)] transition-all hover:scale-102 rounded"
+                      >
+                        Confirm {dayChoice === 'today' ? 'Today' : 'Tomorrow'} at {selectedSlot}
+                      </button>
+                    </Magnetic>
+                  </div>
+                )}
+              </TiltCard>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </AppShell>

@@ -65,7 +65,8 @@ export type Recommendation = {
   title: string; 
   description: string; 
   type: string; 
-  completed: boolean 
+  completed: boolean;
+  why?: string;
 };
 
 export type ConsentPreference = { 
