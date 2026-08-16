@@ -79,7 +79,16 @@ export default function CheckInPage() {
             <p className="mt-6 max-w-md text-sm leading-7 text-white/55">
               That is useful information, not a grade. Based on this snapshot, a smaller plan and an earlier support option may help this week.
             </p>
-            <div className="mt-10 flex gap-4">
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Magnetic>
+                <Link
+                  href="/insights"
+                  data-testid="link-checkin-summary-insights"
+                  className="btn-sweep inline-flex items-center gap-2 border border-[#c3f340] bg-[#c3f340] px-5 py-3 text-[11px] font-bold uppercase tracking-[.1em] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.35)] transition-all hover:scale-105"
+                >
+                  View my insights & signals <ArrowUpRight size={13} />
+                </Link>
+              </Magnetic>
               <Magnetic>
                 <Link
                   href="/dashboard"

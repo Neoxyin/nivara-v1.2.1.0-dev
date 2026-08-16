@@ -20,7 +20,11 @@ export async function sendSupportMessage(message: string): Promise<{ response: s
   const lowerMessage = message.toLowerCase();
   let response = 'I\'m here. What would feel most useful right now — making a study plan, clearing some mental space, or finding a person to talk with?';
   
-  if (lowerMessage.includes('plan')) {
+  if (lowerMessage.includes('friday') || lowerMessage.includes('low-priority') || (lowerMessage.includes('move') && lowerMessage.includes('task'))) {
+    response = 'Let\'s identify one non-urgent item you can safely move to Friday. Shifting secondary reading or optional revisions gives your attention room to focus on immediate work today. Which task feels safest to park for a couple of days?';
+  } else if (lowerMessage.includes('fieldwork') || lowerMessage.includes('notes') || lowerMessage.includes('starting point')) {
+    response = 'Starting from what already exists is much lighter than facing a blank screen. Pull 2–3 key observations or quotes from your fieldwork notes into an outline, and use those as anchors for your next section.';
+  } else if (lowerMessage.includes('plan')) {
     response = 'Let\'s make it smaller. What has a real deadline first, and what can be a rough draft for now?';
   } else if (lowerMessage.includes('stress') || lowerMessage.includes('stretched')) {
     response = 'That sounds like a lot to hold at once. We can take one practical next step, or I can help you find a person at your institution.';

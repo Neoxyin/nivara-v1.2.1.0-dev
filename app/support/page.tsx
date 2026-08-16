@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { AppShell } from '@/components/layout/nivara-shell';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { Pill } from '@/components/shared/pill';
@@ -12,7 +13,11 @@ import { sendSupportMessage } from '@/lib/api/support';
 
 const QUICK_PROMPTS = ['Make a study plan', 'I feel stretched', 'Find a person to talk with'];
 
-export default function SupportPage() {
+function SupportContent() {
+  const searchParams = useSearchParams();
+  const promptParam = searchParams.get('prompt');
+  const hasHandledPromptRef = useRef(false);
+
   const [messages, setMessages] = useState([
     {
       from: 'assistant',
@@ -32,7 +37,7 @@ export default function SupportPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const send = async (text = input) => {
+  const send = useCallback(async (text = input) => {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
     setSending(true);
@@ -45,7 +50,14 @@ export default function SupportPage() {
     } finally {
       setSending(false);
     }
-  };
+  }, [input, sending]);
+
+  useEffect(() => {
+    if (promptParam && promptParam.trim() && !hasHandledPromptRef.current) {
+      hasHandledPromptRef.current = true;
+      send(promptParam.trim());
+    }
+  }, [promptParam, send]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -184,6 +196,14 @@ export default function SupportPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+export default function SupportPage() {
+  return (
+    <Suspense fallback={null}>
+      <SupportContent />
+    </Suspense>
   );
 }
 
