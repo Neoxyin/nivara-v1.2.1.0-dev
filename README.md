@@ -1,20 +1,29 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# NIVARA
 
-# Run and deploy your AI Studio app
+NIVARA is a student-focused wellbeing and support platform designed to help users understand their daily wellbeing through simple check-ins, meaningful insights, and access to support resources.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/53fcdcf9-dcdb-43d1-ba6e-4f441ed1a427
+- Daily wellbeing check-ins
+- Mood, energy, stress, sleep, and workload tracking
+- Pattern and trend detection
+- Explainable wellbeing insights
+- Confidence-aware insights
+- Support resources
+- Counsellor and academic support
+- Personalized wellbeing dashboard
 
-## Run Locally
+## Tech Stack
 
-**Prerequisites:**  Node.js
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Node.js
 
+## Getting Started
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Install dependencies
+
+```bash
+npm install
