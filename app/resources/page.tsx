@@ -138,4 +138,4 @@ export default function ResourcesPage() {
   );
 }
 
-export const dynamic = 'force-dynamic';
+

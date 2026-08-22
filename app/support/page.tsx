@@ -1,210 +1,235 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
-import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { AppShell } from '@/components/layout/nivara-shell';
 import { SectionHeading } from '@/components/shared/section-heading';
-import { Pill } from '@/components/shared/pill';
 import { TiltCard } from '@/components/ui/tilt-card';
+import { StaggerContainer } from '@/components/ui/stagger-container';
 import { Magnetic } from '@/components/ui/magnetic';
-import { LockKeyhole, Sparkles, Send, ArrowUpRight } from 'lucide-react';
-import { sendSupportMessage } from '@/lib/api/support';
+import Link from 'next/link';
+import { 
+  UsersRound, 
+  Compass, 
+  MessageCircle, 
+  Users, 
+  Clock, 
+  ArrowUpRight,
+  LockKeyhole,
+  HeartPulse
+} from 'lucide-react';
+import { SupportMatching } from '@/components/shared/support-matching';
+import { SupportRecommendations } from '@/components/shared/support-recommendations';
+import { useQuery } from '@tanstack/react-query';
+import { getPreferences } from '@/lib/api/preferences';
+import { getCheckIns } from '@/lib/api/checkins';
 
-const QUICK_PROMPTS = ['Make a study plan', 'I feel stretched', 'Find a person to talk with'];
+export default function SupportPage() {
+  const { data: preferences, isLoading: prefsLoading } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
+  const hasConsent = preferences?.find((p) => p.key === 'wellbeing_checkins')?.enabled ?? false;
 
-function SupportContent() {
-  const searchParams = useSearchParams();
-  const promptParam = searchParams.get('prompt');
-  const hasHandledPromptRef = useRef(false);
+  const { data: checkIns, isLoading: checkInsLoading } = useQuery({ 
+    queryKey: ['checkIns'], 
+    queryFn: getCheckIns,
+    enabled: hasConsent
+  });
 
-  const [messages, setMessages] = useState([
-    {
-      from: 'assistant',
-      text: "I'm here. What would feel most useful right now — making a study plan, clearing some mental space, or finding a person to talk with?",
-    },
-  ]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const isInitialMount = useRef(true);
-
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const send = useCallback(async (text = input) => {
-    const trimmed = text.trim();
-    if (!trimmed || sending) return;
-    setSending(true);
-    setInput('');
-    setMessages((m) => [...m, { from: 'you', text: trimmed }]);
-
-    try {
-      const response = await sendSupportMessage(trimmed);
-      setMessages((m) => [...m, { from: 'assistant', text: response.response }]);
-    } finally {
-      setSending(false);
-    }
-  }, [input, sending]);
-
-  useEffect(() => {
-    if (promptParam && promptParam.trim() && !hasHandledPromptRef.current) {
-      hasHandledPromptRef.current = true;
-      send(promptParam.trim());
-    }
-  }, [promptParam, send]);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
-  };
+  const latestCheckIn = checkIns?.[0];
 
   return (
     <AppShell>
-      <div className="rise-in">
+      <div className="rise-in space-y-12">
         <SectionHeading
-          eyebrow="Support space"
-          title="A place to think out loud."
-          description="Practical guidance for study planning, stress, reflection, and finding support. Nivara is not a medical service or a replacement for a counsellor."
-          action={
-            <Pill tone="accent">
-              <LockKeyhole size={12} className="mr-1" /> Private space
-            </Pill>
-          }
+          eyebrow="Support Navigation"
+          title="Well-being & Connection"
+          description="Explore resources, talk to a counsellor, or find community support. You are in control of how you use these services."
         />
 
-        <div className="grid grid-cols-[1fr_.38fr] gap-4 items-start">
-          {/* Chat panel */}
-          <section className="flex h-[calc(100vh-230px)] min-h-[480px] max-h-[600px] flex-col border border-white/[0.09] bg-[hsl(var(--card))]/95 backdrop-blur-2xl rounded-lg overflow-hidden">
-            {/* Chat header */}
-            <div className="flex items-center gap-3 border-b border-white/[0.08] px-6 py-3.5 bg-white/[0.01] shrink-0">
-              <div className="grid h-8 w-8 place-items-center rounded-full bg-[rgba(195,243,64,.15)] text-[#c3f340] shadow-[0_0_12px_rgba(195,243,64,0.3)]">
-                <Sparkles size={15} />
-              </div>
-              <div>
-                <p className="text-[13px] font-semibold text-white">Nivara guide</p>
-                <p className="serenity-label text-[8px] text-white/35">Practical, not clinical</p>
-              </div>
-              <span className="ml-auto h-2 w-2 rounded-full bg-[#c3f340] shadow-[0_0_10px_rgba(195,243,64,.9)] animate-pulse" />
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 min-h-0 space-y-4 overflow-y-auto p-6">
-              {messages.map((m, i) => (
-                <div
-                  key={i}
-                  className={`flex ${m.from === 'you' ? 'justify-end' : 'justify-start'}`}
-                  data-testid={`message-support-${i}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-lg px-4 py-3 text-sm leading-6 transition-all duration-200 ${
-                      m.from === 'you'
-                        ? 'bg-[#1e1e1e] text-white/95 border border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
-                        : 'bg-[#161916] text-white/70 border border-white/[0.06]'
-                    }`}
-                  >
-                    {m.text}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* The main grid of Support Options */}
+            <StaggerContainer stagger={0.06} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* Counsellors */}
+              <div className="stagger-item">
+                <TiltCard maxTilt={2} className="h-full flex flex-col border border-white/[0.09] bg-[#141414]/90 p-6 backdrop-blur-xl transition-all hover:border-white/20 rounded-xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="grid h-10 w-10 place-items-center rounded-lg bg-[rgba(195,243,64,.1)] text-[#c3f340] border border-[#c3f340]/20">
+                      <UsersRound size={18} />
+                    </div>
+                    <h4 className="font-semibold text-white">Counsellors</h4>
                   </div>
-                </div>
-              ))}
-              {sending && (
-                <div className="flex justify-start">
-                  <div className="bg-[#161916] px-4 py-3 rounded-lg border border-white/[0.06]">
-                    <span className="flex gap-1.5">
-                      {[0, 1, 2].map((i) => (
-                        <span
-                          key={i}
-                          className="inline-block h-1.5 w-1.5 rounded-full bg-[#c3f340] animate-pulse"
-                          style={{ animationDelay: `${i * 150}ms` }}
-                        />
-                      ))}
-                    </span>
+                  <p className="flex-1 text-sm text-white/70 leading-relaxed">
+                    Book a confidential 1-on-1 session with a campus counsellor. Available for academic pacing, well-being, or general support.
+                  </p>
+                  <div className="mt-5 pt-4 border-t border-white/[0.06]">
+                    <Magnetic>
+                      <Link href="/counsellors" className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[.08em] text-[#c3f340] hover:text-[#dff77d] transition-colors">
+                        View Counsellors <ArrowUpRight size={13} />
+                      </Link>
+                    </Magnetic>
                   </div>
+                </TiltCard>
+              </div>
+
+              {/* Resources */}
+              <div className="stagger-item">
+                <TiltCard maxTilt={2} className="h-full flex flex-col border border-white/[0.09] bg-[#141414]/90 p-6 backdrop-blur-xl transition-all hover:border-white/20 rounded-xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="grid h-10 w-10 place-items-center rounded-lg bg-[rgba(195,243,64,.1)] text-[#c3f340] border border-[#c3f340]/20">
+                      <Compass size={18} />
+                    </div>
+                    <h4 className="font-semibold text-white">Well-being Resources</h4>
+                  </div>
+                  <p className="flex-1 text-sm text-white/70 leading-relaxed">
+                    Self-guided reading, interactive guides, and tools designed to help you manage stress and build academic resilience.
+                  </p>
+                  <div className="mt-5 pt-4 border-t border-white/[0.06]">
+                    <Magnetic>
+                      <Link href="/resources" className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[.08em] text-[#c3f340] hover:text-[#dff77d] transition-colors">
+                        Browse Resources <ArrowUpRight size={13} />
+                      </Link>
+                    </Magnetic>
+                  </div>
+                </TiltCard>
+              </div>
+
+              {/* AI Support Space */}
+              <div className="stagger-item">
+                <TiltCard maxTilt={2} className="h-full flex flex-col border border-white/[0.09] bg-[#141414]/90 p-6 backdrop-blur-xl transition-all hover:border-white/20 rounded-xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 place-items-center rounded-lg bg-[rgba(195,243,64,.1)] text-[#c3f340] border border-[#c3f340]/20">
+                        <MessageCircle size={18} />
+                      </div>
+                      <h4 className="font-semibold text-white">AI Support Space</h4>
+                    </div>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#c3f340] border border-[#c3f340]/30 bg-[#c3f340]/10 px-2 py-1 rounded">Active</span>
+                  </div>
+                  <p className="flex-1 text-sm text-white/70 leading-relaxed">
+                    A secure, interactive space to think out loud, reflect on your pacing, and explore support options dynamically.
+                  </p>
+                  <div className="mt-5 pt-4 border-t border-white/[0.06]">
+                    <Magnetic>
+                      <Link href="/support/ai" className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[.08em] text-[#c3f340] hover:text-[#dff77d] transition-colors">
+                        Open Support Space <ArrowUpRight size={13} />
+                      </Link>
+                    </Magnetic>
+                  </div>
+                </TiltCard>
+              </div>
+
+              {/* Support Circles */}
+              <div className="stagger-item">
+                <TiltCard maxTilt={2} className="h-full flex flex-col border border-white/[0.09] bg-[#141414]/90 p-6 backdrop-blur-xl transition-all hover:border-white/20 rounded-xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 place-items-center rounded-lg bg-[rgba(195,243,64,.1)] text-[#c3f340] border border-[#c3f340]/20">
+                        <Users size={18} />
+                      </div>
+                      <h4 className="font-semibold text-white">Support Circles</h4>
+                    </div>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#c3f340] border border-[#c3f340]/30 bg-[#c3f340]/10 px-2 py-1 rounded">Active</span>
+                  </div>
+                  <p className="flex-1 text-sm text-white/70 leading-relaxed">
+                    Small, peer-led groups moderated by institutional staff. Connect with students facing similar academic experiences.
+                  </p>
+                  <div className="mt-5 pt-4 border-t border-white/[0.06]">
+                    <Magnetic>
+                      <Link href="/support/circles" className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[.08em] text-[#c3f340] hover:text-[#dff77d] transition-colors">
+                        Explore Circles <ArrowUpRight size={13} />
+                      </Link>
+                    </Magnetic>
+                  </div>
+                </TiltCard>
+              </div>
+
+            </StaggerContainer>
+          </div>
+
+          <div className="space-y-6">
+            {/* Sidebar Context */}
+            {prefsLoading || checkInsLoading ? (
+               <div className="h-48 border border-white/[0.05] bg-white/[0.02] rounded-xl animate-pulse" />
+            ) : hasConsent ? (
+              <TiltCard maxTilt={2} className="border border-[rgba(195,243,64,0.15)] bg-[#141414]/90 p-6 backdrop-blur-xl rounded-xl">
+                <div className="flex items-center gap-2 mb-4">
+                  <HeartPulse size={16} className="text-[#c3f340]" />
+                  <h3 className="font-semibold text-white text-sm">Well-being Context</h3>
                 </div>
-              )}
-              <div ref={bottomRef} />
-            </div>
+                {latestCheckIn ? (
+                  <div>
+                    <p className="text-xs text-white/60 mb-4 leading-relaxed">
+                      Your recent check-in on <strong className="text-white">{latestCheckIn.date}</strong> can help guide which support you might need today.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                       <div className="bg-white/[0.03] rounded p-2 text-center border border-white/[0.05]">
+                         <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Stress</div>
+                         <div className="text-sm font-semibold text-white">{latestCheckIn.stress} / 5</div>
+                       </div>
+                       <div className="bg-white/[0.03] rounded p-2 text-center border border-white/[0.05]">
+                         <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Energy</div>
+                         <div className="text-sm font-semibold text-white">{latestCheckIn.energy} / 5</div>
+                       </div>
+                    </div>
+                    {latestCheckIn.reflection && (
+                       <div className="bg-white/[0.02] p-3 rounded border border-white/[0.04] text-xs text-white/60 italic">
+                         &quot;{latestCheckIn.reflection}&quot;
+                       </div>
+                    )}
+                    <div className="mt-5 pt-4 border-t border-white/[0.06]">
+                      <Link href="/check-in/history" className="text-[10px] font-bold uppercase tracking-[.08em] text-[#c3f340] hover:underline flex items-center gap-1">
+                        View History <ArrowUpRight size={12} />
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-xs text-white/60 mb-4 leading-relaxed">
+                      You haven&apos;t completed any check-ins yet. Doing so can help you map your well-being over time.
+                    </p>
+                    <Link href="/check-in" className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[#0d1408] bg-[#c3f340] px-3 py-1.5 rounded transition-all hover:scale-105">
+                      Check in now
+                    </Link>
+                  </div>
+                )}
+              </TiltCard>
+            ) : (
+              <TiltCard maxTilt={1} className="border border-white/[0.05] bg-white/[0.02] p-6 rounded-xl">
+                 <div className="flex items-center gap-2 mb-3">
+                   <LockKeyhole size={16} className="text-white/40" />
+                   <h3 className="font-semibold text-white/60 text-sm">Well-being Context Hidden</h3>
+                 </div>
+                 <p className="text-xs text-white/40 leading-relaxed mb-4">
+                   You have not provided consent for well-being check-ins. Your support choices remain completely private and independent of any metrics.
+                 </p>
+                 <Link href="/settings" className="text-[10px] font-bold uppercase tracking-[.08em] text-white/50 hover:text-white border border-white/10 px-3 py-1.5 rounded inline-block transition-colors">
+                    Update Settings
+                 </Link>
+              </TiltCard>
+            )}
 
-            {/* Input area */}
-            <div className="border-t border-white/[0.08] p-4 bg-white/[0.01] shrink-0">
-              <div className="mb-3 flex flex-wrap gap-2">
-                {QUICK_PROMPTS.map((x) => (
-                  <Magnetic key={x}>
-                    <button
-                      onClick={() => send(x)}
-                      data-testid={`button-support-prompt-${x}`}
-                      className="border border-white/[0.09] bg-white/[0.02] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.06em] text-white/50 transition-all duration-150 hover:border-[#c3f340]/40 hover:text-white rounded"
-                    >
-                      {x}
-                    </button>
-                  </Magnetic>
-                ))}
+            {/* Follow up card */}
+            <TiltCard maxTilt={2} className="border border-white/[0.05] bg-[#141414]/80 p-6 rounded-xl">
+              <div className="flex items-center gap-2 mb-3">
+                <Clock size={16} className="text-white/50" />
+                <h3 className="font-semibold text-white/80 text-sm">Need Follow-up?</h3>
               </div>
-              <div className="flex gap-2">
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  data-testid="input-support-message"
-                  placeholder="Write what's on your mind..."
-                  className="flex-1 border border-white/[0.09] bg-white/[0.02] px-4 py-2.5 text-sm text-white/85 outline-none placeholder:text-white/25 focus:border-[#c3f340]/50 transition-colors duration-150 rounded"
-                />
-                <Magnetic>
-                  <button
-                    onClick={() => send()}
-                    disabled={sending || !input.trim()}
-                    className="border border-[#c3f340]/40 bg-[#141414] px-4 py-2.5 text-[#dff77d] transition-all duration-150 hover:bg-[#c3f340] hover:text-[#0d1408] disabled:opacity-30 rounded shadow-[0_0_12px_rgba(195,243,64,0.2)]"
-                    aria-label="Send"
-                  >
-                    <Send size={15} />
-                  </button>
-                </Magnetic>
-              </div>
-            </div>
-          </section>
+              <p className="text-xs text-white/50 leading-relaxed mb-4">
+                If you previously met with a counsellor or used a resource and want to provide feedback or schedule a follow-up, you can manage that here.
+              </p>
+              <button disabled className="text-[10px] font-bold uppercase tracking-[.08em] text-white/30 border border-white/5 px-3 py-1.5 rounded cursor-not-allowed">
+                No active follow-ups
+              </button>
+            </TiltCard>
+          </div>
+        </div>
 
-          {/* Right sidebar */}
-          <aside className="space-y-3">
-            <TiltCard maxTilt={3} className="border border-white/[0.09] bg-[#141414]/90 p-6 backdrop-blur-xl">
-              <p className="serenity-label text-white/40">What this space is for</p>
-              <p className="mt-3 text-xs leading-relaxed text-white/50">
-                Practical support: study planning, stress strategies, and help finding the right person. Not a clinical service.
-              </p>
-            </TiltCard>
-            <TiltCard maxTilt={3} spotlightColor="rgba(195, 243, 64, 0.12)" className="border border-white/[0.09] bg-[hsl(var(--card))]/90 p-6 backdrop-blur-xl">
-              <p className="serenity-label text-[#c3f340]">Need a person?</p>
-              <p className="mt-3 text-xs leading-relaxed text-white/50">
-                If you&apos;d prefer to talk with someone directly, your institution&apos;s counsellors are a short step away.
-              </p>
-              <Magnetic>
-                <Link
-                  href="/counsellors"
-                  className="mt-5 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[#dff77d] transition-opacity hover:opacity-75"
-                >
-                  View available counsellors <ArrowUpRight size={12} />
-                </Link>
-              </Magnetic>
-            </TiltCard>
-          </aside>
+        {/* Modular Support Matching Section */}
+        <div className="pt-6 border-t border-white/[0.08] space-y-12">
+          <SupportMatching />
+          <SupportRecommendations />
         </div>
       </div>
     </AppShell>
   );
 }
-
-export default function SupportPage() {
-  return (
-    <Suspense fallback={null}>
-      <SupportContent />
-    </Suspense>
-  );
-}
-
-export const dynamic = 'force-dynamic';

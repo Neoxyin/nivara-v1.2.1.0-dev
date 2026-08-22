@@ -10,13 +10,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function ProfilePage() {
   const queryClient = useQueryClient();
-  const { data: student } = useQuery({ queryKey: ['student'], queryFn: getCurrentUser });
+  const { data: student, isLoading, isError } = useQuery({ queryKey: ['student'], queryFn: getCurrentUser });
 
   // Sync local state once student data resolves
   const [name, setName] = useState('');
   const [course, setCourse] = useState('');
   const [year, setYear] = useState('2');
   const [saved, setSaved] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     if (student) {
@@ -36,7 +37,12 @@ export default function ProfilePage() {
   });
 
   const handleSave = () => {
-    updateMutation.mutate({ name });
+    if (!name.trim() || !course.trim()) {
+      setErrorMsg('Name and course cannot be empty.');
+      return;
+    }
+    setErrorMsg('');
+    updateMutation.mutate({ name, course, year: Number(year) });
   };
 
   const initials = name
@@ -45,6 +51,26 @@ export default function ProfilePage() {
     .join('')
     .toUpperCase()
     .slice(0, 2);
+
+  if (isLoading) {
+    return (
+      <AppShell>
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <span className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-[#c3f340]" />
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (isError) {
+    return (
+      <AppShell>
+        <div className="flex min-h-[50vh] items-center justify-center text-rose-400">
+          Failed to load profile data.
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
@@ -55,7 +81,7 @@ export default function ProfilePage() {
           description="Keep the basics current so Nivara can keep its language and suggestions relevant."
         />
 
-        <div className="grid grid-cols-[.75fr_1.25fr] gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-[.75fr_1.25fr] gap-4">
           {/* Identity card */}
           <TiltCard maxTilt={4} spotlightColor="rgba(195, 243, 64, 0.15)" className="bg-[#141414]/90 p-9 text-white border border-white/[0.08] backdrop-blur-xl">
             <Magnetic>
@@ -131,6 +157,12 @@ export default function ProfilePage() {
               {saved && (
                 <span className="text-[11px] font-bold text-[#c3f340] drop-shadow-[0_0_8px_#c3f340]">✓ Saved</span>
               )}
+              {errorMsg && (
+                <span className="text-xs text-rose-400">{errorMsg}</span>
+              )}
+              {updateMutation.isError && !errorMsg && (
+                <span className="text-xs text-rose-400">Failed to save profile.</span>
+              )}
             </div>
           </TiltCard>
         </div>
@@ -139,4 +171,4 @@ export default function ProfilePage() {
   );
 }
 
-export const dynamic = 'force-dynamic';
+

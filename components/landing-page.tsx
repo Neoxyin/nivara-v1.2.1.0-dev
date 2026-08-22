@@ -1,17 +1,59 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, Check, LockKeyhole, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  LockKeyhole,
+  Sparkles,
+  ShieldCheck,
+  Activity,
+  BookOpen,
+  UsersRound,
+  Clock3,
+  Lock,
+} from 'lucide-react';
 import gsap from 'gsap';
 import { TextReveal } from '@/components/ui/text-reveal';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
 import { FluidBackground } from '@/components/ui/fluid-background';
+import { RoleSelectionPopin } from '@/components/auth/role-selection-popin';
+import { HelpModal } from '@/components/shared/help-modal';
+import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
+import { Pill } from '@/components/shared/pill';
 
 export function LandingPage() {
+  const router = useRouter();
   const heroRef = useRef<HTMLDivElement>(null);
   const showcaseRef = useRef<HTMLDivElement>(null);
+  const [isPopinOpen, setIsPopinOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [savedRole, setSavedRole] = useState<'student' | 'counsellor' | null>(null);
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const authenticated = window.localStorage.getItem('nivara_authenticated') === 'true';
+      const role = window.localStorage.getItem('nivara_user_role') as 'student' | 'counsellor' | null;
+      if (authenticated && role && (role === 'student' || role === 'counsellor')) {
+        setIsAuth(true);
+        setSavedRole(role);
+      }
+
+      // Check if redirected because auth was required
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('auth') === 'required' || !authenticated) {
+        if (searchParams.get('auth') === 'required') {
+          setIsPopinOpen(true);
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -56,9 +98,9 @@ export function LandingPage() {
         )
         .fromTo(
           showcaseRef.current,
-          { opacity: 0, x: 40, rotateY: 15, scale: 0.95 },
-          { opacity: 1, x: 0, rotateY: 0, scale: 1, duration: 1 },
-          '-=0.8'
+          { opacity: 0, x: 30, rotateY: 10, scale: 0.96 },
+          { opacity: 1, x: 0, rotateY: 0, scale: 1, duration: 0.9 },
+          '-=0.7'
         );
     });
 
@@ -67,7 +109,7 @@ export function LandingPage() {
 
   return (
     <div className="page-grain relative min-h-[100dvh] overflow-hidden bg-[#0a0a0a] text-[#f0f0f0]">
-      {/* Interactive Unlumen Fluid Mesh Background */}
+      {/* Interactive Fluid Mesh Background */}
       <FluidBackground />
 
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -76,9 +118,10 @@ export function LandingPage() {
         <div className="ambient-ring-2 absolute right-[-12%] top-[25%] h-[440px] w-[640px] rounded-full border border-white/[0.06]" />
       </div>
 
+      {/* Header */}
       <header className="relative z-20 flex items-center justify-between px-6 py-4 md:px-12 md:py-5">
         <Magnetic>
-          <Link href="/" className="group inline-flex items-center gap-3">
+          <Link href="/" className="group inline-flex items-center gap-3" aria-label="Nivara Home">
             <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#c3f340] text-[#0d1408] shadow-[0_0_15px_rgba(195,243,64,0.4)] transition-transform duration-200 ease-out group-hover:rotate-12 group-hover:scale-110">
               <Sparkles size={15} strokeWidth={2.7} />
             </span>
@@ -88,30 +131,32 @@ export function LandingPage() {
           </Link>
         </Magnetic>
 
-        <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="hidden px-3 py-2 text-[10px] font-bold uppercase tracking-[.16em] text-white/55 transition hover:text-white md:block"
+        <div className="flex items-center gap-2.5 sm:gap-4">
+          <button
+            type="button"
+            onClick={() => setIsAboutOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[11px] font-bold uppercase tracking-[.1em] text-white/70 hover:border-[#c3f340]/40 hover:bg-[#c3f340]/10 hover:text-[#dff77d] transition-all"
           >
-            Open student space
-          </Link>
-          <Magnetic>
-            <Link
-              href="/dashboard"
-              className="pressable btn-sweep inline-flex items-center gap-2 border border-[#c3f340]/30 bg-[#141414] px-5 py-2.5 text-[10px] font-bold uppercase tracking-[.15em] text-[#eff7dd] shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition hover:text-[#0d1408] hover:border-[#c3f340]"
-            >
-              Get started <ArrowUpRight size={13} />
-            </Link>
-          </Magnetic>
+            About Nivara
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsHelpOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[11px] font-bold uppercase tracking-[.1em] text-white/70 hover:border-white/25 hover:bg-white/[0.06] hover:text-white transition-all"
+          >
+            Help
+          </button>
         </div>
       </header>
 
       <main className="relative z-10">
+        {/* Hero Section */}
         <section
           ref={heroRef}
-          className="mx-auto grid max-w-[1440px] items-center gap-10 px-6 pb-14 pt-4 sm:pt-6 md:px-12 md:pb-20 md:pt-6 lg:grid-cols-[1.1fr_.9fr] lg:pt-8"
+          className="mx-auto grid max-w-[1440px] items-center gap-10 px-6 pb-14 pt-4 sm:pt-6 md:px-12 md:pb-20 md:pt-6 lg:grid-cols-[1.15fr_.85fr] lg:pt-8"
         >
-          <div className="relative z-10">
+          <div className="relative z-10 text-left">
             <div className="hero-badge">
               <p className="serenity-label inline-flex items-center gap-2 rounded-full border border-[#c3f340]/20 bg-[#c3f340]/[0.05] px-3.5 py-1 text-[#c3f340]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#c3f340] animate-pulse" />
@@ -131,157 +176,254 @@ export function LandingPage() {
               </em>
             </h1>
 
-            <p className="hero-desc mt-4 max-w-[540px] text-[14px] leading-6 text-white/60 md:text-[15px]">
-              Nivara brings your well-being, academic signals, and support options into one private space — so you can notice what is changing before it becomes too much.
+            <p className="hero-desc mt-4 max-w-[540px] text-[14px] leading-6 text-white/65 md:text-[15px]">
+              Nivara bridges academic performance and mental well-being into one cohesive platform — so you can balance study energy and prevent burnout before crunch weeks arrive.
             </p>
 
-            <div className="hero-actions mt-6 flex flex-wrap gap-3.5">
-              <Magnetic>
-                <Link
-                  href="/dashboard"
-                  className="pressable btn-sweep inline-flex items-center gap-2 border border-[#c3f340] bg-[#c3f340] px-6 py-3 text-xs font-extrabold uppercase tracking-[.12em] text-[#0d1408] shadow-[0_0_25px_rgba(195,243,64,0.35)] transition hover:border-[#c3f340] hover:scale-105"
-                >
-                  Enter your space <ArrowUpRight size={14} />
-                </Link>
-              </Magnetic>
+            {/* Direct Role Entry Points */}
+            <div className="hero-actions mt-7 flex flex-wrap items-center gap-3.5">
+              {isAuth && savedRole ? (
+                <Magnetic>
+                  <Link
+                    href={savedRole === 'counsellor' ? '/counsellor' : '/student'}
+                    className="pressable btn-sweep inline-flex items-center gap-2 border border-[#c3f340] bg-[#c3f340] px-6 py-3.5 text-xs font-extrabold uppercase tracking-[.12em] text-[#0d1408] shadow-[0_0_25px_rgba(195,243,64,0.35)] transition hover:border-[#c3f340] hover:scale-105"
+                  >
+                    Open {savedRole === 'counsellor' ? 'Counsellor Portal' : 'Student Space'} <ArrowRight size={14} />
+                  </Link>
+                </Magnetic>
+              ) : (
+                <>
+                  <Magnetic>
+                    <button
+                      type="button"
+                      onClick={() => setIsPopinOpen(true)}
+                      className="pressable btn-sweep inline-flex items-center gap-2 border border-[#c3f340] bg-[#c3f340] px-6 py-3.5 text-xs font-extrabold uppercase tracking-[.12em] text-[#0d1408] shadow-[0_0_25px_rgba(195,243,64,0.35)] transition hover:border-[#c3f340] hover:scale-105"
+                    >
+                      Choose Your Space <ArrowRight size={14} />
+                    </button>
+                  </Magnetic>
 
-              <Magnetic>
-                <Link
-                  href="/check-in"
-                  className="inline-flex items-center gap-2 border border-white/15 bg-white/[0.03] px-6 py-3 text-xs font-extrabold uppercase tracking-[.12em] text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/[0.08]"
-                >
-                  Try a one-minute check-in
-                </Link>
-              </Magnetic>
+                  <Magnetic>
+                    <Link
+                      href="/check-in"
+                      className="inline-flex items-center gap-2 border border-white/15 bg-white/[0.03] px-6 py-3.5 text-xs font-extrabold uppercase tracking-[.12em] text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/[0.08]"
+                    >
+                      Try 1-Min Check-in
+                    </Link>
+                  </Magnetic>
+                </>
+              )}
             </div>
 
-            <div className="hero-trust mt-6 flex flex-wrap gap-x-7 gap-y-2 text-[10px] uppercase tracking-[.18em] text-white/35">
+            <div className="hero-trust mt-6 flex flex-wrap gap-x-7 gap-y-2 text-[10px] uppercase tracking-[.18em] text-white/40">
               <span className="inline-flex items-center gap-2">
                 <Check size={12} className="text-[#c3f340]" /> private by design
               </span>
               <span className="inline-flex items-center gap-2">
-                <Check size={12} className="text-[#c3f340]" /> signals, not verdicts
+                <Check size={12} className="text-[#c3f340]" /> role-based access
               </span>
               <span className="inline-flex items-center gap-2">
-                <Check size={12} className="text-[#c3f340]" /> human support
+                <Check size={12} className="text-[#c3f340]" /> zero surveillance
               </span>
             </div>
           </div>
 
-          {/* 3D Interactive Tilt Showcase */}
-          <div ref={showcaseRef} className="relative flex justify-center w-full min-h-[460px] lg:min-h-[500px]">
-            <div className="ambient-ring-1 absolute right-[2%] top-[4%] h-[400px] w-[88%] rotate-[5deg] border border-[#c3f340]/20 bg-[#c3f340]/[0.03] shadow-[0_0_100px_rgba(195,243,64,.08)] md:h-[460px]" />
+          {/* 3D Showcase Card */}
+          <div ref={showcaseRef} className="relative flex justify-center w-full min-h-[440px] lg:min-h-[480px]">
+            <div className="ambient-ring-1 absolute right-[2%] top-[4%] h-[380px] w-[88%] rotate-[5deg] border border-[#c3f340]/20 bg-[#c3f340]/[0.03] shadow-[0_0_90px_rgba(195,243,64,.08)] md:h-[430px]" />
             <TiltCard
               maxTilt={2.5}
               spotlightColor="rgba(195, 243, 64, 0.18)"
-              className="relative z-10 flex flex-col justify-between h-full min-h-[420px] md:min-h-[460px] w-full max-w-[480px] border border-white/[0.12] bg-[#111]/90 p-8 shadow-[0_30px_100px_rgba(0,0,0,.7)] backdrop-blur-2xl md:p-9"
+              className="relative z-10 flex flex-col justify-between h-full min-h-[400px] md:min-h-[440px] w-full max-w-[460px] border border-white/[0.12] bg-[#111]/90 p-8 shadow-[0_30px_90px_rgba(0,0,0,.75)] backdrop-blur-2xl text-left"
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="serenity-label text-white/45">Nivara / today</span>
+                  <span className="serenity-label text-white/45">Nivara / Early Signal</span>
                   <span className="h-2 w-2 animate-pulse rounded-full bg-[#c3f340] shadow-[0_0_14px_rgba(195,243,64,1)]" />
                 </div>
-                <p className="mt-8 font-display text-4xl leading-[.95] md:text-5xl text-white">
+                <p className="mt-7 font-display text-3xl sm:text-4xl leading-[1.0] text-white">
                   A small plan is still a plan.
                 </p>
-              </div>
-              <div className="mt-auto pt-6 border-t border-white/10">
-                <p className="serenity-label text-white/35">Early signal</p>
-                <p className="mt-2 text-sm leading-6 text-white/60">
-                  Your workload is concentrating. Nivara helps you see why, then choose what to do next.
+                <p className="mt-3 text-xs sm:text-sm text-white/55 leading-relaxed">
+                  Your coursework velocity and stress rhythms are gently evaluated with zero surveillance.
                 </p>
-                <div className="mt-5 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.16em] text-[#c3f340]">
-                  <LockKeyhole size={13} /> your context stays yours
+              </div>
+
+              <div className="mt-6 pt-5 border-t border-white/10">
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3">
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider">Rhythm Score</p>
+                    <p className="text-xl font-bold text-[#c3f340] mt-0.5">78% Stable</p>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3">
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider">Check-in Status</p>
+                    <p className="text-xl font-bold text-white mt-0.5">1-Min Logged</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.16em] text-[#c3f340]">
+                  <LockKeyhole size={12} /> your personal context stays yours
                 </div>
               </div>
             </TiltCard>
           </div>
         </section>
 
-        {/* 3 Steps section */}
-        <section className="border-y border-white/[0.08] bg-[#0e0e0e]/90 px-6 py-16 backdrop-blur-md md:px-12 md:py-24">
-          <div className="mx-auto grid max-w-[1440px] gap-12 md:grid-cols-[.62fr_1.38fr]">
-            <div>
-              <p className="serenity-label text-[#c3f340]/70">One place, many signals</p>
-              <h2 className="mt-4 max-w-xl font-display text-5xl leading-[.92] md:text-6xl">
-                Support that sees the whole picture.
+        {/* Core Pillars & Mission Section */}
+        <section id="pillars" className="scroll-mt-12 border-y border-white/[0.08] bg-[#0d0d0d]/90 px-6 py-16 backdrop-blur-md md:px-12 md:py-20">
+          <div className="mx-auto max-w-[1440px]">
+            <div className="mb-12 text-left">
+              <p className="serenity-label text-[#c3f340]/80">Core Pillars & Mission</p>
+              <h2 className="mt-2 max-w-2xl font-display text-4xl leading-[.94] md:text-5xl text-white">
+                Support designed for the whole student.
               </h2>
-              <p className="mt-6 max-w-md text-sm leading-6 text-white/45">
-                Notice patterns, understand what may be contributing, and move before the week becomes overwhelming.
+              <p className="mt-3 max-w-2xl text-xs sm:text-sm text-white/55 leading-relaxed">
+                Bridging academic performance and mental well-being through proactive, private, and explainable tools.
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                ['01', 'Notice patterns', 'Daily check-ins make the invisible parts of your week easier to name.'],
-                ['02', 'Understand signals', 'See what may be contributing, with certainty language that never overclaims.'],
-                ['03', 'Choose your next move', 'A plan, a resource, or a person — support stays in your hands.'],
-              ].map(([num, title, text]) => (
-                <TiltCard
-                  key={num}
-                  maxTilt={2}
-                  spotlightColor="rgba(195, 243, 64, 0.12)"
-                  className="border border-white/[0.08] bg-[#121212]/95 p-7 backdrop-blur-xl"
-                >
-                  <p className="font-display text-4xl text-white/30">{num}</p>
-                  <h3 className="mt-14 text-sm font-extrabold text-white">{title}</h3>
-                  <p className="mt-3 text-xs leading-5 text-white/45">{text}</p>
-                </TiltCard>
-              ))}
+
+            <div className="grid gap-5 sm:grid-cols-3 text-left">
+              <TiltCard
+                maxTilt={2}
+                spotlightColor="rgba(195, 243, 64, 0.12)"
+                className="border border-white/[0.08] bg-[#121212]/95 p-7 backdrop-blur-xl"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-display text-3xl text-[#c3f340]">01</p>
+                  <Clock3 size={20} className="text-[#c3f340]/70" />
+                </div>
+                <h3 className="mt-8 text-base font-bold text-white">Daily Well-being Check-ins</h3>
+                <p className="mt-2 text-xs leading-5 text-white/50">
+                  Frictionless 1-minute daily morning reflections capturing workload friction, stress rhythms, and recovery curves without survey fatigue.
+                </p>
+              </TiltCard>
+
+              <TiltCard
+                maxTilt={2}
+                spotlightColor="rgba(195, 243, 64, 0.12)"
+                className="border border-white/[0.08] bg-[#121212]/95 p-7 backdrop-blur-xl"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-display text-3xl text-[#c3f340]">02</p>
+                  <UsersRound size={20} className="text-[#c3f340]/70" />
+                </div>
+                <h3 className="mt-8 text-base font-bold text-white">Counsellor Connectivity</h3>
+                <p className="mt-2 text-xs leading-5 text-white/50">
+                  Confidential 20-minute appointment scheduling and drop-in spaces connecting students directly with licensed university support specialists.
+                </p>
+              </TiltCard>
+
+              <TiltCard
+                maxTilt={2}
+                spotlightColor="rgba(195, 243, 64, 0.12)"
+                className="border border-white/[0.08] bg-[#121212]/95 p-7 backdrop-blur-xl"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-display text-3xl text-[#c3f340]">03</p>
+                  <BookOpen size={20} className="text-[#c3f340]/70" />
+                </div>
+                <h3 className="mt-8 text-base font-bold text-white">Academic Tracking</h3>
+                <p className="mt-2 text-xs leading-5 text-white/50">
+                  Real-time assignment velocity, deadline clustering awareness, and pacing risk calibration to prevent crunch burnout before crunch weeks arrive.
+                </p>
+              </TiltCard>
             </div>
           </div>
         </section>
 
-        {/* Pillars section */}
-        <section className="mx-auto max-w-[1440px] px-6 py-20 md:px-12 md:py-28">
-          <div className="grid items-end gap-10 md:grid-cols-[1fr_.72fr]">
-            <div>
-              <p className="serenity-label text-[#c3f340]/70">Built around the student</p>
-              <h2 className="mt-5 max-w-3xl font-display text-6xl leading-[.88] md:text-8xl">
-                You do not have to wait until it is a crisis.
-              </h2>
-            </div>
-            <p className="max-w-sm text-sm leading-6 text-white/45">
-              Nivara is not here to diagnose you or replace people. It is a practical, private companion for noticing, planning, and reaching out sooner.
-            </p>
-          </div>
+        {/* Privacy & Security Commitments Highlight */}
+        <section className="px-6 py-14 md:px-12 md:py-16">
+          <div className="mx-auto max-w-[1440px]">
+            <TiltCard
+              maxTilt={1.5}
+              spotlightColor="rgba(195, 243, 64, 0.1)"
+              className="relative overflow-hidden rounded-2xl border border-white/[0.1] bg-[#121212]/90 p-8 md:p-10 backdrop-blur-2xl text-left"
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="max-w-2xl">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck size={16} className="text-[#c3f340]" />
+                    <span className="serenity-label text-[#c3f340]">Data Privacy & Security Guarantee</span>
+                  </div>
+                  <h3 className="mt-3 font-display text-2xl sm:text-3xl text-white">
+                    Confidential by Design. Zero Surveillance.
+                  </h3>
+                  <p className="mt-2 text-xs sm:text-sm text-white/60 leading-relaxed">
+                    Student logs and well-being reflections are private and student-authoritative. Nivara uses strict Role-Based Access Control (RBAC) and client-grade confidentiality to keep workspaces completely segregated.
+                  </p>
+                </div>
 
-          <div className="mt-20 grid gap-4 md:grid-cols-3">
-            <TiltCard maxTilt={2} className="border border-white/[0.08] bg-[#121212]/90 p-8 backdrop-blur-xl">
-              <p className="serenity-label text-[#c3f340]">01 / check-in</p>
-              <p className="mt-10 font-display text-3xl text-white">One minute. Every day.</p>
-              <p className="mt-3 text-sm leading-6 text-white/45">
-                A low-friction snapshot of mood, energy, sleep, stress, and workload.
-              </p>
+                <div className="flex flex-wrap gap-2.5 shrink-0">
+                  <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-3.5 py-2">
+                    <p className="text-[10px] font-mono text-white/40 uppercase">Access Model</p>
+                    <p className="text-xs font-bold text-white mt-0.5">Strict RBAC Segregation</p>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] px-3.5 py-2">
+                    <p className="text-[10px] font-mono text-white/40 uppercase">Privacy Policy</p>
+                    <p className="text-xs font-bold text-[#c3f340] mt-0.5">Zero Algorithmic Surveillance</p>
+                  </div>
+                </div>
+              </div>
             </TiltCard>
-
-            <TiltCard maxTilt={2} className="border border-white/[0.08] bg-[#121212]/90 p-8 backdrop-blur-xl">
-              <p className="serenity-label text-[#c3f340]">02 / insights</p>
-              <p className="mt-10 font-display text-3xl text-white">Signals, explained simply.</p>
-              <p className="mt-3 text-sm leading-6 text-white/45">
-                Context-rich trends that show what changed and what might help next.
-              </p>
-            </TiltCard>
-
-            <TiltCard maxTilt={2} className="border border-white/[0.08] bg-[#121212]/90 p-8 backdrop-blur-xl">
-              <p className="serenity-label text-[#c3f340]">03 / support</p>
-              <p className="mt-10 font-display text-3xl text-white">Human when you need it.</p>
-              <p className="mt-3 text-sm leading-6 text-white/45">
-                Resources, practical guidance, and a direct path to institutional counsellors.
-              </p>
-            </TiltCard>
-          </div>
-
-          <div className="mt-16 flex flex-wrap items-center justify-between gap-6 border-t border-white/[0.08] pt-6 text-[10px] uppercase tracking-[.16em] text-white/35">
-            <span>Built for students, with students.</span>
-            <span>Private · explainable · human</span>
-            <Magnetic>
-              <Link href="/dashboard" className="font-extrabold text-[#c3f340] hover:underline">
-                Open Nivara <ArrowUpRight className="ml-1 inline" size={13} />
-              </Link>
-            </Magnetic>
           </div>
         </section>
+
+        {/* Minimal Footer */}
+        <footer className="mx-auto max-w-[1440px] px-6 py-10 md:px-12 border-t border-white/[0.06]">
+          <div className="flex flex-wrap items-center justify-between gap-6 text-[11px] uppercase tracking-[.14em] text-white/40">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#c3f340]" />
+              <span>Nivara · Holistic Student Success & Well-being</span>
+            </div>
+
+            <div className="flex items-center gap-6">
+              <button
+                type="button"
+                onClick={() => {
+                  if (isAuth && savedRole === 'student') {
+                    router.push('/student');
+                  } else {
+                    setIsPopinOpen(true);
+                  }
+                }}
+                className="font-bold text-white/60 hover:text-[#c3f340] transition-colors"
+              >
+                Student Space <ArrowUpRight className="ml-0.5 inline" size={12} />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (isAuth && savedRole === 'counsellor') {
+                    router.push('/counsellor');
+                  } else {
+                    setIsPopinOpen(true);
+                  }
+                }}
+                className="font-bold text-white/60 hover:text-[#c3f340] transition-colors"
+              >
+                Counsellor Portal <ArrowUpRight className="ml-0.5 inline" size={12} />
+              </button>
+            </div>
+          </div>
+        </footer>
       </main>
+
+      {/* Initial First-Visit Role Selection Pop-in */}
+      <RoleSelectionPopin
+        forceOpen={isPopinOpen}
+        onClose={() => setIsPopinOpen(false)}
+      />
+
+      {/* Lightweight Help & FAQ Modal */}
+      <HelpModal
+        isOpen={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+      />
+
+      {/* Official Vision & Mission About Modal */}
+      <AboutNivaraModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+      />
     </div>
   );
 }

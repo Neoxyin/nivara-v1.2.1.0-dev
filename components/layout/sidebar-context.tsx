@@ -45,7 +45,11 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 export function useSidebar() {
   const context = useContext(SidebarContext);
   if (!context) {
-    throw new Error('useSidebar must be used within a SidebarProvider');
+    return {
+      collapsed: false,
+      setCollapsed: () => {},
+      toggleSidebar: () => {},
+    };
   }
   return context;
 }

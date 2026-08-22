@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Bell,
   BookOpen,
   BrainCircuit,
   ChevronRight,
@@ -16,22 +15,33 @@ import {
   PanelLeftOpen,
   Settings,
   UsersRound,
+  Home,
+  HelpCircle,
+  Sparkles,
+  LogOut,
+  Landmark,
+  HeartPulse,
 } from 'lucide-react';
 import gsap from 'gsap';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, logoutUser, isAuthenticated, getStoredRole } from '@/lib/auth';
 import { Mark } from '../shared/mark';
 import { FluidBackground } from '@/components/ui/fluid-background';
 import { Magnetic } from '@/components/ui/magnetic';
 import { useSidebar } from './sidebar-context';
+import { StudentNotifications } from './student-notifications';
+import { StudentWalkthrough } from '@/components/dashboard/student-walkthrough';
+import { HelpModal } from '@/components/shared/help-modal';
+import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
 
 const nav = [
   { href: '/dashboard', label: 'Today', icon: LayoutDashboard },
   { href: '/check-in', label: 'Check-in', icon: CircleUserRound },
   { href: '/academics', label: 'Academics', icon: BookOpen },
-  { href: '/insights', label: 'Insights', icon: BrainCircuit },
-  { href: '/support', label: 'Support space', icon: MessageCircle },
+  { href: '/support', label: 'Well-being Support', icon: HeartPulse },
   { href: '/counsellors', label: 'Counsellors', icon: UsersRound },
+  { href: '/financial-support', label: 'Financial', icon: Landmark },
   { href: '/resources', label: 'Resources', icon: Compass },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -40,7 +50,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const student = getCurrentUser();
   const mainContentRef = useRef<HTMLDivElement>(null);
   const { collapsed, toggleSidebar } = useSidebar();
+  const [showWalkthrough, setShowWalkthrough] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
 
+  // Strict session check is now handled centrally by Next.js middleware (middleware.ts)
+  
   // Sidebar custom scroller state
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isMouseInSidebar, setIsMouseInSidebar] = useState(false);
@@ -412,6 +427,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         <header className="sticky top-0 z-30 flex h-[64px] items-center justify-between border-b border-white/[0.07] bg-[#0a0a0a]/80 px-8 md:px-10 backdrop-blur-xl">
           <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="group flex items-center gap-2 mr-1 hover:opacity-90 transition-opacity"
+              title="Return to NIVARA Home"
+              aria-label="NIVARA Home"
+            >
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#c3f340] text-[#0d1408] shadow-[0_0_10px_rgba(195,243,64,0.35)] transition-transform duration-150 group-hover:scale-105 group-hover:rotate-6">
+                <Sparkles size={13} strokeWidth={2.6} />
+              </span>
+            </Link>
             <span className="h-1.5 w-1.5 rounded-full bg-[#c3f340] shadow-[0_0_12px_rgba(195,243,64,.7)] animate-pulse" />
             <span className="serenity-label text-white/35">
               {new Date().toLocaleDateString('en-GB', {
@@ -422,26 +447,70 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               })}
             </span>
           </div>
-          <div className="flex items-center gap-3">
-            <Magnetic>
-              <button
-                className="grid h-8 w-8 place-items-center rounded-full border border-white/[0.08] bg-white/[0.02] text-white/50 transition-colors hover:border-white/20 hover:bg-white/[0.06] hover:text-white"
-                aria-label="Notifications"
-              >
-                <Bell size={15} />
-              </button>
-            </Magnetic>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setShowAboutModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.02] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-white/70 hover:border-[#c3f340]/40 hover:bg-[#c3f340]/10 hover:text-[#dff77d] transition-all"
+              title="Overview of NIVARA's mission and architecture"
+            >
+              <Home size={11} />
+              <span className="hidden sm:inline">About Nivara</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowHelpModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.02] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-white/70 hover:border-white/20 hover:bg-white/[0.06] hover:text-white transition-all"
+              title="Help & FAQ"
+            >
+              <HelpCircle size={11} />
+              <span className="hidden sm:inline">Help</span>
+            </button>
+
+            <StudentNotifications onOpenWalkthrough={() => setShowWalkthrough(true)} />
             <Magnetic>
               <Link
                 href="/profile"
                 onMouseEnter={() => router.prefetch('/profile')}
                 className="grid h-7 w-7 place-items-center rounded-full bg-[#c3f340] text-[10px] font-extrabold text-[#0d1408] transition-all hover:scale-105 hover:shadow-[0_0_14px_rgba(195,243,64,0.5)]"
+                title="Student Profile"
               >
                 {student?.avatar || 'MC'}
               </Link>
             </Magnetic>
+
+            <button
+              type="button"
+              title="Sign Out of Student Space"
+              onClick={async () => {
+                await logoutUser();
+                router.push('/');
+              }}
+              className="inline-flex items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.02] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-white/50 hover:border-[#e5a27d]/40 hover:bg-[#e5a27d]/10 hover:text-[#f0ba9d] transition-all"
+            >
+              <LogOut size={11} /> <span className="hidden sm:inline">Sign Out</span>
+            </button>
           </div>
         </header>
+
+        {/* 1-Minute Pop-in Walkthrough Modal */}
+        <StudentWalkthrough
+          forceOpen={showWalkthrough}
+          onClose={() => setShowWalkthrough(false)}
+        />
+
+        {/* Help & FAQ Modal */}
+        <HelpModal
+          isOpen={showHelpModal}
+          onClose={() => setShowHelpModal(false)}
+        />
+
+        {/* Official Vision & Mission About Modal */}
+        <AboutNivaraModal
+          isOpen={showAboutModal}
+          onClose={() => setShowAboutModal(false)}
+        />
 
         <main ref={mainContentRef} className="mx-auto max-w-[1380px] px-8 py-8 md:px-10 md:py-9">
           {children}

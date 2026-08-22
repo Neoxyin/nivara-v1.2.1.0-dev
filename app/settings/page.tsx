@@ -1,18 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout/nivara-shell';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
-import { Bell, ShieldCheck, Info } from 'lucide-react';
+import { Bell, ShieldCheck, Info, LogOut } from 'lucide-react';
 import { getPreferences, savePreferences } from '@/lib/api/preferences';
+import { logoutUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ConsentPreference } from '@/lib/types';
 
 export default function SettingsPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: preferences } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
+  const { data: preferences, isLoading, isError } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
   const [prefs, setPrefs] = useState<ConsentPreference[]>([]);
   const [saved, setSaved] = useState(false);
   const [notificationsOn, setNotificationsOn] = useState(false);
@@ -65,12 +68,21 @@ export default function SettingsPage() {
             </div>
 
             <div className="divide-y divide-white/[0.07]">
-              {prefs.map((p) => (
-                <div
-                  key={p.key}
-                  className="flex items-center justify-between gap-6 px-8 py-5 transition-colors hover:bg-white/[0.01]"
-                  data-testid={`row-preference-${p.key}`}
-                >
+              {isLoading ? (
+                <div className="flex justify-center p-8">
+                  <span className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-[#c3f340]" />
+                </div>
+              ) : isError ? (
+                <div className="p-8 text-sm text-rose-400">
+                  Failed to load preferences.
+                </div>
+              ) : (
+                prefs.map((p) => (
+                  <div
+                    key={p.key}
+                    className="flex items-center justify-between gap-6 px-8 py-5 transition-colors hover:bg-white/[0.01]"
+                    data-testid={`row-preference-${p.key}`}
+                  >
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-white">{p.label}</p>
                     <p className="mt-1 max-w-md text-xs leading-5 text-white/40">{p.description}</p>
@@ -78,9 +90,10 @@ export default function SettingsPage() {
                   <button
                     role="switch"
                     aria-checked={p.enabled}
-                    onClick={() => toggle(p.key)}
+                    disabled={p.required}
+                    onClick={() => !p.required && toggle(p.key)}
                     data-testid={`switch-preference-${p.key}`}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-out focus:outline-none ${
+                    className={`relative inline-flex h-6 w-11 shrink-0 ${p.required ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} items-center rounded-full transition-colors duration-200 ease-out focus:outline-none ${
                       p.enabled ? 'bg-[#c3f340] shadow-[0_0_12px_rgba(195,243,64,0.4)]' : 'bg-white/[0.12]'
                     }`}
                   >
@@ -91,7 +104,13 @@ export default function SettingsPage() {
                     />
                   </button>
                 </div>
-              ))}
+              )))}
+            </div>
+            
+            <div className="px-8 py-4 bg-rose-500/10 border-t border-rose-500/20">
+              <p className="text-xs text-rose-300">
+                <strong>Note:</strong> Currently, this UI only saves your preferences. A frontend checkbox is not backend consent enforcement. Real backend data segregation will be implemented in a future phase.
+              </p>
             </div>
 
             <div className="flex items-center gap-4 border-t border-white/[0.08] px-8 py-5">
@@ -107,6 +126,9 @@ export default function SettingsPage() {
               </Magnetic>
               {saved && (
                 <span className="text-[11px] font-bold text-[#c3f340] drop-shadow-[0_0_8px_#c3f340]">✓ Saved</span>
+              )}
+              {saveMutation.isError && (
+                <span className="text-[11px] font-bold text-rose-400">Failed to save</span>
               )}
             </div>
           </TiltCard>
@@ -143,6 +165,48 @@ export default function SettingsPage() {
             </TiltCard>
 
             <TiltCard maxTilt={3} className="border border-white/[0.09] bg-[hsl(var(--card))]/90 p-7 backdrop-blur-xl">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Info size={16} className="text-[#c3f340]" />
+                  <h3 className="font-display text-xl text-white">Student Tour</h3>
+                </div>
+              </div>
+              <p className="text-xs leading-5 text-white/45">
+                Replay the 1-minute guided introduction to Nivara’s privacy, daily check-in, and support tools.
+              </p>
+              <button
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('nivara_student_onboarding_completed');
+                    window.location.reload();
+                  } catch {}
+                }}
+                className="mt-4 inline-flex items-center gap-1.5 rounded border border-[#c3f340]/30 bg-[#c3f340]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[#dff77d] hover:bg-[#c3f340]/20 transition-colors"
+              >
+                Launch 1-Min Tour
+              </button>
+            </TiltCard>
+
+            <TiltCard maxTilt={3} className="border border-white/[0.09] bg-[hsl(var(--card))]/90 p-7 backdrop-blur-xl">
+              <div className="mb-4 flex items-center gap-2">
+                <LogOut size={16} className="text-[#e5a27d]" />
+                <h3 className="font-display text-xl text-white">Session & Role</h3>
+              </div>
+              <p className="text-xs leading-5 text-white/45">
+                Sign out of the Student Workspace to return to the landing page or switch roles.
+              </p>
+              <button
+                onClick={async () => {
+                  await logoutUser();
+                  router.push('/');
+                }}
+                className="mt-4 inline-flex items-center gap-1.5 rounded border border-[#e5a27d]/30 bg-[#e5a27d]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[#f0ba9d] hover:bg-[#e5a27d]/20 transition-colors"
+              >
+                <LogOut size={12} /> Sign Out
+              </button>
+            </TiltCard>
+
+            <TiltCard maxTilt={3} className="border border-white/[0.09] bg-[hsl(var(--card))]/90 p-7 backdrop-blur-xl">
               <div className="mb-4 flex items-center gap-2">
                 <Info size={16} className="text-white/30" />
                 <h3 className="font-display text-xl text-white">About</h3>
@@ -158,4 +222,4 @@ export default function SettingsPage() {
   );
 }
 
-export const dynamic = 'force-dynamic';
+

@@ -8,12 +8,13 @@ import { Pill } from '@/components/shared/pill';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
 import { StaggerContainer } from '@/components/ui/stagger-container';
-import { Clock3, MessageCircle, ShieldCheck, SlidersHorizontal, X, Calendar } from 'lucide-react';
+import { Clock3, MessageCircle, ShieldCheck, X, Calendar, CheckCircle2 } from 'lucide-react';
 import { getCounsellors, requestAppointment } from '@/lib/api/counsellors';
 import { useQuery } from '@tanstack/react-query';
+import type { Counsellor } from '@/lib/types';
 
-export default function CounsellorsPage() {
-  const [selected, setSelected] = useState<string | null>(null);
+export default function StudentCounsellorsPage() {
+  const [selected, setSelected] = useState<Counsellor | null>(null);
   const [dayChoice, setDayChoice] = useState<'today' | 'tomorrow'>('today');
   const [selectedSlot, setSelectedSlot] = useState<string>('14:30');
   const [filterTopic, setFilterTopic] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export default function CounsellorsPage() {
     ? counsellors?.filter((c) => c.specializations.includes(filterTopic))
     : counsellors;
 
-  const request = async (name: string) => {
+  const handleRequest = async (name: string) => {
     await requestAppointment(name, `${dayChoice} at ${selectedSlot}`);
     setRequested(true);
   };
@@ -69,28 +70,30 @@ export default function CounsellorsPage() {
           description="Connect with your institution's student support team. You choose what to share, and asking for a conversation is not a commitment to anything else."
           action={
             <Pill tone="plum">
-              <ShieldCheck size={12} className="mr-1" /> Confidential by default
+              <ShieldCheck size={12} className="mr-1 inline" /> Confidential by default
             </Pill>
           }
         />
 
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-white/40">
-            {filteredCounsellors?.length || 0} people available this week
+            {filteredCounsellors?.length || 0} specialists available this week
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setFilterTopic(null)}
+              data-testid="filter-topic-all"
               className={`text-[10px] font-bold uppercase tracking-[.08em] px-2.5 py-1 rounded transition-colors ${
                 filterTopic === null ? 'bg-[#c3f340] text-[#0d1408]' : 'text-white/40 hover:text-white/70'
               }`}
             >
               All
             </button>
-            {['Stress & burnout', 'Time management', 'Academic anxiety'].map((topic) => (
+            {['Study stress', 'Transition', 'Anxiety & focus', 'Accessibility', 'Course pressure'].map((topic) => (
               <button
                 key={topic}
                 onClick={() => setFilterTopic((prev) => (prev === topic ? null : topic))}
+                data-testid={`filter-topic-${topic}`}
                 className={`text-[10px] font-bold uppercase tracking-[.08em] px-2.5 py-1 rounded border transition-colors ${
                   filterTopic === topic
                     ? 'border-[#c3f340] bg-[#c3f340]/10 text-[#dff77d]'
@@ -105,12 +108,12 @@ export default function CounsellorsPage() {
 
         <StaggerContainer stagger={0.06} className="grid grid-cols-3 gap-3">
           {filteredCounsellors?.map((c, i) => (
-            <div key={c.name} className="stagger-item">
+            <div key={c.id || c.name} className="stagger-item">
               <TiltCard
                 maxTilt={4}
                 spotlightColor="rgba(195, 243, 64, 0.12)"
-                onClick={() => { setSelected(c.name); setRequested(false); }}
-                className="group cursor-pointer border border-white/[0.09] bg-[hsl(var(--card))]/90 p-7 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-[#c3f340]/40 rounded-lg flex flex-col justify-between"
+                onClick={() => { setSelected(c); setRequested(false); }}
+                className="group cursor-pointer border border-white/[0.09] bg-[hsl(var(--card))]/90 p-7 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-[#c3f340]/40 rounded-lg flex flex-col justify-between min-h-[320px]"
                 data-testid={`card-counsellor-${i}`}
               >
                 <div>
@@ -133,7 +136,7 @@ export default function CounsellorsPage() {
 
                 <div className="mt-6 border-t border-white/[0.08] pt-4">
                   <div className="flex items-center gap-2 text-xs text-white/40">
-                    <Clock3 size={13} /> {c.availability}
+                    <Clock3 size={13} className="text-[#c3f340]" /> {c.availability}
                   </div>
                   <div className="btn-sweep mt-4 flex w-full items-center justify-center gap-2 border border-white/[0.14] px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-white/70 transition-all duration-150 group-hover:border-[#c3f340]/40 group-hover:text-[#c3f340] rounded">
                     <MessageCircle size={14} /> Request a conversation
@@ -144,7 +147,7 @@ export default function CounsellorsPage() {
           ))}
         </StaggerContainer>
 
-        {/* Modal rendered directly to body via portal to cover entire screen cleanly */}
+        {/* Modal rendered directly to body via portal */}
         {mounted && selected && createPortal(
           <div
             onClick={closeModal}
@@ -174,11 +177,11 @@ export default function CounsellorsPage() {
                 {requested ? (
                   <div className="py-8 text-center">
                     <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-[#c3f340]/15 shadow-[0_0_15px_rgba(195,243,64,0.3)]">
-                      <span className="text-xl text-[#c3f340]">✓</span>
+                      <CheckCircle2 size={24} className="text-[#c3f340]" />
                     </div>
                     <p className="font-bold text-[#dff77d]">Request submitted</p>
                     <p className="mt-2 text-sm text-white/55">
-                      Reserved for <strong className="text-white">{dayChoice === 'today' ? 'Today' : 'Tomorrow'} at {selectedSlot}</strong> with {selected}.
+                      Reserved for <strong className="text-white">{dayChoice === 'today' ? 'Today' : 'Tomorrow'} at {selectedSlot}</strong> with {selected.name}.
                     </p>
                     <p className="mt-1 text-xs text-white/35">
                       You will receive calendar details privately.
@@ -195,7 +198,7 @@ export default function CounsellorsPage() {
                 ) : (
                   <div className="space-y-4">
                     <p className="text-xs text-white/55">
-                      Scheduling with <strong className="text-white">{selected}</strong>. Choose a preferred time:
+                      Scheduling with <strong className="text-white">{selected.name}</strong> ({selected.role}). Choose a preferred time:
                     </p>
 
                     {/* Day picker */}
@@ -251,7 +254,7 @@ export default function CounsellorsPage() {
 
                     <Magnetic>
                       <button
-                        onClick={() => request(selected)}
+                        onClick={() => handleRequest(selected.name)}
                         className="btn-sweep mt-3 w-full border border-[#c3f340] bg-[#c3f340] px-4 py-3 text-[11px] font-bold uppercase tracking-[.1em] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.3)] transition-all hover:scale-102 rounded"
                       >
                         Confirm {dayChoice === 'today' ? 'Today' : 'Tomorrow'} at {selectedSlot}
@@ -269,4 +272,4 @@ export default function CounsellorsPage() {
   );
 }
 
-export const dynamic = 'force-dynamic';
+

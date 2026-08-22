@@ -1,9 +1,20 @@
 'use client';
+import { ExplainabilityDialog } from '@/components/shared/explainability-dialog';
 
 import dynamicImport from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight, Clock3, HeartHandshake, MoreHorizontal, Sparkles, TrendingUp } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Clock3,
+  HeartHandshake,
+  MoreHorizontal,
+  Sparkles,
+  TrendingUp,
+  Calendar,
+  MapPin,
+  Upload,
+} from 'lucide-react';
 import { AppShell } from '@/components/layout/nivara-shell';
 import { MetricCard } from '@/components/dashboard/metric-card';
 import { RingProgress } from '@/components/dashboard/ring-progress';
@@ -15,6 +26,8 @@ import { StaggerContainer } from '@/components/ui/stagger-container';
 import { getCurrentUser } from '@/lib/auth';
 import { getRecommendations, toggleRecommendation } from '@/lib/api/support';
 import { getTrendData } from '@/lib/api/academics';
+import { getTimetable, getNextUpcomingClass } from '@/lib/api/timetable';
+import { getPreferences } from '@/lib/api/preferences';
 import { useQuery } from '@tanstack/react-query';
 
 const TrendChart = dynamicImport(
@@ -31,6 +44,12 @@ export default function DashboardPage() {
   const student = getCurrentUser();
   const { data: recommendations } = useQuery({ queryKey: ['recommendations'], queryFn: getRecommendations });
   const { data: trendData } = useQuery({ queryKey: ['trendData'], queryFn: getTrendData });
+  const { data: timetable = [] } = useQuery({ queryKey: ['timetable'], queryFn: getTimetable });
+  const { data: preferences } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
+  
+  const hasWellbeingConsent = preferences?.find((p) => p.key === 'wellbeing_checkins')?.enabled !== false;
+
+  const nextClassInfo = getNextUpcomingClass(timetable);
 
   // Initialise done state only once recommendations load
   const [done, setDone] = useState<boolean[]>([]);
@@ -50,9 +69,9 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="rise-in">
+      <div className="rise-in space-y-4">
         {/* Page header */}
-        <div className="mb-8 flex items-end justify-between">
+        <div className="flex items-end justify-between">
           <div>
             <p className="serenity-label text-[#c3f340]/80">Today / Overview</p>
             <h1 className="mt-2 font-display text-6xl md:text-7xl leading-[.88] tracking-[-.04em]">
@@ -65,29 +84,87 @@ export default function DashboardPage() {
               </em>
             </h1>
           </div>
-          <Magnetic>
-            <Link
-              href="/check-in"
-              data-testid="link-dashboard-checkin"
-              className="btn-sweep inline-flex items-center gap-2 border border-[#c3f340]/30 bg-[#141414] px-5 py-3 text-[11px] font-bold uppercase tracking-[.1em] text-[#dff77d] shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-colors hover:text-[#0d1408] hover:border-[#c3f340]"
-            >
-              Take today&apos;s check-in <ArrowUpRight size={14} />
-            </Link>
-          </Magnetic>
+          <div className="flex items-center gap-3">
+            <Magnetic>
+              <Link
+                href="/academics#timetable"
+                className="inline-flex items-center gap-2 border border-white/15 bg-white/[0.03] px-4 py-3 text-[11px] font-bold uppercase tracking-[.1em] text-white/80 transition-colors hover:border-[#c3f340]/50 hover:text-white"
+              >
+                <Calendar size={13} className="text-[#c3f340]" /> Timetable & Schedule
+              </Link>
+            </Magnetic>
+            {hasWellbeingConsent && (
+              <Magnetic>
+                <Link
+                  href="/check-in"
+                  data-testid="link-dashboard-checkin"
+                  className="btn-sweep inline-flex items-center gap-2 border border-[#c3f340]/30 bg-[#141414] px-5 py-3 text-[11px] font-bold uppercase tracking-[.1em] text-[#dff77d] shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-colors hover:text-[#0d1408] hover:border-[#c3f340]"
+                >
+                  Take today&apos;s check-in <ArrowUpRight size={14} />
+                </Link>
+              </Magnetic>
+            )}
+          </div>
         </div>
+
+        {/* Live Next Class Schedule Alert Ticker */}
+        {nextClassInfo.nextClass && (
+          <TiltCard
+            maxTilt={1.5}
+            spotlightColor="rgba(195, 243, 64, 0.12)"
+            className="flex items-center justify-between rounded-xl border border-[#c3f340]/25 bg-[#141a10]/90 px-5 py-3 text-white backdrop-blur-xl transition hover:border-[#c3f340]/40"
+          >
+            <div className="flex items-center gap-3">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#c3f340]/20 text-[#dff77d]">
+                <Clock3 size={16} />
+              </span>
+              <div className="flex items-center gap-3">
+                <p className="text-xs font-semibold text-white">
+                  Next Class: <span className="text-[#c3f340]">{nextClassInfo.nextClass.subject}</span> ({nextClassInfo.nextClass.moduleCode})
+                </p>
+                <span className="hidden sm:inline text-xs text-white/50">· {nextClassInfo.nextClass.room}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Pill tone="accent">
+                {nextClassInfo.statusText}
+              </Pill>
+              <Link
+                href="/academics#timetable"
+                className="text-[10px] font-bold uppercase tracking-[.08em] text-white/50 hover:text-[#c3f340] transition-colors inline-flex items-center gap-1"
+              >
+                View full schedule <ArrowUpRight size={11} />
+              </Link>
+            </div>
+          </TiltCard>
+        )}
 
         {/* Metric row with GSAP Stagger - all 4 cards fully interactive */}
         <StaggerContainer stagger={0.07} className="grid grid-cols-4 gap-3">
-          <div className="stagger-item">
-            <MetricCard
-              label="Well-being"
-              value="64"
-              detail="A little below your usual range"
-              tone="warm"
-              icon={<HeartHandshake size={17} />}
-              href="/insights"
-            />
-          </div>
+          {hasWellbeingConsent ? (
+            <div className="stagger-item">
+              <MetricCard
+                label="Well-being"
+                value="64"
+                detail="A little below your usual range"
+                tone="warm"
+                icon={<HeartHandshake size={17} />}
+                href="/check-in"
+              />
+            </div>
+          ) : (
+            <div className="stagger-item opacity-40 grayscale pointer-events-none">
+              <MetricCard
+                label="Well-being"
+                value="—"
+                detail="Consent paused"
+                tone="neutral"
+                icon={<HeartHandshake size={17} />}
+                href="/settings"
+              />
+            </div>
+          )}
           <div className="stagger-item">
             <MetricCard
               label="Academic rhythm"
@@ -138,17 +215,25 @@ export default function DashboardPage() {
               </Magnetic>
             </div>
             <div className="mt-7 h-[220px] w-full">
-              <TrendChart data={trendData || []} height={220} filled={false} />
+              <TrendChart data={trendData || []} height={220} filled={false} showWellbeing={hasWellbeingConsent} />
             </div>
             <div className="mt-4 flex gap-5 text-[10px] text-white/35">
               <span>
                 <i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#c3f340] shadow-[0_0_8px_#c3f340]" />
                 academic rhythm
               </span>
-              <span>
-                <i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#e5a27d] shadow-[0_0_8px_#e5a27d]" />
-                well-being
-              </span>
+              {hasWellbeingConsent && (
+                <>
+                  <span>
+                    <i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#a3b8cc] shadow-[0_0_8px_#a3b8cc]" />
+                    sleep quality
+                  </span>
+                  <span>
+                    <i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#e5a27d] shadow-[0_0_8px_#e5a27d]" />
+                    stress level
+                  </span>
+                </>
+              )}
             </div>
           </TiltCard>
 
@@ -163,7 +248,8 @@ export default function DashboardPage() {
               Your workload is concentrating
             </h2>
             <p className="mt-4 text-sm leading-6 text-white/60">
-              Two high-effort submissions land within the next 48 hours. Your check-ins also show lower sleep and energy this week.
+              Two high-effort submissions land within the next 48 hours.
+              {hasWellbeingConsent && " Your check-ins also show lower sleep and energy this week."}
             </p>
             <Magnetic>
               <Link
@@ -260,6 +346,18 @@ export default function DashboardPage() {
                         </p>
                         <p className="mt-1.5 text-[11px] leading-4 text-white/45">{item.description}</p>
                       </div>
+                      
+                      {item.explainability && (
+                        <div className="mt-2 flex justify-start" onClick={(e) => e.stopPropagation()}>
+                          <ExplainabilityDialog 
+                            title={item.title}
+                            contributingFactors={item.explainability.contributingFactors}
+                            timeWindow={item.explainability.timeWindow}
+                            dataUsed={item.explainability.dataUsed}
+                            dataNotUsed={item.explainability.dataNotUsed}
+                          />
+                        </div>
+                      )}
 
                       {item.why && (
                         <div className="mt-4 border-t border-white/[0.06] pt-2">
@@ -279,4 +377,4 @@ export default function DashboardPage() {
   );
 }
 
-export const dynamic = 'force-dynamic';
+

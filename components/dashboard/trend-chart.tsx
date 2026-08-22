@@ -2,7 +2,7 @@
 
 import { ResponsiveContainer, Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 
-export type TrendPoint = { week: string; academic: number; wellbeing: number };
+export type TrendPoint = { week: string; academic: number; sleep: number; stress: number };
 
 const chartTooltip = {
   contentStyle: { background: '#141414', border: '0', borderRadius: '8px', color: '#f0f0f0', fontSize: 11 },
@@ -14,9 +14,10 @@ interface TrendChartProps {
   height?: number;
   showYAxis?: boolean;
   filled?: boolean;
+  showWellbeing?: boolean;
 }
 
-export function TrendChart({ data, height = 240, showYAxis = false, filled = false }: TrendChartProps) {
+export function TrendChart({ data, height = 240, showYAxis = false, filled = false, showWellbeing = true }: TrendChartProps) {
   return (
     <div className="h-full w-full" style={{ minHeight: height }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -34,7 +35,12 @@ export function TrendChart({ data, height = 240, showYAxis = false, filled = fal
           <YAxis hide={!showYAxis} domain={[40, 100]} tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#88948a' }} />
           <Tooltip {...chartTooltip} />
           <Area type="monotone" dataKey="academic" stroke="#c3f340" strokeWidth={2.5} fill={filled ? 'url(#academicFill)' : 'rgba(195,243,64,.14)'} />
-          <Area type="monotone" dataKey="wellbeing" stroke="#e5a27d" strokeWidth={2} fill={filled ? 'rgba(229,162,125,.10)' : 'none'} fillOpacity={filled ? 0.28 : 1} strokeDasharray={filled ? undefined : '4 4'} />
+          {showWellbeing && (
+            <>
+              <Area type="monotone" dataKey="sleep" name="Sleep Quality" stroke="#a3b8cc" strokeWidth={2} fill="none" strokeDasharray="4 4" />
+              <Area type="monotone" dataKey="stress" name="Stress Level" stroke="#e5a27d" strokeWidth={2} fill="none" strokeDasharray="4 4" />
+            </>
+          )}
         </AreaChart>
       </ResponsiveContainer>
     </div>

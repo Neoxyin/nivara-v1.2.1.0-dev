@@ -1,29 +1,32 @@
 'use client';
 
 import Link from 'next/link';
-import { AlertCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Sparkles, ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              404 Page Not Found
-            </h1>
-          </div>
+    <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-[#0a0a0a] px-6 text-center text-[#f0f0f0]">
+      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#c3f340] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.4)]">
+        <Sparkles size={22} strokeWidth={2.5} />
+      </div>
 
-          <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
-          </p>
-          <Link href="/dashboard" className="mt-4 inline-block text-sm font-bold text-blue-600 hover:text-blue-800">
-            Return to Dashboard
-          </Link>
-        </CardContent>
-      </Card>
+      <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-white sm:text-5xl">
+        Page Not Found
+      </h1>
+      <p className="mt-3 max-w-md text-sm text-white/50">
+        The requested page does not exist or requires active authentication.
+      </p>
+
+      <div className="mt-8">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 rounded-lg border border-[#c3f340] bg-[#c3f340] px-5 py-2.5 text-xs font-extrabold uppercase tracking-[.12em] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.3)] transition hover:scale-105"
+        >
+          <ArrowLeft size={14} /> Return Home
+        </Link>
+      </div>
     </div>
   );
 }
+
+
