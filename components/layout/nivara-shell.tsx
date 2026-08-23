@@ -13,7 +13,6 @@ import {
   MessageCircle,
   PanelLeftClose,
   PanelLeftOpen,
-  Settings,
   UsersRound,
   Home,
   HelpCircle,
@@ -32,16 +31,17 @@ import { StudentNotifications } from './student-notifications';
 import { StudentWalkthrough } from '@/components/dashboard/student-walkthrough';
 import { HelpModal } from '@/components/shared/help-modal';
 import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
+import { LanguageSelector, useLanguage } from '@/components/shared/language-context';
 
 const nav = [
-  { href: '/dashboard', label: 'Today', icon: LayoutDashboard },
-  { href: '/check-in', label: 'Check-in', icon: CircleUserRound },
-  { href: '/academics', label: 'Academics', icon: BookOpen },
-  { href: '/support', label: 'Well-being Support', icon: HeartPulse },
-  { href: '/counsellors', label: 'Counsellors', icon: UsersRound },
-  { href: '/financial-support', label: 'Financial', icon: Landmark },
-  { href: '/resources', label: 'Resources', icon: Compass },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/dashboard', labelKey: 'nav.today', icon: LayoutDashboard, exact: true },
+  { href: '/check-in', labelKey: 'nav.checkin', icon: CircleUserRound },
+  { href: '/academics', labelKey: 'nav.academics', icon: BookOpen },
+  { href: '/support', labelKey: 'nav.support', icon: HeartPulse, excludePrefixes: ['/support/circles'] },
+  { href: '/support/circles', labelKey: 'nav.support_circles', icon: Sparkles },
+  { href: '/counsellors', labelKey: 'nav.counsellors', icon: UsersRound },
+  { href: '/financial-support', labelKey: 'nav.financial', icon: Landmark },
+  { href: '/resources', labelKey: 'nav.resources', icon: Compass },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -50,6 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const student = getCurrentUser();
   const mainContentRef = useRef<HTMLDivElement>(null);
   const { collapsed, toggleSidebar } = useSidebar();
+  const { t, language } = useLanguage();
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
@@ -128,6 +129,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     };
   }, [updateScrollMetrics, collapsed]);
 
+  // A walkthrough may be requested explicitly from Student Settings.
+  // Consume that one-shot request here; never open it just because the
+  // workspace was entered.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('nivara_launch_student_tour') === 'true') {
+        sessionStorage.removeItem('nivara_launch_student_tour');
+        setShowWalkthrough(true);
+      }
+    } catch {
+      // ignore storage access failures
+    }
+  }, []);
+
   // GSAP page entrance transition on pathname change
   useEffect(() => {
     if (!mainContentRef.current) return;
@@ -172,7 +187,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           }
         }}
         className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/[0.07] bg-[#090909]/95 pt-6 text-white backdrop-blur-2xl transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          collapsed ? 'w-[68px]' : 'w-[250px]'
+          collapsed ? 'w-[68px]' : 'w-[250px] max-[1023px]:w-[68px]'
         }`}
       >
         {/* Smooth Lime Custom Scroller on Left Edge */}
@@ -196,13 +211,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Header with branding and collapse button (fixed top) */}
         <div className="mb-4 flex h-11 shrink-0 items-center justify-between px-3">
           <div
-            className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            className={`relative overflow-visible transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
               collapsed
                 ? 'max-w-0 opacity-0 pointer-events-none blur-sm'
                 : 'max-w-[170px] opacity-100 blur-0 pl-1'
             }`}
           >
-            <Magnetic>
+            <Magnetic radius={24} strength={0.018} maxDisplacement={1.5}>
               <div className="cursor-pointer">
                 <Mark inverse />
               </div>
@@ -251,8 +266,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             {/* Navigation list */}
             <nav className="space-y-1" aria-label="Main navigation">
-              {nav.map(({ href, label, icon: Icon }) => {
-                const active = pathname === href;
+              {nav.map(({ href, labelKey, icon: Icon, exact, excludePrefixes }) => {
+                const excluded = excludePrefixes?.some((prefix) => pathname.startsWith(prefix)) ?? false;
+                const active = !excluded && (exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`));
                 return (
                   <div key={href} className="group relative">
                     <Link
@@ -288,7 +304,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             : 'max-w-[150px] opacity-100 blur-0 translate-x-0'
                         }`}
                       >
-                        {label}
+                        {t(labelKey)}
                       </span>
 
                       {/* Active pulsing indicator in expanded view */}
@@ -308,7 +324,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 opacity-0 -translate-x-1 scale-95 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-150 ease-out z-[60] flex items-center"
                       >
                         <div className="relative rounded-md border border-white/[0.12] bg-[#141414]/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.7),0_0_10px_rgba(195,243,64,0.15)] backdrop-blur-xl whitespace-nowrap">
-                          {label}
+                          {t(labelKey)}
                           <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rotate-45 border-b border-l border-white/[0.12] bg-[#141414]" />
                         </div>
                       </div>
@@ -377,43 +393,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Settings link */}
-            <div className="group relative">
-              <Link
-                href="/settings"
-                onMouseEnter={() => router.prefetch('/settings')}
-                className="relative flex h-11 w-full items-center rounded-xl text-white/60 transition-all duration-150 ease-out hover:scale-[1.02] hover:bg-white/[0.05] hover:text-white hover:shadow-[0_0_12px_rgba(195,243,64,0.06)] active:scale-[0.98]"
-              >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center">
-                  <Settings
-                    size={17}
-                    strokeWidth={1.8}
-                    className="transition-transform duration-200 group-hover:rotate-45"
-                  />
-                </div>
-                <span
-                  className={`truncate text-[13px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                    collapsed
-                      ? 'max-w-0 opacity-0 pointer-events-none blur-sm -translate-x-2'
-                      : 'max-w-[130px] opacity-100 blur-0 translate-x-0'
-                  }`}
-                >
-                  Settings
-                </span>
-              </Link>
+            <Link
+              href="/settings"
+              onMouseEnter={() => router.prefetch('/settings')}
+              className={`relative flex h-10 w-full items-center rounded-xl text-white/55 transition-all duration-150 ease-out hover:bg-white/[0.05] hover:text-white ${
+                collapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
+              }`}
+            >
+              <div className="flex h-10 w-11 shrink-0 items-center justify-center">
+                <span className="h-1.5 w-1.5 rounded-full bg-white/25" />
+              </div>
+              <span className="text-[12px] font-semibold">Settings</span>
+            </Link>
 
-              {collapsed && (
-                <div
-                  role="tooltip"
-                  className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 opacity-0 -translate-x-1 scale-95 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-150 ease-out z-[60] flex items-center"
-                >
-                  <div className="relative rounded-md border border-white/[0.12] bg-[#141414]/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.7),0_0_10px_rgba(195,243,64,0.15)] backdrop-blur-xl whitespace-nowrap">
-                    Settings
-                    <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rotate-45 border-b border-l border-white/[0.12] bg-[#141414]" />
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </aside>
@@ -421,10 +413,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main content area */}
       <div
         className={`relative z-10 transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          collapsed ? 'pl-[68px]' : 'pl-[250px]'
+          collapsed ? 'pl-[68px]' : 'pl-[250px] max-[1023px]:pl-[68px]'
         }`}
       >
-        <header className="sticky top-0 z-30 flex h-[64px] items-center justify-between border-b border-white/[0.07] bg-[#0a0a0a]/80 px-8 md:px-10 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 flex h-[64px] items-center justify-between border-b border-white/[0.07] bg-[#0a0a0a]/80 px-4 sm:px-6 lg:px-10 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <Link
               href="/"
@@ -447,6 +439,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSelector />
+
             <button
               type="button"
               onClick={() => setShowAboutModal(true)}
@@ -454,7 +448,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               title="Overview of NIVARA's mission and architecture"
             >
               <Home size={11} />
-              <span className="hidden sm:inline">About Nivara</span>
+              <span className="hidden sm:inline">{t('header.about')}</span>
             </button>
 
             <button
@@ -464,7 +458,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               title="Help & FAQ"
             >
               <HelpCircle size={11} />
-              <span className="hidden sm:inline">Help</span>
+              <span className="hidden sm:inline">{t('header.help')}</span>
             </button>
 
             <StudentNotifications onOpenWalkthrough={() => setShowWalkthrough(true)} />
@@ -484,11 +478,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               title="Sign Out of Student Space"
               onClick={async () => {
                 await logoutUser();
-                router.push('/');
+                window.location.replace('/');
               }}
               className="inline-flex items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.02] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-white/50 hover:border-[#e5a27d]/40 hover:bg-[#e5a27d]/10 hover:text-[#f0ba9d] transition-all"
             >
-              <LogOut size={11} /> <span className="hidden sm:inline">Sign Out</span>
+              <LogOut size={11} /> <span className="hidden sm:inline">{t('header.signout')}</span>
             </button>
           </div>
         </header>
@@ -511,7 +505,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onClose={() => setShowAboutModal(false)}
         />
 
-        <main ref={mainContentRef} className="mx-auto max-w-[1380px] px-8 py-8 md:px-10 md:py-9">
+        <main ref={mainContentRef} className="mx-auto max-w-[1380px] px-4 py-6 sm:px-6 sm:py-7 lg:px-10 lg:py-9">
           {children}
         </main>
       </div>

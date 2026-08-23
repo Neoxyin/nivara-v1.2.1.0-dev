@@ -101,7 +101,7 @@ export default function CounsellorSettingsPage() {
 
   const handleSignOut = async () => {
     await logoutUser();
-    router.push('/');
+    window.location.replace('/');
   };
 
   const filteredSettings =

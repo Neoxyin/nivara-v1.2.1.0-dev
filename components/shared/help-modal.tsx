@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, HelpCircle, ShieldCheck, HeartHandshake, Sparkles, BookOpen, Clock, MessageSquare } from 'lucide-react';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
@@ -39,7 +39,11 @@ const faqs = [
 ];
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
-  const [selectedIdx, setSelectedIdx] = useState<number | null>(0);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isOpen) setSelectedIdx(null);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

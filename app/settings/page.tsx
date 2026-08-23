@@ -11,6 +11,8 @@ import { getPreferences, savePreferences } from '@/lib/api/preferences';
 import { logoutUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ConsentPreference } from '@/lib/types';
+import { ContextualSubtabs } from '@/components/shared/contextual-subtabs';
+import { profileSubtabs } from '@/components/shared/profile-subtabs';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -43,7 +45,8 @@ export default function SettingsPage() {
 
   return (
     <AppShell>
-      <div className="rise-in">
+      <div className="rise-in space-y-8">
+        <ContextualSubtabs items={profileSubtabs} />
         <SectionHeading
           eyebrow="Settings"
           title="Your choices, clearly."
@@ -177,8 +180,8 @@ export default function SettingsPage() {
               <button
                 onClick={() => {
                   try {
-                    localStorage.removeItem('nivara_student_onboarding_completed');
-                    window.location.reload();
+                    sessionStorage.setItem('nivara_launch_student_tour', 'true');
+                    router.push('/dashboard');
                   } catch {}
                 }}
                 className="mt-4 inline-flex items-center gap-1.5 rounded border border-[#c3f340]/30 bg-[#c3f340]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[#dff77d] hover:bg-[#c3f340]/20 transition-colors"

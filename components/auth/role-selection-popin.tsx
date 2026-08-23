@@ -24,7 +24,6 @@ interface RoleSelectionPopinProps {
   onSelectRole?: (role: 'student' | 'counsellor') => void;
 }
 
-const POPIN_STORAGE_KEY = 'nivara_initial_role_selected';
 
 export function RoleSelectionPopin({
   forceOpen = false,
@@ -43,28 +42,11 @@ export function RoleSelectionPopin({
     }
   }, [forceOpen]);
 
-  useEffect(() => {
-    // Auto-popin only on a normal first landing visit. Auth-required redirects
-    // are handled by the role-specific login modal instead.
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('auth') === 'required') return;
-
-      const alreadyChosen = window.localStorage.getItem(POPIN_STORAGE_KEY);
-      if (!alreadyChosen) {
-        const timer = setTimeout(() => {
-          setIsOpen(true);
-        }, 250);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, []);
+  // Intentionally do not auto-open this modal. Workspace selection is an
+  // explicit action from the landing page (Get Started). Logging out must
+  // return to the landing page without reopening the selector.
 
   const handleSelectRole = (role: 'student' | 'counsellor') => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(POPIN_STORAGE_KEY, 'true');
-    }
-    
     setIsOpen(false);
     if (onClose) onClose();
 
@@ -83,9 +65,6 @@ export function RoleSelectionPopin({
   };
 
   const handleDismiss = () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(POPIN_STORAGE_KEY, 'dismissed');
-    }
     setIsOpen(false);
     if (onClose) onClose();
   };

@@ -12,7 +12,6 @@ import {
   LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
-  Settings,
   SlidersHorizontal,
   Sparkles,
   ArrowUpRight,
@@ -31,14 +30,14 @@ import { CounsellorNotifications } from './counsellor-notifications';
 import { CounsellorWalkthrough } from '@/components/counsellor/counsellor-walkthrough';
 import { HelpModal } from '@/components/shared/help-modal';
 import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
+import { LanguageSelector, useLanguage } from '@/components/shared/language-context';
 
 const counsellorNav = [
-  { href: '/counsellor', label: 'Overview', icon: LayoutDashboard, exact: true },
-  { href: '/counsellor/students', label: 'Students', icon: GraduationCap },
-  { href: '/counsellor/attention', label: 'Attention', icon: AlertTriangle, badge: '3' },
-  { href: '/counsellor/appointments', label: 'Appointments', icon: Calendar },
-  { href: '/counsellor/availability', label: 'Availability', icon: SlidersHorizontal },
-  { href: '/counsellor/settings', label: 'Settings', icon: Settings },
+  { href: '/counsellor', labelKey: 'subtab.overview', icon: LayoutDashboard, exact: true },
+  { href: '/counsellor/students', labelKey: 'subtab.students', icon: GraduationCap },
+  { href: '/counsellor/attention', labelKey: 'subtab.attention', icon: AlertTriangle, badge: '3' },
+  { href: '/counsellor/appointments', labelKey: 'subtab.appointments', icon: Calendar },
+  { href: '/counsellor/availability', labelKey: 'subtab.availability', icon: SlidersHorizontal },
 ];
 
 export function CounsellorShell({ children }: { children: React.ReactNode }) {
@@ -46,6 +45,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const mainContentRef = useRef<HTMLDivElement>(null);
   const { collapsed, toggleSidebar } = useSidebar();
+  const { t, language } = useLanguage();
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
@@ -167,7 +167,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
           }
         }}
         className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/[0.07] bg-[#090909]/95 pt-6 text-white backdrop-blur-2xl transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          collapsed ? 'w-[68px]' : 'w-[250px]'
+          collapsed ? 'w-[68px]' : 'w-[250px] max-[1023px]:w-[68px]'
         }`}
       >
         {/* Scroller Thumb */}
@@ -191,13 +191,13 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
         {/* Header */}
         <div className="mb-4 flex h-11 shrink-0 items-center justify-between px-3">
           <div
-            className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            className={`overflow-visible transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
               collapsed
                 ? 'max-w-0 opacity-0 pointer-events-none blur-sm'
                 : 'max-w-[170px] opacity-100 blur-0 pl-1'
             }`}
           >
-            <Magnetic>
+            <Magnetic radius={24} strength={0.018} maxDisplacement={1.5}>
               <div className="cursor-pointer">
                 <Mark inverse href="/" />
               </div>
@@ -232,7 +232,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
             </div>
 
             <nav className="space-y-1" aria-label="Counsellor navigation">
-              {counsellorNav.map(({ href, label, icon: Icon, exact, badge }) => {
+              {counsellorNav.map(({ href, labelKey, icon: Icon, exact, badge }) => {
                 const active = exact
                   ? pathname === href || pathname === '/counsellor/overview'
                   : Boolean(pathname && pathname.startsWith(href));
@@ -269,7 +269,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
                             : 'max-w-[130px] opacity-100 blur-0 translate-x-0'
                         }`}
                       >
-                        {label}
+                        {t(labelKey)}
                       </span>
 
                       {badge && !collapsed && (
@@ -293,7 +293,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
                         className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 opacity-0 -translate-x-1 scale-95 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-150 ease-out z-[60] flex items-center"
                       >
                         <div className="relative rounded-md border border-white/[0.12] bg-[#141414]/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.7),0_0_10px_rgba(195,243,64,0.15)] backdrop-blur-xl whitespace-nowrap">
-                          {label} {badge ? `(${badge})` : ''}
+                          {t(labelKey)} {badge ? `(${badge})` : ''}
                           <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rotate-45 border-b border-l border-white/[0.12] bg-[#141414]" />
                         </div>
                       </div>
@@ -321,9 +321,12 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
               <p className="pt-1 text-[10px] text-white/35">Confidential Caseload & Triage</p>
             </div>
 
-            {/* Counsellor Profile link */}
-            <div className="group relative">
-              <div className="relative flex h-11 w-full items-center rounded-xl text-white/70">
+            {/* Counsellor Profile area */}
+            <div className="group relative space-y-1">
+              <Link
+                href="/counsellor"
+                className="relative flex h-11 w-full items-center rounded-xl text-white/70 transition-all duration-150 ease-out hover:scale-[1.02] hover:bg-white/[0.05] hover:text-white"
+              >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center">
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-[#1c1c1c] text-[10px] font-bold text-[#c3f340] border border-[#c3f340]/30 shadow-[0_0_10px_rgba(195,243,64,0.15)]">
                     AR
@@ -339,7 +342,19 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
                   <p className="text-[12px] font-semibold text-white leading-tight">Aisha Rahman</p>
                   <p className="text-[10px] text-white/40">Wellbeing Lead</p>
                 </div>
-              </div>
+              </Link>
+
+              <Link
+                href="/counsellor/settings"
+                className={`relative flex h-10 w-full items-center rounded-xl text-white/55 transition-all duration-150 ease-out hover:bg-white/[0.05] hover:text-white ${
+                  collapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
+                }`}
+              >
+                <div className="flex h-10 w-11 shrink-0 items-center justify-center">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white/25" />
+                </div>
+                <span className="text-[12px] font-semibold">Settings</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -348,10 +363,10 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div
         className={`relative z-10 transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          collapsed ? 'pl-[68px]' : 'pl-[250px]'
+          collapsed ? 'pl-[68px]' : 'pl-[250px] max-[1023px]:pl-[68px]'
         }`}
       >
-        <header className="sticky top-0 z-30 flex h-[64px] items-center justify-between border-b border-white/[0.07] bg-[#0a0a0a]/80 px-8 md:px-10 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 flex h-[64px] items-center justify-between border-b border-white/[0.07] bg-[#0a0a0a]/80 px-4 sm:px-6 lg:px-10 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <Link
               href="/"
@@ -365,7 +380,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
             </Link>
             <span className="h-1.5 w-1.5 rounded-full bg-[#c3f340] shadow-[0_0_12px_rgba(195,243,64,.7)] animate-pulse" />
             <span className="serenity-label text-white/40">
-              Counsellor Portal · {new Date().toLocaleDateString('en-GB', {
+              Counsellor Portal · {new Date().toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-GB', {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
@@ -375,6 +390,8 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSelector />
+
             <button
               type="button"
               onClick={() => setShowAboutModal(true)}
@@ -382,7 +399,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
               title="Overview of NIVARA's mission and architecture"
             >
               <Home size={11} />
-              <span className="hidden sm:inline">About Nivara</span>
+              <span className="hidden sm:inline">{t('header.about')}</span>
             </button>
 
             <button
@@ -392,7 +409,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
               title="Help & FAQ"
             >
               <HelpCircle size={11} />
-              <span className="hidden sm:inline">Help</span>
+              <span className="hidden sm:inline">{t('header.help')}</span>
             </button>
 
             <CounsellorNotifications onOpenBriefing={() => setShowWalkthrough(true)} />
@@ -406,11 +423,11 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
               title="Sign Out of Counsellor Portal"
               onClick={async () => {
                 await logoutUser();
-                router.push('/');
+                window.location.replace('/');
               }}
               className="inline-flex items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.02] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-white/50 hover:border-[#e5a27d]/40 hover:bg-[#e5a27d]/10 hover:text-[#f0ba9d] transition-all"
             >
-              <LogOut size={11} /> <span className="hidden sm:inline">Sign Out</span>
+              <LogOut size={11} /> <span className="hidden sm:inline">{t('header.signout')}</span>
             </button>
           </div>
         </header>
@@ -433,7 +450,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
           onClose={() => setShowAboutModal(false)}
         />
 
-        <main ref={mainContentRef} className="mx-auto max-w-[1380px] px-8 py-8 md:px-10 md:py-9">
+        <main ref={mainContentRef} className="mx-auto max-w-[1380px] px-4 py-6 sm:px-6 sm:py-7 lg:px-10 lg:py-9">
           {children}
         </main>
       </div>

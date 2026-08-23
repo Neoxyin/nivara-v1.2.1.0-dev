@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { 
   UsersRound, 
   Compass, 
-  MessageCircle, 
   Users, 
   Clock, 
   ArrowUpRight,
@@ -21,6 +20,13 @@ import { SupportRecommendations } from '@/components/shared/support-recommendati
 import { useQuery } from '@tanstack/react-query';
 import { getPreferences } from '@/lib/api/preferences';
 import { getCheckIns } from '@/lib/api/checkins';
+
+import { ContextualSubtabs } from '@/components/shared/contextual-subtabs';
+
+const supportSubtabs = [
+  { labelKey: 'subtab.overview', defaultLabel: 'Overview', href: '/support', exact: true },
+  { labelKey: 'subtab.ai_support', defaultLabel: 'AI Support Space', href: '/support/ai' },
+];
 
 export default function SupportPage() {
   const { data: preferences, isLoading: prefsLoading } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
@@ -36,7 +42,8 @@ export default function SupportPage() {
 
   return (
     <AppShell>
-      <div className="rise-in space-y-12">
+      <div className="rise-in space-y-8">
+        <ContextualSubtabs items={supportSubtabs} />
         <SectionHeading
           eyebrow="Support Navigation"
           title="Well-being & Connection"
@@ -87,56 +94,6 @@ export default function SupportPage() {
                     <Magnetic>
                       <Link href="/resources" className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[.08em] text-[#c3f340] hover:text-[#dff77d] transition-colors">
                         Browse Resources <ArrowUpRight size={13} />
-                      </Link>
-                    </Magnetic>
-                  </div>
-                </TiltCard>
-              </div>
-
-              {/* AI Support Space */}
-              <div className="stagger-item">
-                <TiltCard maxTilt={2} className="h-full flex flex-col border border-white/[0.09] bg-[#141414]/90 p-6 backdrop-blur-xl transition-all hover:border-white/20 rounded-xl">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="grid h-10 w-10 place-items-center rounded-lg bg-[rgba(195,243,64,.1)] text-[#c3f340] border border-[#c3f340]/20">
-                        <MessageCircle size={18} />
-                      </div>
-                      <h4 className="font-semibold text-white">AI Support Space</h4>
-                    </div>
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#c3f340] border border-[#c3f340]/30 bg-[#c3f340]/10 px-2 py-1 rounded">Active</span>
-                  </div>
-                  <p className="flex-1 text-sm text-white/70 leading-relaxed">
-                    A secure, interactive space to think out loud, reflect on your pacing, and explore support options dynamically.
-                  </p>
-                  <div className="mt-5 pt-4 border-t border-white/[0.06]">
-                    <Magnetic>
-                      <Link href="/support/ai" className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[.08em] text-[#c3f340] hover:text-[#dff77d] transition-colors">
-                        Open Support Space <ArrowUpRight size={13} />
-                      </Link>
-                    </Magnetic>
-                  </div>
-                </TiltCard>
-              </div>
-
-              {/* Support Circles */}
-              <div className="stagger-item">
-                <TiltCard maxTilt={2} className="h-full flex flex-col border border-white/[0.09] bg-[#141414]/90 p-6 backdrop-blur-xl transition-all hover:border-white/20 rounded-xl">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="grid h-10 w-10 place-items-center rounded-lg bg-[rgba(195,243,64,.1)] text-[#c3f340] border border-[#c3f340]/20">
-                        <Users size={18} />
-                      </div>
-                      <h4 className="font-semibold text-white">Support Circles</h4>
-                    </div>
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#c3f340] border border-[#c3f340]/30 bg-[#c3f340]/10 px-2 py-1 rounded">Active</span>
-                  </div>
-                  <p className="flex-1 text-sm text-white/70 leading-relaxed">
-                    Small, peer-led groups moderated by institutional staff. Connect with students facing similar academic experiences.
-                  </p>
-                  <div className="mt-5 pt-4 border-t border-white/[0.06]">
-                    <Magnetic>
-                      <Link href="/support/circles" className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[.08em] text-[#c3f340] hover:text-[#dff77d] transition-colors">
-                        Explore Circles <ArrowUpRight size={13} />
                       </Link>
                     </Magnetic>
                   </div>

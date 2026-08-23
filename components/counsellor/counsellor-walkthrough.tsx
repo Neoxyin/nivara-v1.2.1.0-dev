@@ -104,7 +104,6 @@ const COUNSELLOR_STEPS = [
   },
 ];
 
-const COUNSELLOR_SESSION_GREETED_KEY = 'nivara_counsellor_greeted_session';
 const COUNSELLOR_ONBOARDING_COMPLETED_KEY = 'nivara_counsellor_onboarding_completed';
 
 export function CounsellorWalkthrough({ forceOpen = false, onClose }: CounsellorWalkthroughProps) {
@@ -112,32 +111,17 @@ export function CounsellorWalkthrough({ forceOpen = false, onClose }: Counsellor
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
+  // This briefing is user-triggered by the notification/briefing action in
+  // CounsellorShell. It must never open automatically on portal entry.
   useEffect(() => {
     if (forceOpen) {
       setIsOpen(true);
       setCurrentStep(0);
-      return;
-    }
-
-    try {
-      const hasGreetedThisSession = sessionStorage.getItem(COUNSELLOR_SESSION_GREETED_KEY);
-      if (!hasGreetedThisSession) {
-        const timer = setTimeout(() => {
-          setIsOpen(true);
-        }, 350);
-        return () => clearTimeout(timer);
-      }
-    } catch {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 350);
-      return () => clearTimeout(timer);
     }
   }, [forceOpen]);
 
   const handleClose = () => {
     try {
-      sessionStorage.setItem(COUNSELLOR_SESSION_GREETED_KEY, 'true');
       localStorage.setItem(COUNSELLOR_ONBOARDING_COMPLETED_KEY, 'true');
     } catch {
       // ignore

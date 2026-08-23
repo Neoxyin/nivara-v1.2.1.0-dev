@@ -21,11 +21,11 @@ export interface MagneticProps {
 
 export function Magnetic({
   children,
-  radius = 40,
-  strength = 0.06,
+  radius = 34,
+  strength = 0.045,
   stiffness = 180,
   damping = 22,
-  maxDisplacement = 5,
+  maxDisplacement = 4,
   className = '',
   active = true,
 }: MagneticProps) {

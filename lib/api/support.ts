@@ -44,15 +44,6 @@ export type AiSupportMessageResponse = {
   suggestions?: string[];
 };
 
-export type AiSupportMessageInput = {
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
-};
-
-export type AiSupportMessageResponse = {
-  reply: string;
-  suggestions?: string[];
-};
-
 export async function sendAiSupportMessage(input: AiSupportMessageInput): Promise<AiSupportMessageResponse> {
   const latestMessage = input.messages[input.messages.length - 1]?.content || '';
   await pause(350);

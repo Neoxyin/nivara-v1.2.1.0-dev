@@ -72,11 +72,8 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/unauthorized', request.url));
     }
 
-    if (pathname === '/') {
-      if (role === 'student') return NextResponse.redirect(new URL('/dashboard', request.url));
-      if (role === 'counsellor') return NextResponse.redirect(new URL('/counsellor', request.url));
-      if (role === 'admin') return NextResponse.redirect(new URL('/admin', request.url));
-    }
+    // `/` is always the public NIVARA homepage. Authentication does not
+    // imply automatic workspace entry; users enter their workspace explicitly.
   }
 
   return NextResponse.next();

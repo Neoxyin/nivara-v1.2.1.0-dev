@@ -1,7 +1,6 @@
 import { AppShell } from '@/components/layout/nivara-shell';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { SupportCirclesList } from '@/components/support/support-circles-list';
-
 export default function SupportCirclesPage() {
   return (
     <AppShell>

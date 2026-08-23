@@ -5,11 +5,12 @@ import { SectionHeading } from '@/components/shared/section-heading';
 import { Pill } from '@/components/shared/pill';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/components/shared/language-context';
 import { StaggerContainer } from '@/components/ui/stagger-container';
 import {
   Clock3,
   Calendar,
-  CheckCircle2,
   SlidersHorizontal,
   MapPin,
   ShieldCheck,
@@ -34,15 +35,20 @@ export default function CounsellorAvailabilityPage() {
     'Fri-AM': true,
     'Fri-PM': false,
   });
-  const [savedAlert, setSavedAlert] = useState(false);
+  const { toast } = useToast();
+  const { language } = useLanguage();
 
   const toggleSlot = (slotKey: keyof typeof slotStates) => {
     setSlotStates((prev) => ({ ...prev, [slotKey]: !prev[slotKey] }));
   };
 
   const handleSave = () => {
-    setSavedAlert(true);
-    setTimeout(() => setSavedAlert(false), 3000);
+    toast({
+      title: language === 'hi' ? 'समय-सारणी सहेजी गई' : 'Schedule saved',
+      description: language === 'hi'
+        ? 'आपकी उपलब्धता और बुकिंग विंडो अपडेट हो गई हैं।'
+        : 'Your availability and booking windows have been updated.',
+    });
   };
 
   const days = [
@@ -61,11 +67,6 @@ export default function CounsellorAvailabilityPage() {
         description="Configure your consultation schedule, open booking windows for students, and set active caseload ceilings."
         action={
           <div className="flex items-center gap-2">
-            {savedAlert && (
-              <span className="text-xs font-bold text-[#c3f340] inline-flex items-center gap-1">
-                <CheckCircle2 size={13} /> Preferences updated
-              </span>
-            )}
             <Pill tone="accent">
               <ShieldCheck size={12} className="mr-1 inline" /> Schedule Synced
             </Pill>

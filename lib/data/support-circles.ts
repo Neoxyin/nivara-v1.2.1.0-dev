@@ -87,6 +87,19 @@ export const INITIAL_CIRCLES: SupportCircle[] = [
     isJoined: false,
     status: 'active',
     tags: ['Burnout', 'Rest', 'Boundaries']
+  },
+  {
+    id: 'circle-6',
+    title: 'Relationship & Interpersonal Support Circle',
+    category: 'Relationship Problems',
+    description: 'Navigating interpersonal stress, communication friction, and boundary management in campus relationships and friendships.',
+    moderator: 'Dr. A. Rahman (Counsellor)',
+    memberCount: 7,
+    maxMembers: 12,
+    expiresInDays: 10,
+    isJoined: false,
+    status: 'active',
+    tags: ['Relationships', 'Boundaries', 'Communication']
   }
 ];
 
@@ -116,6 +129,16 @@ export const INITIAL_POSTS: Record<string, CirclePost[]> = {
       author: 'Anonymous Student',
       content: 'First time living 500 miles away from family. Sunday evenings get particularly quiet here.',
       timestamp: 'Yesterday',
+      moderationStatus: 'published'
+    }
+  ],
+  'circle-6': [
+    {
+      id: 'post-1',
+      circleId: 'circle-6',
+      author: 'Anonymous Student',
+      content: 'Balancing academic deadlines with roommate communication can feel overwhelming at times.',
+      timestamp: '3 hours ago',
       moderationStatus: 'published'
     }
   ]

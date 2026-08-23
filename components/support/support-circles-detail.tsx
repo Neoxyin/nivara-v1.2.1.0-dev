@@ -148,6 +148,12 @@ export function SupportCircleDetail({ circleId }: { circleId: string }) {
               <textarea
                 value={newPostContent}
                 onChange={(e) => setNewPostContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!isSubmitting && newPostContent.trim()) handleCreatePost(e as unknown as React.FormEvent<HTMLFormElement>);
+                  }
+                }}
                 placeholder="Write a supportive reflection, question, or encouragement..."
                 rows={3}
                 disabled={isSubmitting}

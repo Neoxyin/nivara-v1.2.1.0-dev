@@ -13,12 +13,15 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
+      const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+      if (isMobile) return true;
       return localStorage.getItem('nivara_sidebar_collapsed') === 'true';
     }
     return false;
   });
 
   const toggleSidebar = () => {
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches) return;
     setCollapsed((prev) => {
       const next = !prev;
       if (typeof window !== 'undefined') {
@@ -29,10 +32,18 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const stored = localStorage.getItem('nivara_sidebar_collapsed');
-    if (stored === 'true') {
-      setCollapsed(true);
-    }
+    const media = window.matchMedia('(max-width: 1023px)');
+    const syncViewport = () => {
+      if (media.matches) {
+        setCollapsed(true);
+      } else {
+        const stored = localStorage.getItem('nivara_sidebar_collapsed');
+        setCollapsed(stored === 'true');
+      }
+    };
+    syncViewport();
+    media.addEventListener?.('change', syncViewport);
+    return () => media.removeEventListener?.('change', syncViewport);
   }, []);
 
   return (

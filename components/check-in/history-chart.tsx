@@ -18,7 +18,7 @@ export function HistoryChart({ data, height = 280 }: HistoryChartProps) {
   const chartData = [...data].reverse();
 
   return (
-    <div className="w-full" style={{ minHeight: height }}>
+    <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="rgba(255,255,255,.05)" />

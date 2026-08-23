@@ -129,40 +129,23 @@ const STEPS = [
 ];
 
 const ONBOARDING_STORAGE_KEY = 'nivara_student_onboarding_completed';
-const SESSION_GREETED_KEY = 'nivara_student_greeted_session';
 
 export function StudentWalkthrough({ forceOpen = false, onClose }: StudentWalkthroughProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
+  // This walkthrough is user-triggered by the notification/help action in
+  // AppShell. It must never open automatically when the workspace mounts.
   useEffect(() => {
     if (forceOpen) {
       setIsOpen(true);
       setCurrentStep(0);
-      return;
-    }
-
-    // Trigger reliably upon workspace entry for every new visit/session
-    try {
-      const hasGreetedThisSession = sessionStorage.getItem(SESSION_GREETED_KEY);
-      if (!hasGreetedThisSession) {
-        const timer = setTimeout(() => {
-          setIsOpen(true);
-        }, 350);
-        return () => clearTimeout(timer);
-      }
-    } catch {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 350);
-      return () => clearTimeout(timer);
     }
   }, [forceOpen]);
 
   const handleComplete = () => {
     try {
-      sessionStorage.setItem(SESSION_GREETED_KEY, 'true');
       localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
     } catch {
       // ignore

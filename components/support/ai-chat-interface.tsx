@@ -46,13 +46,14 @@ export function AiChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasStartedConversation = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (hasStartedConversation.current) scrollToBottom();
   }, [messages, isLoading]);
 
   const handleSend = async (textToSend?: string) => {
@@ -66,6 +67,7 @@ export function AiChatInterface() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
+    hasStartedConversation.current = true;
     setMessages((prev) => [...prev, userMessage]);
     if (!textToSend) setInput('');
     setIsLoading(true);
@@ -105,7 +107,7 @@ export function AiChatInterface() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       {/* Main Chat Area */}
-      <div className="lg:col-span-3 flex flex-col h-[700px] border border-white/[0.09] bg-[#141414]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl">
+      <div className={`lg:col-span-3 flex flex-col border border-white/[0.09] bg-[#141414]/90 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl transition-[height] duration-300 ease-out ${hasStartedConversation.current ? 'h-[620px]' : 'h-auto'}`}>
         
         {/* Chat Header */}
         <div className="px-6 py-4 border-b border-white/[0.08] bg-white/[0.02] flex items-center justify-between">
@@ -138,7 +140,7 @@ export function AiChatInterface() {
         </div>
 
         {/* Message Scroll Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className={`overflow-y-auto p-6 space-y-6 ${hasStartedConversation.current ? 'flex-1 min-h-0' : 'max-h-[260px]'}`}>
           {messages.length === 0 ? (
             <div className="h-full grid place-items-center text-center text-white/40 p-8">
               <div>
@@ -220,14 +222,20 @@ export function AiChatInterface() {
             }}
             className="flex items-center gap-3"
           >
-            <input
-              type="text"
+            <textarea
+              rows={1}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about resources, study pacing, or support options..."
               disabled={isLoading}
               aria-label="Support message input"
-              className="flex-1 bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#c3f340]/50 transition-colors disabled:opacity-50"
+              className="flex-1 min-h-11 max-h-32 resize-none bg-white/[0.05] border border-white/[0.1] rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#c3f340]/50 transition-colors disabled:opacity-50"
             />
             <button
               type="submit"
@@ -243,7 +251,7 @@ export function AiChatInterface() {
               <ShieldCheck size={12} className="text-[#c3f340]" />
               Supportive guidance only · Not a medical, financial, or academic authority
             </span>
-            <span>Press Enter to send</span>
+            <span>Enter to send · Shift+Enter for a new line</span>
           </div>
         </div>
 

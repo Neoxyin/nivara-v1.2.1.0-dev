@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   ArrowRight,
   Check,
@@ -26,6 +27,8 @@ import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
 import { Pill } from '@/components/shared/pill';
 
 export function LandingPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const heroRef = useRef<HTMLDivElement>(null);
   const showcaseRef = useRef<HTMLDivElement>(null);
   const [isPopinOpen, setIsPopinOpen] = useState(false);
@@ -37,28 +40,24 @@ export function LandingPage() {
   const [isAuth, setIsAuth] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const authenticated = window.localStorage.getItem('nivara_authenticated') === 'true';
-      const role = window.localStorage.getItem('nivara_user_role') as 'student' | 'counsellor' | null;
-      if (authenticated && role && (role === 'student' || role === 'counsellor')) {
-        setIsAuth(true);
-        setSavedRole(role);
-      }
+    if (typeof window === 'undefined') return;
 
-      // Protected-route fallbacks open the role-specific login directly.
-      // Generic entry through Get Started continues to use the Selection Window.
-      const searchParams = new URLSearchParams(window.location.search);
-      if (searchParams.get('auth') === 'required') {
-        const requestedRole = searchParams.get('role');
-        if (requestedRole === 'student' || requestedRole === 'counsellor') {
-          setLoginModalRole(requestedRole);
-          setIsLoginModalOpen(true);
-        } else {
-          setIsPopinOpen(true);
-        }
+    const authenticated = window.localStorage.getItem('nivara_authenticated') === 'true';
+    const role = window.localStorage.getItem('nivara_user_role') as 'student' | 'counsellor' | null;
+    setIsAuth(authenticated);
+    setSavedRole(authenticated && (role === 'student' || role === 'counsellor') ? role : null);
+
+    // React to client-side redirects as well as a full page load. This is
+    // important for buttons such as "Try 1-Min Check-in": middleware can
+    // redirect to "/?auth=required&role=student" without remounting Home.
+    if (searchParams.get('auth') === 'required') {
+      const requestedRole = searchParams.get('role');
+      if (requestedRole === 'student' || requestedRole === 'counsellor') {
+        setLoginModalRole(requestedRole);
+        setIsLoginModalOpen(true);
       }
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -229,13 +228,23 @@ export function LandingPage() {
               </Magnetic>
 
               <Magnetic>
-                <Link
+                <button
                   id="hero-check-in-btn"
-                  href="/check-in"
+                  type="button"
+                  onClick={() => {
+                    const authenticated = window.localStorage.getItem('nivara_authenticated') === 'true';
+                    const role = window.localStorage.getItem('nivara_user_role');
+                    if (authenticated && role === 'student') {
+                      router.push('/check-in');
+                    } else {
+                      setLoginModalRole('student');
+                      setIsLoginModalOpen(true);
+                    }
+                  }}
                   className="inline-flex items-center gap-2 border border-white/15 bg-white/[0.03] px-6 py-3.5 text-xs font-extrabold uppercase tracking-[.12em] text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/[0.08]"
                 >
                   Try 1-Min Check-in
-                </Link>
+                </button>
               </Magnetic>
             </div>
 
@@ -402,7 +411,7 @@ export function LandingPage() {
         </footer>
       </main>
 
-      {/* Initial First-Visit Role Selection Pop-in */}
+      {/* Workspace Selection — opened only by the explicit Get Started action */}
       <RoleSelectionPopin
         forceOpen={isPopinOpen}
         onClose={() => setIsPopinOpen(false)}

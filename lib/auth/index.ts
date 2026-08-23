@@ -57,8 +57,15 @@ export function clearUserSession(): void {
   if (typeof window !== 'undefined') {
     window.localStorage.removeItem(ROLE_STORAGE_KEY);
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
-    window.localStorage.removeItem('nivara_initial_role_selected');
-    document.cookie = 'nivara_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+
+    // Clear the client session cookie used by middleware.
+    document.cookie = 'nivara_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; SameSite=Lax';
+
+    // Clear one-shot session/onboarding triggers so logout never causes a
+    // walkthrough or workspace selector to reopen on the public homepage.
+    window.sessionStorage.removeItem('nivara_launch_student_tour');
+    window.sessionStorage.removeItem('nivara_launch_counsellor_tour');
+
     window.dispatchEvent(new CustomEvent('nivara-role-changed', { detail: { role: null } }));
   }
 }
@@ -71,8 +78,7 @@ export function setUserRole(role: UserRole): void {
   if (typeof window !== 'undefined') {
     window.localStorage.setItem(ROLE_STORAGE_KEY, role);
     window.localStorage.setItem(AUTH_STORAGE_KEY, 'true');
-    window.localStorage.setItem('nivara_initial_role_selected', 'true');
-    
+      
     // Synchronize session cookie for Next.js middleware and SSR
     const upperRole = role.toUpperCase();
     const email = role === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu';

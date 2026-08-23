@@ -26,7 +26,7 @@ export function SupportCirclesList() {
     getSupportCircles().then(setCircles);
   }, []);
 
-  const categories = ['all', 'Exam Stress', 'First-Year Homesickness', 'Placement Anxiety', 'Hostel Loneliness', 'Academic Burnout'];
+  const categories = ['all', 'First-Year Homesickness', 'Exam Stress', 'Placement Anxiety', 'Hostel Loneliness', 'Academic Burnout', 'Relationship Problems'];
 
   const filteredCircles = filterCategory === 'all' 
     ? circles 

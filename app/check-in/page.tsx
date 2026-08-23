@@ -29,6 +29,13 @@ const labels: Record<number, Record<FormKey, string>> = {
   5: { mood: 'Great', energy: 'High', stress: 'Loud', sleep: 'Good', workload: 'Heavy' },
 };
 
+import { ContextualSubtabs } from '@/components/shared/contextual-subtabs';
+
+const checkInSubtabs = [
+  { labelKey: 'subtab.daily_checkin', defaultLabel: 'Daily Check-in', href: '/check-in', exact: true },
+  { labelKey: 'subtab.history', defaultLabel: 'Check-in History', href: '/check-in/history' },
+];
+
 export default function CheckInPage() {
   const { data: preferences, isLoading: prefsLoading } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
   const hasConsent = preferences?.find((p) => p.key === 'wellbeing_checkins')?.enabled ?? false;
@@ -96,19 +103,22 @@ export default function CheckInPage() {
   if (!hasConsent) {
     return (
       <AppShell>
-        <div className="rise-in mx-auto max-w-2xl mt-12">
-          <TiltCard maxTilt={4} className="border border-[rgba(255,255,255,.09)] bg-[#151515]/95 p-12 backdrop-blur-2xl text-center">
-            <LockKeyhole size={32} className="mx-auto text-white/30" />
-            <h2 className="mt-6 font-display text-3xl text-white">Check-ins are disabled</h2>
-            <p className="mt-4 text-sm text-white/55 max-w-md mx-auto">
-              You have chosen not to share well-being check-in data. Nivara respects this boundary. You can change this anytime in your privacy settings.
-            </p>
-            <div className="mt-8">
-              <Link href="/settings" className="inline-flex items-center gap-2 border border-white/20 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/5 transition-colors rounded">
-                Update Settings
-              </Link>
-            </div>
-          </TiltCard>
+        <div className="rise-in space-y-8">
+          <ContextualSubtabs items={checkInSubtabs} />
+          <div className="mx-auto max-w-2xl mt-4">
+            <TiltCard maxTilt={4} className="border border-[rgba(255,255,255,.09)] bg-[#151515]/95 p-12 backdrop-blur-2xl text-center">
+              <LockKeyhole size={32} className="mx-auto text-white/30" />
+              <h2 className="mt-6 font-display text-3xl text-white">Check-ins are disabled</h2>
+              <p className="mt-4 text-sm text-white/55 max-w-md mx-auto">
+                You have chosen not to share well-being check-in data. Nivara respects this boundary. You can change this anytime in your privacy settings.
+              </p>
+              <div className="mt-8">
+                <Link href="/settings" className="inline-flex items-center gap-2 border border-white/20 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/5 transition-colors rounded">
+                  Update Settings
+                </Link>
+              </div>
+            </TiltCard>
+          </div>
         </div>
       </AppShell>
     );
@@ -117,8 +127,10 @@ export default function CheckInPage() {
   if (!hasStarted) {
     return (
       <AppShell>
-        <div className="rise-in mx-auto max-w-2xl mt-12">
-          <TiltCard maxTilt={2} className="border border-[rgba(255,255,255,.09)] bg-[#151515]/95 p-10 md:p-12 backdrop-blur-2xl">
+        <div className="rise-in space-y-8">
+          <ContextualSubtabs items={checkInSubtabs} />
+          <div className="mx-auto max-w-2xl mt-4">
+            <TiltCard maxTilt={2} className="border border-[rgba(255,255,255,.09)] bg-[#151515]/95 p-10 md:p-12 backdrop-blur-2xl">
             <h1 className="font-display text-4xl text-white">Well-being Check-in</h1>
             
             <div className="mt-8 space-y-6 text-sm leading-6 text-white/70">
@@ -160,6 +172,7 @@ export default function CheckInPage() {
               </Magnetic>
             </div>
           </TiltCard>
+          </div>
         </div>
       </AppShell>
     );

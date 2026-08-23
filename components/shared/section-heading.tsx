@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { useLanguage } from './language-context';
 
 interface SectionHeadingProps {
   eyebrow: string;
@@ -10,15 +11,16 @@ interface SectionHeadingProps {
 }
 
 export function SectionHeading({ eyebrow, title, description, action }: SectionHeadingProps) {
+  const { translateText } = useLanguage();
   return (
     <div className="mb-7 flex flex-wrap items-end justify-between gap-6">
       <div className="min-w-0 flex-1">
-        <p className="serenity-label text-[#c3f340]/80">{eyebrow}</p>
+        <p className="serenity-label text-[#c3f340]/80">{translateText(eyebrow)}</p>
         <h1 className="mt-1.5 font-display text-4xl md:text-5xl lg:text-[3.2rem] leading-[.92] tracking-[-.03em] text-white">
-          {title}
+          {translateText(title)}
         </h1>
         {description && (
-          <p className="mt-2.5 max-w-xl text-xs md:text-sm leading-5 text-white/50">{description}</p>
+          <p className="mt-2.5 max-w-xl text-xs md:text-sm leading-5 text-white/50">{translateText(description)}</p>
         )}
       </div>
       {action && <div className="shrink-0">{action}</div>}
