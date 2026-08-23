@@ -11,13 +11,6 @@ import { LockKeyhole, HeartPulse, FileText, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { Magnetic } from '@/components/ui/magnetic';
 
-import { ContextualSubtabs } from '@/components/shared/contextual-subtabs';
-
-const checkInSubtabs = [
-  { labelKey: 'subtab.daily_checkin', defaultLabel: 'Daily Check-in', href: '/check-in', exact: true },
-  { labelKey: 'subtab.history', defaultLabel: 'Check-in History', href: '/check-in/history' },
-];
-
 export default function CheckInHistoryPage() {
   const { data: preferences, isLoading: prefsLoading, error: prefsError } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
   const hasConsent = preferences?.find((p) => p.key === 'wellbeing_checkins')?.enabled ?? false;
@@ -55,7 +48,6 @@ export default function CheckInHistoryPage() {
     return (
       <AppShell>
         <div className="rise-in space-y-8">
-          <ContextualSubtabs items={checkInSubtabs} />
           <div className="mx-auto max-w-2xl mt-4">
             <TiltCard maxTilt={4} className="border border-[rgba(255,255,255,.09)] bg-[#151515]/95 p-12 backdrop-blur-2xl text-center">
               <LockKeyhole size={32} className="mx-auto text-white/30" />
@@ -80,7 +72,6 @@ export default function CheckInHistoryPage() {
   return (
     <AppShell>
       <div className="rise-in space-y-8">
-        <ContextualSubtabs items={checkInSubtabs} />
         <SectionHeading
           eyebrow="History & Trends"
           title="Your well-being over time."

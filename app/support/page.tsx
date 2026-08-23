@@ -21,13 +21,6 @@ import { useQuery } from '@tanstack/react-query';
 import { getPreferences } from '@/lib/api/preferences';
 import { getCheckIns } from '@/lib/api/checkins';
 
-import { ContextualSubtabs } from '@/components/shared/contextual-subtabs';
-
-const supportSubtabs = [
-  { labelKey: 'subtab.overview', defaultLabel: 'Overview', href: '/support', exact: true },
-  { labelKey: 'subtab.ai_support', defaultLabel: 'AI Support Space', href: '/support/ai' },
-];
-
 export default function SupportPage() {
   const { data: preferences, isLoading: prefsLoading } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
   const hasConsent = preferences?.find((p) => p.key === 'wellbeing_checkins')?.enabled ?? false;
@@ -43,7 +36,6 @@ export default function SupportPage() {
   return (
     <AppShell>
       <div className="rise-in space-y-8">
-        <ContextualSubtabs items={supportSubtabs} />
         <SectionHeading
           eyebrow="Support Navigation"
           title="Well-being & Connection"
