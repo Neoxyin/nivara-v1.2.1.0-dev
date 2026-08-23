@@ -15,6 +15,7 @@ import {
   HeartHandshake
 } from 'lucide-react';
 import Link from 'next/link';
+import { sendAiSupportMessage } from '@/lib/api/support';
 
 interface Message {
   id: string;
@@ -71,19 +72,9 @@ export function AiChatInterface() {
     setErrorMessage(null);
 
     try {
-      const res = await fetch('/api/ai/support', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...messages, userMessage].map((m) => ({ role: m.role, content: m.content }))
-        })
+      const data = await sendAiSupportMessage({
+        messages: [...messages, userMessage].map((m) => ({ role: m.role, content: m.content })),
       });
-
-      if (!res.ok) {
-        throw new Error('Failed to communicate with support navigator.');
-      }
-
-      const data = await res.json();
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),

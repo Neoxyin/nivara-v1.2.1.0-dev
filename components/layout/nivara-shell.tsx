@@ -23,7 +23,7 @@ import {
   HeartPulse,
 } from 'lucide-react';
 import gsap from 'gsap';
-import { getCurrentUser, logoutUser, isAuthenticated, getStoredRole } from '@/lib/auth';
+import { getCurrentUser, logoutUser } from '@/lib/auth';
 import { Mark } from '../shared/mark';
 import { FluidBackground } from '@/components/ui/fluid-background';
 import { Magnetic } from '@/components/ui/magnetic';
@@ -54,7 +54,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
 
-  // Strict session check is now handled centrally by Next.js middleware (middleware.ts)
   
   // Sidebar custom scroller state
   const scrollContainerRef = useRef<HTMLDivElement>(null);

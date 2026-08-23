@@ -21,6 +21,7 @@ import { setUserRole } from '@/lib/auth';
 interface RoleSelectionPopinProps {
   forceOpen?: boolean;
   onClose?: () => void;
+  onSelectRole?: (role: 'student' | 'counsellor') => void;
 }
 
 const POPIN_STORAGE_KEY = 'nivara_initial_role_selected';
@@ -28,6 +29,7 @@ const POPIN_STORAGE_KEY = 'nivara_initial_role_selected';
 export function RoleSelectionPopin({
   forceOpen = false,
   onClose,
+  onSelectRole,
 }: RoleSelectionPopinProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -36,11 +38,18 @@ export function RoleSelectionPopin({
   useEffect(() => {
     if (forceOpen) {
       setIsOpen(true);
-      return;
+    } else {
+      setIsOpen(false);
     }
+  }, [forceOpen]);
 
-    // Auto-popin on first landing visit immediately (250ms)
+  useEffect(() => {
+    // Auto-popin only on a normal first landing visit. Auth-required redirects
+    // are handled by the role-specific login modal instead.
     if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('auth') === 'required') return;
+
       const alreadyChosen = window.localStorage.getItem(POPIN_STORAGE_KEY);
       if (!alreadyChosen) {
         const timer = setTimeout(() => {
@@ -49,25 +58,22 @@ export function RoleSelectionPopin({
         return () => clearTimeout(timer);
       }
     }
-  }, [forceOpen]);
+  }, []);
 
-  const handleSelectRole = async (role: 'student' | 'counsellor') => {
+  const handleSelectRole = (role: 'student' | 'counsellor') => {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(POPIN_STORAGE_KEY, 'true');
     }
     
-    // Call the mock adapter to set cookies for middleware.ts
-    const demoEmail = role === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu';
-    try {
-      const { loginApi } = await import('@/lib/api/client');
-      await loginApi(role, demoEmail);
-    } catch (e) {
-      console.error(e);
-    }
-    
-    setUserRole(role);
     setIsOpen(false);
     if (onClose) onClose();
+
+    if (onSelectRole) {
+      onSelectRole(role);
+      return;
+    }
+
+    setUserRole(role);
 
     if (role === 'counsellor') {
       router.push('/counsellor');
@@ -84,9 +90,11 @@ export function RoleSelectionPopin({
     if (onClose) onClose();
   };
 
+  const isModalOpen = forceOpen || isOpen;
+
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isModalOpen && (
         <div className="fixed inset-0 z-[95] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           {/* Backdrop */}
           <motion.div

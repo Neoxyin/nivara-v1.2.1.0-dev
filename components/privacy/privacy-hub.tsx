@@ -264,9 +264,9 @@ export function PrivacyHub() {
                 </p>
               </div>
               <div className="space-y-2">
-                <strong className="text-white block">Frontend vs Backend Notice</strong>
+                <strong className="text-white block">Prototype Data Notice</strong>
                 <p className="text-amber-300/90">
-                  Frontend permission toggles and preference changes update your immediate session view and preferences store. Real backend data segregation is enforced according to institutional security pipelines.
+                  Permission toggles and preference changes update the current frontend session and local prototype state. No backend data service is connected in this build.
                 </p>
               </div>
             </div>

@@ -13,13 +13,18 @@ import {
   Filter
 } from 'lucide-react';
 import Link from 'next/link';
-import { INITIAL_CIRCLES, SupportCircle } from '@/lib/data/support-circles';
+import type { SupportCircle } from '@/lib/data/support-circles';
+import { getSupportCircles, toggleCircleJoin } from '@/lib/api/support-circles';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
 
 export function SupportCirclesList() {
-  const [circles, setCircles] = useState<SupportCircle[]>(INITIAL_CIRCLES);
+  const [circles, setCircles] = useState<SupportCircle[]>([]);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+
+  React.useEffect(() => {
+    getSupportCircles().then(setCircles);
+  }, []);
 
   const categories = ['all', 'Exam Stress', 'First-Year Homesickness', 'Placement Anxiety', 'Hostel Loneliness', 'Academic Burnout'];
 
@@ -27,16 +32,14 @@ export function SupportCirclesList() {
     ? circles 
     : circles.filter(c => c.category === filterCategory);
 
-  const handleToggleJoin = (id: string, e: React.MouseEvent) => {
+  const handleToggleJoin = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
-    setCircles(prev => prev.map(c => {
-      if (c.id === id) {
-        const isJoined = !c.isJoined;
-        const memberCount = isJoined ? c.memberCount + 1 : c.memberCount - 1;
-        return { ...c, isJoined, memberCount };
-      }
-      return c;
-    }));
+    try {
+      const updated = await toggleCircleJoin(id);
+      setCircles(prev => prev.map(c => c.id === id ? updated : c));
+    } catch {
+      // Graceful fallback
+    }
   };
 
   return (

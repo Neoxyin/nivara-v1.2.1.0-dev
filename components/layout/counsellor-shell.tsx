@@ -25,7 +25,7 @@ import gsap from 'gsap';
 import { Mark } from '../shared/mark';
 import { FluidBackground } from '@/components/ui/fluid-background';
 import { Magnetic } from '@/components/ui/magnetic';
-import { logoutUser, isAuthenticated, getStoredRole } from '@/lib/auth';
+import { logoutUser } from '@/lib/auth';
 import { useSidebar } from './sidebar-context';
 import { CounsellorNotifications } from './counsellor-notifications';
 import { CounsellorWalkthrough } from '@/components/counsellor/counsellor-walkthrough';
@@ -50,7 +50,6 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
 
-  // Strict session check is now handled centrally by Next.js middleware (middleware.ts)
   
   // Sidebar custom scroller state
   const scrollContainerRef = useRef<HTMLDivElement>(null);

@@ -109,7 +109,7 @@ export default function SettingsPage() {
             
             <div className="px-8 py-4 bg-rose-500/10 border-t border-rose-500/20">
               <p className="text-xs text-rose-300">
-                <strong>Note:</strong> Currently, this UI only saves your preferences. A frontend checkbox is not backend consent enforcement. Real backend data segregation will be implemented in a future phase.
+                <strong>Note:</strong> This prototype stores preference changes in frontend session state. No backend consent service is connected in this build.
               </p>
             </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Database, 
@@ -18,20 +18,24 @@ import {
   RefreshCw,
   FileText
 } from 'lucide-react';
-import { 
-  INITIAL_STUDENT_DATA, 
-  INITIAL_CORRECTIONS, 
-  INITIAL_AUDIT_LOGS, 
+import type { 
   StudentDataField, 
   CorrectionRequest, 
   AuditLogEntry 
 } from '@/lib/data/student-data';
+import { 
+  getStudentDataFields, 
+  getCorrectionRequests, 
+  getAuditLogs, 
+  submitCorrectionRequest 
+} from '@/lib/api/student-data';
 import { TiltCard } from '@/components/ui/tilt-card';
 
 export function DataTransparencyDashboard() {
-  const [dataFields, setDataFields] = useState<StudentDataField[]>(INITIAL_STUDENT_DATA);
-  const [corrections, setCorrections] = useState<CorrectionRequest[]>(INITIAL_CORRECTIONS);
-  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
+  const [dataFields, setDataFields] = useState<StudentDataField[]>([]);
+  const [corrections, setCorrections] = useState<CorrectionRequest[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const [activeTab, setActiveTab] = useState<'data' | 'corrections' | 'audit'>('data');
   
@@ -41,6 +45,24 @@ export function DataTransparencyDashboard() {
   const [explanation, setExplanation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [fields, corrs, logs] = await Promise.all([
+          getStudentDataFields(),
+          getCorrectionRequests(),
+          getAuditLogs(),
+        ]);
+        setDataFields(fields);
+        setCorrections(corrs);
+        setAuditLogs(logs);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   const handleOpenCorrection = (field: StudentDataField) => {
     setSelectedField(field);
@@ -54,43 +76,34 @@ export function DataTransparencyDashboard() {
     setExplanation('');
   };
 
-  const handleSubmitCorrection = (e: React.FormEvent) => {
+  const handleSubmitCorrection = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedField || !requestedValue.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const newCorrection: CorrectionRequest = {
-        id: `corr-${Date.now()}`,
-        fieldId: selectedField.id,
-        fieldName: selectedField.fieldName,
-        currentValue: selectedField.currentValue,
-        requestedValue: requestedValue.trim(),
-        explanation: explanation.trim() || 'No explanation provided.',
-        status: 'Pending Review',
-        submittedAt: 'Just now'
-      };
+    try {
+      const newCorrection = await submitCorrectionRequest(
+        selectedField.id,
+        selectedField.fieldName,
+        selectedField.currentValue,
+        requestedValue.trim(),
+        explanation.trim() || 'No explanation provided.'
+      );
 
       setCorrections(prev => [newCorrection, ...prev]);
 
-      // Add audit log
-      const newAudit: AuditLogEntry = {
-        id: `audit-${Date.now()}`,
-        timestamp: 'Just now',
-        action: 'Correction Request Submitted',
-        actor: 'You',
-        details: `Requested correction for ${selectedField.fieldName}`
-      };
-      setAuditLogs(prev => [newAudit, ...prev]);
+      const updatedLogs = await getAuditLogs();
+      setAuditLogs(updatedLogs);
 
       setIsSubmitting(false);
       handleCloseCorrection();
       setSuccessBanner('Your data correction request has been successfully submitted for authorized review.');
       setActiveTab('corrections');
-
       setTimeout(() => setSuccessBanner(null), 5000);
-    }, 600);
+    } catch {
+      setIsSubmitting(false);
+    }
   };
 
   return (

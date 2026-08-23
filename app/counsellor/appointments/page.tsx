@@ -422,7 +422,7 @@ export default function CounsellorAppointmentsPage() {
                   <span className="text-[9px] font-mono text-white/30">Zero Surveillance / No Student Access</span>
                 </div>
                 <p className="text-[11px] text-white/45 mb-3">
-                  Frontend privacy ensures UI isolation. Institutional FERPA compliance governs secure backend data retention.
+                  This prototype keeps counselling notes within the current frontend session; no backend data service is connected.
                 </p>
 
                 {noteSuccess && (

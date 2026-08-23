@@ -2,5 +2,5 @@
   "name": "Nivara",
   "description": "A holistic student success platform designed to bridge the gap between academic performance and mental well-being.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

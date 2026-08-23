@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CounsellorShell } from '@/components/layout/counsellor-shell';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Pill } from '@/components/shared/pill';
@@ -111,8 +110,7 @@ export default function CounsellorSettingsPage() {
       : settings.filter((item) => item.category === activeTab);
 
   return (
-    <CounsellorShell>
-      <div className="rise-in">
+    <div className="rise-in">
         <SectionHeading
           eyebrow="Counsellor Settings"
           title="Clinical triage & portal preferences."
@@ -269,6 +267,5 @@ export default function CounsellorSettingsPage() {
           </div>
         </div>
       </div>
-    </CounsellorShell>
   );
 }

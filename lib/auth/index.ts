@@ -58,6 +58,7 @@ export function clearUserSession(): void {
     window.localStorage.removeItem(ROLE_STORAGE_KEY);
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
     window.localStorage.removeItem('nivara_initial_role_selected');
+    document.cookie = 'nivara_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
     window.dispatchEvent(new CustomEvent('nivara-role-changed', { detail: { role: null } }));
   }
 }
@@ -71,6 +72,13 @@ export function setUserRole(role: UserRole): void {
     window.localStorage.setItem(ROLE_STORAGE_KEY, role);
     window.localStorage.setItem(AUTH_STORAGE_KEY, 'true');
     window.localStorage.setItem('nivara_initial_role_selected', 'true');
+    
+    // Synchronize session cookie for Next.js middleware and SSR
+    const upperRole = role.toUpperCase();
+    const email = role === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu';
+    const payload = encodeURIComponent(JSON.stringify({ role: upperRole, email }));
+    document.cookie = `nivara_session=${payload}; path=/; max-age=86400; SameSite=Lax`;
+
     window.dispatchEvent(new CustomEvent('nivara-role-changed', { detail: { role } }));
   }
 }

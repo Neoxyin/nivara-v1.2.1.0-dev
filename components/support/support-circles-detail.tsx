@@ -16,65 +16,71 @@ import {
   Info
 } from 'lucide-react';
 import Link from 'next/link';
-import { INITIAL_CIRCLES, INITIAL_POSTS, SupportCircle, CirclePost } from '@/lib/data/support-circles';
+import type { SupportCircle, CirclePost } from '@/lib/data/support-circles';
+import { getSupportCircleById, getCirclePosts, addCirclePost } from '@/lib/api/support-circles';
 
 export function SupportCircleDetail({ circleId }: { circleId: string }) {
-  const circle = INITIAL_CIRCLES.find(c => c.id === circleId) || INITIAL_CIRCLES[0];
-  const [posts, setPosts] = useState<CirclePost[]>(INITIAL_POSTS[circleId] || [
-    {
-      id: 'default-1',
-      circleId,
-      author: 'Moderator',
-      content: 'Welcome to this temporary support circle. Feel free to share your thoughts, pacing strategies, or questions in a respectful, supportive environment.',
-      timestamp: '1 day ago',
-      moderationStatus: 'published'
-    }
-  ]);
+  const [circle, setCircle] = useState<SupportCircle | null>(null);
+  const [posts, setPosts] = useState<CirclePost[]>([]);
   const [newPostContent, setNewPostContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [moderationNotice, setModerationNotice] = useState<string | null>(null);
 
-  const handleCreatePost = (e: React.FormEvent) => {
+  React.useEffect(() => {
+    getSupportCircleById(circleId).then((c) => {
+      if (c) setCircle(c);
+    });
+    getCirclePosts(circleId).then((p) => {
+      if (p && p.length > 0) {
+        setPosts(p);
+      } else {
+        setPosts([
+          {
+            id: 'default-1',
+            circleId,
+            author: 'Moderator',
+            content: 'Welcome to this temporary support circle. Feel free to share your thoughts, pacing strategies, or questions in a respectful, supportive environment.',
+            timestamp: '1 day ago',
+            moderationStatus: 'published'
+          }
+        ]);
+      }
+    });
+  }, [circleId]);
+
+  const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPostContent.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
     setModerationNotice(null);
 
-    setTimeout(() => {
-      // Simulate safety layer validation
-      const contentLower = newPostContent.toLowerCase();
-      let status: 'published' | 'human_review' | 'safety_workflow' = 'published';
-      
-      if (contentLower.includes('hurt') || contentLower.includes('harm') || contentLower.includes('emergency')) {
-        status = 'safety_workflow';
-      } else if (contentLower.includes('hopeless') || contentLower.includes('fail') || contentLower.includes('severe')) {
-        status = 'human_review';
-      }
-
-      const newPost: CirclePost = {
-        id: Date.now().toString(),
-        circleId,
-        author: 'You (Anonymous)',
-        content: newPostContent.trim(),
-        timestamp: 'Just now',
-        moderationStatus: status,
-        isCurrentUser: true
-      };
-
+    try {
+      const newPost = await addCirclePost(circleId, newPostContent.trim());
       setPosts(prev => [newPost, ...prev]);
       setNewPostContent('');
       setIsSubmitting(false);
 
-      if (status === 'human_review') {
+      if (newPost.moderationStatus === 'human_review') {
         setModerationNotice('Your post has been routed for gentle human review by a campus moderator to ensure care and support.');
-      } else if (status === 'safety_workflow') {
+      } else if (newPost.moderationStatus === 'safety_workflow') {
         setModerationNotice('Our safety workflow has detected language indicating distress. Immediate campus support resources and counsellor options have been attached.');
       } else {
         setModerationNotice('Post successfully reviewed and published to the circle.');
       }
-    }, 600);
+    } catch {
+      setIsSubmitting(false);
+      setModerationNotice('Unable to post to the circle at this time. Please check your connection and try again.');
+    }
   };
+
+  if (!circle) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px]">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#c3f340] border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

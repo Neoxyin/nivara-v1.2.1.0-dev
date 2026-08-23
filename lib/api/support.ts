@@ -34,3 +34,36 @@ export async function sendSupportMessage(message: string): Promise<{ response: s
   
   return { response };
 }
+
+export type AiSupportMessageInput = {
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+};
+
+export type AiSupportMessageResponse = {
+  reply: string;
+  suggestions?: string[];
+};
+
+export type AiSupportMessageInput = {
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+};
+
+export type AiSupportMessageResponse = {
+  reply: string;
+  suggestions?: string[];
+};
+
+export async function sendAiSupportMessage(input: AiSupportMessageInput): Promise<AiSupportMessageResponse> {
+  const latestMessage = input.messages[input.messages.length - 1]?.content || '';
+  await pause(350);
+  const fallback = await sendSupportMessage(latestMessage);
+  return {
+    reply: fallback.response,
+    suggestions: [
+      'How do I book a counsellor?',
+      'Academic pacing tips',
+      'Stress management guides',
+      'Explore support resources',
+    ],
+  };
+}

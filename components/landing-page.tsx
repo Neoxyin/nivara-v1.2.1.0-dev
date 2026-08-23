@@ -2,10 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
-  ArrowUpRight,
   Check,
   LockKeyhole,
   Sparkles,
@@ -22,15 +20,17 @@ import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
 import { FluidBackground } from '@/components/ui/fluid-background';
 import { RoleSelectionPopin } from '@/components/auth/role-selection-popin';
+import { LoginPortalModal } from '@/components/auth/login-portal-modal';
 import { HelpModal } from '@/components/shared/help-modal';
 import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
 import { Pill } from '@/components/shared/pill';
 
 export function LandingPage() {
-  const router = useRouter();
   const heroRef = useRef<HTMLDivElement>(null);
   const showcaseRef = useRef<HTMLDivElement>(null);
   const [isPopinOpen, setIsPopinOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [loginModalRole, setLoginModalRole] = useState<'student' | 'counsellor' | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [savedRole, setSavedRole] = useState<'student' | 'counsellor' | null>(null);
@@ -45,10 +45,15 @@ export function LandingPage() {
         setSavedRole(role);
       }
 
-      // Check if redirected because auth was required
+      // Protected-route fallbacks open the role-specific login directly.
+      // Generic entry through Get Started continues to use the Selection Window.
       const searchParams = new URLSearchParams(window.location.search);
-      if (searchParams.get('auth') === 'required' || !authenticated) {
-        if (searchParams.get('auth') === 'required') {
+      if (searchParams.get('auth') === 'required') {
+        const requestedRole = searchParams.get('role');
+        if (requestedRole === 'student' || requestedRole === 'counsellor') {
+          setLoginModalRole(requestedRole);
+          setIsLoginModalOpen(true);
+        } else {
           setIsPopinOpen(true);
         }
       }
@@ -132,7 +137,36 @@ export function LandingPage() {
         </Magnetic>
 
         <div className="flex items-center gap-2.5 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-3 text-[11px] font-bold uppercase tracking-[.1em]">
+            <button
+              id="header-student-space-btn"
+              type="button"
+              onClick={() => {
+                setLoginModalRole('student');
+                setIsLoginModalOpen(true);
+              }}
+              className="text-white/60 hover:text-[#c3f340] transition-colors"
+            >
+              Student Space
+            </button>
+
+            <span className="h-3 w-px bg-white/25" aria-hidden="true" />
+
+            <button
+              id="header-counsellor-portal-btn"
+              type="button"
+              onClick={() => {
+                setLoginModalRole('counsellor');
+                setIsLoginModalOpen(true);
+              }}
+              className="text-white/60 hover:text-[#c3f340] transition-colors"
+            >
+              Counsellor Portal
+            </button>
+          </div>
+
           <button
+            id="header-about-btn"
             type="button"
             onClick={() => setIsAboutOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[11px] font-bold uppercase tracking-[.1em] text-white/70 hover:border-[#c3f340]/40 hover:bg-[#c3f340]/10 hover:text-[#dff77d] transition-all"
@@ -141,6 +175,7 @@ export function LandingPage() {
           </button>
 
           <button
+            id="header-help-btn"
             type="button"
             onClick={() => setIsHelpOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[11px] font-bold uppercase tracking-[.1em] text-white/70 hover:border-white/25 hover:bg-white/[0.06] hover:text-white transition-all"
@@ -182,37 +217,26 @@ export function LandingPage() {
 
             {/* Direct Role Entry Points */}
             <div className="hero-actions mt-7 flex flex-wrap items-center gap-3.5">
-              {isAuth && savedRole ? (
-                <Magnetic>
-                  <Link
-                    href={savedRole === 'counsellor' ? '/counsellor' : '/student'}
-                    className="pressable btn-sweep inline-flex items-center gap-2 border border-[#c3f340] bg-[#c3f340] px-6 py-3.5 text-xs font-extrabold uppercase tracking-[.12em] text-[#0d1408] shadow-[0_0_25px_rgba(195,243,64,0.35)] transition hover:border-[#c3f340] hover:scale-105"
-                  >
-                    Open {savedRole === 'counsellor' ? 'Counsellor Portal' : 'Student Space'} <ArrowRight size={14} />
-                  </Link>
-                </Magnetic>
-              ) : (
-                <>
-                  <Magnetic>
-                    <button
-                      type="button"
-                      onClick={() => setIsPopinOpen(true)}
-                      className="pressable btn-sweep inline-flex items-center gap-2 border border-[#c3f340] bg-[#c3f340] px-6 py-3.5 text-xs font-extrabold uppercase tracking-[.12em] text-[#0d1408] shadow-[0_0_25px_rgba(195,243,64,0.35)] transition hover:border-[#c3f340] hover:scale-105"
-                    >
-                      Choose Your Space <ArrowRight size={14} />
-                    </button>
-                  </Magnetic>
+              <Magnetic>
+                <button
+                  id="hero-get-started-btn"
+                  type="button"
+                  onClick={() => setIsPopinOpen(true)}
+                  className="pressable btn-sweep inline-flex items-center gap-2 border border-[#c3f340] bg-[#c3f340] px-6 py-3.5 text-xs font-extrabold uppercase tracking-[.12em] text-[#0d1408] shadow-[0_0_25px_rgba(195,243,64,0.35)] transition hover:border-[#c3f340] hover:scale-105"
+                >
+                  Get Started <ArrowRight size={14} />
+                </button>
+              </Magnetic>
 
-                  <Magnetic>
-                    <Link
-                      href="/check-in"
-                      className="inline-flex items-center gap-2 border border-white/15 bg-white/[0.03] px-6 py-3.5 text-xs font-extrabold uppercase tracking-[.12em] text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/[0.08]"
-                    >
-                      Try 1-Min Check-in
-                    </Link>
-                  </Magnetic>
-                </>
-              )}
+              <Magnetic>
+                <Link
+                  id="hero-check-in-btn"
+                  href="/check-in"
+                  className="inline-flex items-center gap-2 border border-white/15 bg-white/[0.03] px-6 py-3.5 text-xs font-extrabold uppercase tracking-[.12em] text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/[0.08]"
+                >
+                  Try 1-Min Check-in
+                </Link>
+              </Magnetic>
             </div>
 
             <div className="hero-trust mt-6 flex flex-wrap gap-x-7 gap-y-2 text-[10px] uppercase tracking-[.18em] text-white/40">
@@ -374,35 +398,6 @@ export function LandingPage() {
               <span className="h-1.5 w-1.5 rounded-full bg-[#c3f340]" />
               <span>Nivara · Holistic Student Success & Well-being</span>
             </div>
-
-            <div className="flex items-center gap-6">
-              <button
-                type="button"
-                onClick={() => {
-                  if (isAuth && savedRole === 'student') {
-                    router.push('/student');
-                  } else {
-                    setIsPopinOpen(true);
-                  }
-                }}
-                className="font-bold text-white/60 hover:text-[#c3f340] transition-colors"
-              >
-                Student Space <ArrowUpRight className="ml-0.5 inline" size={12} />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (isAuth && savedRole === 'counsellor') {
-                    router.push('/counsellor');
-                  } else {
-                    setIsPopinOpen(true);
-                  }
-                }}
-                className="font-bold text-white/60 hover:text-[#c3f340] transition-colors"
-              >
-                Counsellor Portal <ArrowUpRight className="ml-0.5 inline" size={12} />
-              </button>
-            </div>
           </div>
         </footer>
       </main>
@@ -411,6 +406,22 @@ export function LandingPage() {
       <RoleSelectionPopin
         forceOpen={isPopinOpen}
         onClose={() => setIsPopinOpen(false)}
+        onSelectRole={(role) => {
+          setIsPopinOpen(false);
+          setLoginModalRole(role);
+          setIsLoginModalOpen(true);
+        }}
+      />
+
+      {/* Role-Specific / Direct Login Portal Modal */}
+      <LoginPortalModal
+        isOpen={isLoginModalOpen}
+        onClose={() => {
+          setIsLoginModalOpen(false);
+          setLoginModalRole(null);
+        }}
+        defaultRole={loginModalRole || 'student'}
+        lockedRole={loginModalRole}
       />
 
       {/* Lightweight Help & FAQ Modal */}

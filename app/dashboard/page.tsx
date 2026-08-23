@@ -314,11 +314,19 @@ export default function DashboardPage() {
                 {recommendations?.map((item, i) => {
                   const isDone = done[i];
                   return (
-                    <button
+                    <div
                       key={item.title}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => toggle(i)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggle(i);
+                        }
+                      }}
                       data-testid={`button-recommendation-${i}`}
-                      className={`group relative flex flex-col justify-between overflow-hidden border p-4 text-left transition-all duration-200 ease-out hover:-translate-y-0.5 rounded ${
+                      className={`group relative flex flex-col justify-between overflow-hidden border p-4 text-left transition-all duration-200 ease-out hover:-translate-y-0.5 rounded cursor-pointer select-none ${
                         isDone
                           ? 'border-[rgba(195,243,64,.35)] bg-[rgba(195,243,64,.04)] opacity-65'
                           : 'border-white/[0.09] bg-white/[0.01] hover:border-[rgba(195,243,64,.35)] hover:bg-white/[0.03]'
@@ -365,7 +373,7 @@ export default function DashboardPage() {
                           <p className="text-[10px] leading-tight text-white/40">{item.why}</p>
                         </div>
                       )}
-                    </button>
+                    </div>
                   );
                 })}
               </div>

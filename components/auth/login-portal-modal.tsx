@@ -26,23 +26,40 @@ interface LoginPortalModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultRole?: 'student' | 'counsellor';
+  lockedRole?: 'student' | 'counsellor' | null;
 }
 
 export function LoginPortalModal({
   isOpen,
   onClose,
   defaultRole = 'student',
+  lockedRole = null,
 }: LoginPortalModalProps) {
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState<'student' | 'counsellor'>(defaultRole);
+  const effectiveRole = lockedRole || defaultRole;
+  const [selectedRole, setSelectedRole] = useState<'student' | 'counsellor'>(effectiveRole);
   const [email, setEmail] = useState(
-    defaultRole === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu'
+    effectiveRole === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu'
   );
   const [password, setPassword] = useState('••••••••••••');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  React.useEffect(() => {
+    const roleToUse = lockedRole || defaultRole;
+    if (roleToUse) {
+      setSelectedRole(roleToUse);
+      setErrorMsg('');
+      if (roleToUse === 'student') {
+        setEmail('aria.chen@university.edu');
+      } else {
+        setEmail('a.ross@wellbeing.university.edu');
+      }
+    }
+  }, [lockedRole, defaultRole, isOpen]);
+
   const handleRoleSelect = (role: 'student' | 'counsellor') => {
+    if (lockedRole) return;
     setSelectedRole(role);
     setErrorMsg('');
     if (role === 'student') {
@@ -71,11 +88,8 @@ export function LoginPortalModal({
       setIsLoading(false);
       onClose();
 
-      if (selectedRole === 'counsellor') {
-        router.push('/counsellor');
-      } else {
-        router.push('/dashboard');
-      }
+      const targetPath = selectedRole === 'counsellor' ? '/counsellor' : '/dashboard';
+      router.push(targetPath);
     } catch (err) {
       setErrorMsg('Login failed. Please verify your credentials.');
       setIsLoading(false);
@@ -92,11 +106,8 @@ export function LoginPortalModal({
       setUserRole(role);
       setIsLoading(false);
       onClose();
-      if (role === 'counsellor') {
-        router.push('/counsellor');
-      } else {
-        router.push('/dashboard');
-      }
+      const targetPath = role === 'counsellor' ? '/counsellor' : '/dashboard';
+      router.push(targetPath);
     } catch (err) {
       setErrorMsg('Quick login failed');
       setIsLoading(false);
@@ -154,79 +165,123 @@ export function LoginPortalModal({
                 <LockKeyhole size={11} className="mr-1 inline text-[#c3f340]" /> Secure SSO & Workspace Entry
               </Pill>
               <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-                Sign in to your space
+                {lockedRole === 'student'
+                  ? 'Sign in to Student Space'
+                  : lockedRole === 'counsellor'
+                  ? 'Sign in to Counsellor Portal'
+                  : 'Sign in to your space'}
               </h2>
               <p className="mt-1.5 text-xs sm:text-sm text-white/55">
-                Select your institutional workspace to load your authenticated environment.
+                {lockedRole === 'student'
+                  ? 'Access your private student sanctuary, check-ins, and coursework rhythm.'
+                  : lockedRole === 'counsellor'
+                  ? 'Access clinical caseload triage, student appointments, and notes.'
+                  : 'Select your institutional workspace to load your authenticated environment.'}
               </p>
             </div>
 
-            {/* Role Selection Tabs */}
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              {/* Student Card */}
-              <button
-                type="button"
-                onClick={() => handleRoleSelect('student')}
-                className={`relative flex flex-col items-start p-3.5 rounded-xl border text-left transition-all duration-200 ${
-                  selectedRole === 'student'
-                    ? 'border-[#c3f340] bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]'
-                    : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
-                }`}
-              >
-                <div className="flex w-full items-center justify-between">
-                  <div
-                    className={`grid h-8 w-8 place-items-center rounded-lg border ${
-                      selectedRole === 'student'
-                        ? 'border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]'
-                        : 'border-white/10 bg-white/5 text-white/50'
-                    }`}
-                  >
-                    <GraduationCap size={16} />
-                  </div>
-                  {selectedRole === 'student' && (
-                    <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c3f340] text-[#0d1408]">
-                      <Check size={10} strokeWidth={3} />
-                    </span>
-                  )}
+            {/* Role Display / Selector */}
+            {lockedRole === 'student' ? (
+              <div className="mt-5 flex items-center gap-3 p-3.5 rounded-xl border border-[#c3f340]/40 bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]">
+                <div className="grid h-8 w-8 place-items-center rounded-lg border border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]">
+                  <GraduationCap size={16} />
                 </div>
-                <p className="mt-3 text-xs font-bold text-white">Student Space</p>
-                <p className="mt-0.5 text-[11px] leading-tight text-white/45">
-                  Academic rhythm, energy & private check-ins
-                </p>
-              </button>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-white">Student Space</p>
+                    <span className="text-[9px] font-bold uppercase tracking-[.1em] text-[#c3f340] border border-[#c3f340]/30 bg-[#c3f340]/10 px-2 py-0.5 rounded-full">
+                      Selected Role
+                    </span>
+                  </div>
+                  <p className="text-[11px] leading-tight text-white/55 mt-0.5">
+                    Academic rhythm, energy & private check-ins
+                  </p>
+                </div>
+              </div>
+            ) : lockedRole === 'counsellor' ? (
+              <div className="mt-5 flex items-center gap-3 p-3.5 rounded-xl border border-[#c3f340]/40 bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]">
+                <div className="grid h-8 w-8 place-items-center rounded-lg border border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]">
+                  <HeartHandshake size={16} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-white">Counsellor Space</p>
+                    <span className="text-[9px] font-bold uppercase tracking-[.1em] text-[#c3f340] border border-[#c3f340]/30 bg-[#c3f340]/10 px-2 py-0.5 rounded-full">
+                      Selected Role
+                    </span>
+                  </div>
+                  <p className="text-[11px] leading-tight text-white/55 mt-0.5">
+                    Caseload triage, cohort alerts & clinical notes
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                {/* Student Card */}
+                <button
+                  type="button"
+                  onClick={() => handleRoleSelect('student')}
+                  className={`relative flex flex-col items-start p-3.5 rounded-xl border text-left transition-all duration-200 ${
+                    selectedRole === 'student'
+                      ? 'border-[#c3f340] bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]'
+                      : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <div className="flex w-full items-center justify-between">
+                    <div
+                      className={`grid h-8 w-8 place-items-center rounded-lg border ${
+                        selectedRole === 'student'
+                          ? 'border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]'
+                          : 'border-white/10 bg-white/5 text-white/50'
+                      }`}
+                    >
+                      <GraduationCap size={16} />
+                    </div>
+                    {selectedRole === 'student' && (
+                      <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c3f340] text-[#0d1408]">
+                        <Check size={10} strokeWidth={3} />
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-3 text-xs font-bold text-white">Student Space</p>
+                  <p className="mt-0.5 text-[11px] leading-tight text-white/45">
+                    Academic rhythm, energy & private check-ins
+                  </p>
+                </button>
 
-              {/* Counsellor Card */}
-              <button
-                type="button"
-                onClick={() => handleRoleSelect('counsellor')}
-                className={`relative flex flex-col items-start p-3.5 rounded-xl border text-left transition-all duration-200 ${
-                  selectedRole === 'counsellor'
-                    ? 'border-[#c3f340] bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]'
-                    : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
-                }`}
-              >
-                <div className="flex w-full items-center justify-between">
-                  <div
-                    className={`grid h-8 w-8 place-items-center rounded-lg border ${
-                      selectedRole === 'counsellor'
-                        ? 'border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]'
-                        : 'border-white/10 bg-white/5 text-white/50'
-                    }`}
-                  >
-                    <HeartHandshake size={16} />
+                {/* Counsellor Card */}
+                <button
+                  type="button"
+                  onClick={() => handleRoleSelect('counsellor')}
+                  className={`relative flex flex-col items-start p-3.5 rounded-xl border text-left transition-all duration-200 ${
+                    selectedRole === 'counsellor'
+                      ? 'border-[#c3f340] bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]'
+                      : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <div className="flex w-full items-center justify-between">
+                    <div
+                      className={`grid h-8 w-8 place-items-center rounded-lg border ${
+                        selectedRole === 'counsellor'
+                          ? 'border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]'
+                          : 'border-white/10 bg-white/5 text-white/50'
+                      }`}
+                    >
+                      <HeartHandshake size={16} />
+                    </div>
+                    {selectedRole === 'counsellor' && (
+                      <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c3f340] text-[#0d1408]">
+                        <Check size={10} strokeWidth={3} />
+                      </span>
+                    )}
                   </div>
-                  {selectedRole === 'counsellor' && (
-                    <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c3f340] text-[#0d1408]">
-                      <Check size={10} strokeWidth={3} />
-                    </span>
-                  )}
-                </div>
-                <p className="mt-3 text-xs font-bold text-white">Counsellor Space</p>
-                <p className="mt-0.5 text-[11px] leading-tight text-white/45">
-                  Caseload triage, cohort alerts & clinical notes
-                </p>
-              </button>
-            </div>
+                  <p className="mt-3 text-xs font-bold text-white">Counsellor Space</p>
+                  <p className="mt-0.5 text-[11px] leading-tight text-white/45">
+                    Caseload triage, cohort alerts & clinical notes
+                  </p>
+                </button>
+              </div>
+            )}
 
             {/* Login Form */}
             <form onSubmit={handleLogin} className="mt-5 space-y-3.5">
@@ -310,40 +365,73 @@ export function LoginPortalModal({
             {/* Quick Demo Access Bar */}
             <div className="mt-5 border-t border-white/[0.08] pt-4">
               <div className="mb-2.5 flex items-center justify-between text-[10px] uppercase tracking-[.12em] text-white/40">
-                <span>Instant 1-Click Demo Profiles</span>
+                <span>
+                  {lockedRole ? 'Instant 1-Click Demo Profile' : 'Instant 1-Click Demo Profiles'}
+                </span>
                 <span className="flex items-center gap-1 text-[#c3f340]/80">
                   <ShieldCheck size={11} /> Sandboxed
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+
+              {lockedRole === 'student' ? (
                 <button
                   type="button"
                   onClick={() => handleQuickDemoLogin('student')}
-                  className="group flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-left transition hover:border-[#c3f340]/40 hover:bg-[#c3f340]/[0.05]"
+                  className="group flex w-full items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2.5 text-left transition hover:border-[#c3f340]/40 hover:bg-[#c3f340]/[0.05]"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[11px] font-bold text-white group-hover:text-[#c3f340]">
+                    <p className="truncate text-xs font-bold text-white group-hover:text-[#c3f340]">
                       Aria Chen
                     </p>
-                    <p className="text-[9px] text-white/40">Student Demo</p>
+                    <p className="text-[10px] text-white/40">Student Demo Profile · Engineering</p>
                   </div>
-                  <ArrowRight size={12} className="text-white/30 group-hover:text-[#c3f340]" />
+                  <ArrowRight size={13} className="text-white/30 group-hover:text-[#c3f340]" />
                 </button>
-
+              ) : lockedRole === 'counsellor' ? (
                 <button
                   type="button"
                   onClick={() => handleQuickDemoLogin('counsellor')}
-                  className="group flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-left transition hover:border-[#c3f340]/40 hover:bg-[#c3f340]/[0.05]"
+                  className="group flex w-full items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2.5 text-left transition hover:border-[#c3f340]/40 hover:bg-[#c3f340]/[0.05]"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[11px] font-bold text-white group-hover:text-[#c3f340]">
+                    <p className="truncate text-xs font-bold text-white group-hover:text-[#c3f340]">
                       Dr. A. Ross
                     </p>
-                    <p className="text-[9px] text-white/40">Counsellor Demo</p>
+                    <p className="text-[10px] text-white/40">Counsellor Demo Profile · Wellbeing Lead</p>
                   </div>
-                  <ArrowRight size={12} className="text-white/30 group-hover:text-[#c3f340]" />
+                  <ArrowRight size={13} className="text-white/30 group-hover:text-[#c3f340]" />
                 </button>
-              </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('student')}
+                    className="group flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-left transition hover:border-[#c3f340]/40 hover:bg-[#c3f340]/[0.05]"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] font-bold text-white group-hover:text-[#c3f340]">
+                        Aria Chen
+                      </p>
+                      <p className="text-[9px] text-white/40">Student Demo</p>
+                    </div>
+                    <ArrowRight size={12} className="text-white/30 group-hover:text-[#c3f340]" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('counsellor')}
+                    className="group flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-left transition hover:border-[#c3f340]/40 hover:bg-[#c3f340]/[0.05]"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] font-bold text-white group-hover:text-[#c3f340]">
+                        Dr. A. Ross
+                      </p>
+                      <p className="text-[9px] text-white/40">Counsellor Demo</p>
+                    </div>
+                    <ArrowRight size={12} className="text-white/30 group-hover:text-[#c3f340]" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Privacy footer guarantee */}
