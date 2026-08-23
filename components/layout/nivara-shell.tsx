@@ -32,16 +32,33 @@ import { StudentWalkthrough } from '@/components/dashboard/student-walkthrough';
 import { HelpModal } from '@/components/shared/help-modal';
 import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
 import { LanguageSelector, useLanguage } from '@/components/shared/language-context';
+import { AnimatedSidebarTree, type AnimatedSidebarItem } from './animated-sidebar-tree';
 
-const nav = [
-  { href: '/dashboard', labelKey: 'nav.today', icon: LayoutDashboard, exact: true },
-  { href: '/check-in', labelKey: 'nav.checkin', icon: CircleUserRound },
-  { href: '/academics', labelKey: 'nav.academics', icon: BookOpen },
-  { href: '/support', labelKey: 'nav.support', icon: HeartPulse, excludePrefixes: ['/support/circles'] },
-  { href: '/support/circles', labelKey: 'nav.support_circles', icon: Sparkles },
-  { href: '/counsellors', labelKey: 'nav.counsellors', icon: UsersRound },
-  { href: '/financial-support', labelKey: 'nav.financial', icon: Landmark },
-  { href: '/resources', labelKey: 'nav.resources', icon: Compass },
+const nav: AnimatedSidebarItem[] = [
+  { id: 'today', href: '/dashboard', label: 'nav.today', icon: LayoutDashboard, exact: true },
+  {
+    id: 'check-in',
+    label: 'nav.checkin',
+    icon: CircleUserRound,
+    children: [
+      { id: 'check-in-overview', href: '/check-in', label: 'subtab.daily_checkin', icon: CircleUserRound, exact: true },
+      { id: 'check-in-history', href: '/check-in/history', label: 'subtab.history', icon: CircleUserRound },
+    ],
+  },
+  { id: 'academics', href: '/academics', label: 'nav.academics', icon: BookOpen },
+  {
+    id: 'support',
+    label: 'nav.support',
+    icon: HeartPulse,
+    children: [
+      { id: 'support-overview', href: '/support', label: 'subtab.overview', icon: HeartPulse, exact: true },
+      { id: 'support-ai', href: '/support/ai', label: 'subtab.ai_support', icon: Sparkles },
+    ],
+  },
+  { id: 'support-circles', href: '/support/circles', label: 'nav.support_circles', icon: Sparkles },
+  { id: 'counsellors', href: '/counsellors', label: 'nav.counsellors', icon: UsersRound },
+  { id: 'financial', href: '/financial-support', label: 'nav.financial', icon: Landmark },
+  { id: 'resources', href: '/resources', label: 'nav.resources', icon: Compass },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -265,74 +282,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Navigation list */}
-            <nav className="space-y-1" aria-label="Main navigation">
-              {nav.map(({ href, labelKey, icon: Icon, exact, excludePrefixes }) => {
-                const excluded = excludePrefixes?.some((prefix) => pathname.startsWith(prefix)) ?? false;
-                const active = !excluded && (exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`));
-                return (
-                  <div key={href} className="group relative">
-                    <Link
-                      href={href}
-                      onMouseEnter={() => router.prefetch(href)}
-                      onFocus={() => router.prefetch(href)}
-                      className={`relative flex h-11 w-full items-center rounded-xl transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98] ${
-                        active
-                          ? 'bg-white/[0.08] text-white shadow-[0_0_14px_rgba(195,243,64,0.08),inset_0_1px_0_rgba(255,255,255,0.08)]'
-                          : 'text-white/50 hover:bg-white/[0.05] hover:text-white hover:shadow-[0_0_12px_rgba(195,243,64,0.06)]'
-                      }`}
-                    >
-                      {active && (
-                        <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-[#c3f340] shadow-[0_0_10px_#c3f340]" />
-                      )}
-
-                      {/* Stationary icon slot — exact 44px container anchored to left */}
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center">
-                        <Icon
-                          size={17}
-                          strokeWidth={1.8}
-                          className={`transition-transform duration-200 group-hover:scale-110 ${
-                            active ? 'text-[#c3f340]' : ''
-                          }`}
-                        />
-                      </div>
-
-                      {/* Smoothly blurred & fading text label */}
-                      <span
-                        className={`truncate text-[13px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                          collapsed
-                            ? 'max-w-0 opacity-0 pointer-events-none blur-sm -translate-x-2'
-                            : 'max-w-[150px] opacity-100 blur-0 translate-x-0'
-                        }`}
-                      >
-                        {t(labelKey)}
-                      </span>
-
-                      {/* Active pulsing indicator in expanded view */}
-                      {active && (
-                        <span
-                          className={`ml-auto mr-3 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c3f340] shadow-[0_0_10px_rgba(195,243,64,1)] animate-pulse transition-all duration-300 ${
-                            collapsed ? 'opacity-0 scale-0' : 'opacity-100 scale-100'
-                          }`}
-                        />
-                      )}
-                    </Link>
-
-                    {/* Floating tooltip bubble on hover when collapsed */}
-                    {collapsed && (
-                      <div
-                        role="tooltip"
-                        className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 opacity-0 -translate-x-1 scale-95 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-150 ease-out z-[60] flex items-center"
-                      >
-                        <div className="relative rounded-md border border-white/[0.12] bg-[#141414]/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.7),0_0_10px_rgba(195,243,64,0.15)] backdrop-blur-xl whitespace-nowrap">
-                          {t(labelKey)}
-                          <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rotate-45 border-b border-l border-white/[0.12] bg-[#141414]" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </nav>
+            <AnimatedSidebarTree
+              items={nav}
+              collapsed={collapsed}
+              t={t}
+              ariaLabel="Main navigation"
+            />
           </div>
 
           {/* Footer actions */}

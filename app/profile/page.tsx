@@ -8,8 +8,6 @@ import { Magnetic } from '@/components/ui/magnetic';
 import { getCurrentUser, updateStudent } from '@/lib/api/student';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { ContextualSubtabs } from '@/components/shared/contextual-subtabs';
-import { profileSubtabs } from '@/components/shared/profile-subtabs';
 
 export default function ProfilePage() {
   const queryClient = useQueryClient();
@@ -78,7 +76,6 @@ export default function ProfilePage() {
   return (
     <AppShell>
       <div className="rise-in space-y-8">
-        <ContextualSubtabs items={profileSubtabs} />
         <SectionHeading
           eyebrow="Your profile"
           title="Make this space yours."

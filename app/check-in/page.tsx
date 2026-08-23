@@ -29,13 +29,6 @@ const labels: Record<number, Record<FormKey, string>> = {
   5: { mood: 'Great', energy: 'High', stress: 'Loud', sleep: 'Good', workload: 'Heavy' },
 };
 
-import { ContextualSubtabs } from '@/components/shared/contextual-subtabs';
-
-const checkInSubtabs = [
-  { labelKey: 'subtab.daily_checkin', defaultLabel: 'Daily Check-in', href: '/check-in', exact: true },
-  { labelKey: 'subtab.history', defaultLabel: 'Check-in History', href: '/check-in/history' },
-];
-
 export default function CheckInPage() {
   const { data: preferences, isLoading: prefsLoading } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
   const hasConsent = preferences?.find((p) => p.key === 'wellbeing_checkins')?.enabled ?? false;
@@ -104,7 +97,6 @@ export default function CheckInPage() {
     return (
       <AppShell>
         <div className="rise-in space-y-8">
-          <ContextualSubtabs items={checkInSubtabs} />
           <div className="mx-auto max-w-2xl mt-4">
             <TiltCard maxTilt={4} className="border border-[rgba(255,255,255,.09)] bg-[#151515]/95 p-12 backdrop-blur-2xl text-center">
               <LockKeyhole size={32} className="mx-auto text-white/30" />
@@ -128,7 +120,6 @@ export default function CheckInPage() {
     return (
       <AppShell>
         <div className="rise-in space-y-8">
-          <ContextualSubtabs items={checkInSubtabs} />
           <div className="mx-auto max-w-2xl mt-4">
             <TiltCard maxTilt={2} className="border border-[rgba(255,255,255,.09)] bg-[#151515]/95 p-10 md:p-12 backdrop-blur-2xl">
             <h1 className="font-display text-4xl text-white">Well-being Check-in</h1>

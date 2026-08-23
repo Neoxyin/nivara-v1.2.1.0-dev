@@ -2,12 +2,11 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   AlertTriangle,
   BrainCircuit,
   Calendar,
-  ChevronRight,
   GraduationCap,
   LayoutDashboard,
   PanelLeftClose,
@@ -31,18 +30,18 @@ import { CounsellorWalkthrough } from '@/components/counsellor/counsellor-walkth
 import { HelpModal } from '@/components/shared/help-modal';
 import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
 import { LanguageSelector, useLanguage } from '@/components/shared/language-context';
+import { AnimatedSidebarTree, type AnimatedSidebarItem } from './animated-sidebar-tree';
 
-const counsellorNav = [
-  { href: '/counsellor', labelKey: 'subtab.overview', icon: LayoutDashboard, exact: true },
-  { href: '/counsellor/students', labelKey: 'subtab.students', icon: GraduationCap },
-  { href: '/counsellor/attention', labelKey: 'subtab.attention', icon: AlertTriangle, badge: '3' },
-  { href: '/counsellor/appointments', labelKey: 'subtab.appointments', icon: Calendar },
-  { href: '/counsellor/availability', labelKey: 'subtab.availability', icon: SlidersHorizontal },
+const counsellorNav: AnimatedSidebarItem[] = [
+  { id: 'overview', href: '/counsellor', label: 'subtab.overview', icon: LayoutDashboard, exact: true },
+  { id: 'students', href: '/counsellor/students', label: 'subtab.students', icon: GraduationCap },
+  { id: 'attention', href: '/counsellor/attention', label: 'subtab.attention', icon: AlertTriangle, badge: '3' },
+  { id: 'appointments', href: '/counsellor/appointments', label: 'subtab.appointments', icon: Calendar },
+  { id: 'availability', href: '/counsellor/availability', label: 'subtab.availability', icon: SlidersHorizontal },
 ];
 
 export function CounsellorShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const mainContentRef = useRef<HTMLDivElement>(null);
   const { collapsed, toggleSidebar } = useSidebar();
   const { t, language } = useLanguage();
@@ -231,77 +230,12 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
               <p className="serenity-label text-[#c3f340]/70">Counsellor Space</p>
             </div>
 
-            <nav className="space-y-1" aria-label="Counsellor navigation">
-              {counsellorNav.map(({ href, labelKey, icon: Icon, exact, badge }) => {
-                const active = exact
-                  ? pathname === href || pathname === '/counsellor/overview'
-                  : Boolean(pathname && pathname.startsWith(href));
-                return (
-                  <div key={href} className="group relative">
-                    <Link
-                      href={href}
-                      onMouseEnter={() => router.prefetch(href)}
-                      onFocus={() => router.prefetch(href)}
-                      className={`relative flex h-11 w-full items-center rounded-xl transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98] ${
-                        active
-                          ? 'bg-white/[0.08] text-white shadow-[0_0_14px_rgba(195,243,64,0.08),inset_0_1px_0_rgba(255,255,255,0.08)]'
-                          : 'text-white/50 hover:bg-white/[0.05] hover:text-white hover:shadow-[0_0_12px_rgba(195,243,64,0.06)]'
-                      }`}
-                    >
-                      {active && (
-                        <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-[#c3f340] shadow-[0_0_10px_#c3f340]" />
-                      )}
-
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center">
-                        <Icon
-                          size={17}
-                          strokeWidth={1.8}
-                          className={`transition-transform duration-200 group-hover:scale-110 ${
-                            active ? 'text-[#c3f340]' : badge ? 'text-[#e5a27d]' : ''
-                          }`}
-                        />
-                      </div>
-
-                      <span
-                        className={`truncate text-[13px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                          collapsed
-                            ? 'max-w-0 opacity-0 pointer-events-none blur-sm -translate-x-2'
-                            : 'max-w-[130px] opacity-100 blur-0 translate-x-0'
-                        }`}
-                      >
-                        {t(labelKey)}
-                      </span>
-
-                      {badge && !collapsed && (
-                        <span className="ml-auto mr-2.5 rounded-full bg-[rgba(229,162,125,.18)] px-1.5 py-0.5 text-[9px] font-bold text-[#e5a27d]">
-                          {badge}
-                        </span>
-                      )}
-
-                      {active && !badge && (
-                        <span
-                          className={`ml-auto mr-3 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c3f340] shadow-[0_0_10px_rgba(195,243,64,1)] animate-pulse transition-all duration-300 ${
-                            collapsed ? 'opacity-0 scale-0' : 'opacity-100 scale-100'
-                          }`}
-                        />
-                      )}
-                    </Link>
-
-                    {collapsed && (
-                      <div
-                        role="tooltip"
-                        className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 opacity-0 -translate-x-1 scale-95 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-150 ease-out z-[60] flex items-center"
-                      >
-                        <div className="relative rounded-md border border-white/[0.12] bg-[#141414]/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.7),0_0_10px_rgba(195,243,64,0.15)] backdrop-blur-xl whitespace-nowrap">
-                          {t(labelKey)} {badge ? `(${badge})` : ''}
-                          <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rotate-45 border-b border-l border-white/[0.12] bg-[#141414]" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </nav>
+            <AnimatedSidebarTree
+              items={counsellorNav}
+              collapsed={collapsed}
+              t={t}
+              ariaLabel="Counsellor navigation"
+            />
           </div>
 
           {/* Footer Navigation */}

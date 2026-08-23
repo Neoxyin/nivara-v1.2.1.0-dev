@@ -11,8 +11,6 @@ import { getPreferences, savePreferences } from '@/lib/api/preferences';
 import { logoutUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ConsentPreference } from '@/lib/types';
-import { ContextualSubtabs } from '@/components/shared/contextual-subtabs';
-import { profileSubtabs } from '@/components/shared/profile-subtabs';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -46,7 +44,6 @@ export default function SettingsPage() {
   return (
     <AppShell>
       <div className="rise-in space-y-8">
-        <ContextualSubtabs items={profileSubtabs} />
         <SectionHeading
           eyebrow="Settings"
           title="Your choices, clearly."
