@@ -3,14 +3,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, type LucideIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 
 export type AnimatedSidebarItem = {
   id: string;
   href?: string;
   label: string;
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  icon: LucideIcon;
   exact?: boolean;
   badge?: string;
   excludePrefixes?: string[];
