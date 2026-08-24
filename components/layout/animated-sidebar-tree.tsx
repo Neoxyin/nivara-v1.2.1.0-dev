@@ -32,7 +32,7 @@ const spring = {
   mass: 0.65,
 };
 
-function isItemActive(item: AnimatedSidebarItem, pathname: string) {
+function isItemActive(item: AnimatedSidebarItem, pathname: string): boolean {
   const excluded = item.excludePrefixes?.some((prefix) => pathname.startsWith(prefix)) ?? false;
   if (excluded) return false;
   if (!item.href) return Boolean(item.children?.some((child) => isItemActive(child, pathname)));
