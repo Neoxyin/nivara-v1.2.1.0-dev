@@ -116,17 +116,17 @@ export function SupportNeedProfile({ data, isLoading, isError, className = '' }:
 
       <div className="flex flex-col gap-2">
         <SupportNeedBadge 
-          indicator={data?.academic ?? { dimension: 'Academic', level: 'LOW', available: false }} 
+          indicator={data?.academic ?? { dimension: 'Academic', level: 'UNAVAILABLE', available: false }} 
           isLoading={isLoading} 
           isError={isError} 
         />
         <SupportNeedBadge 
-          indicator={data?.financial ?? { dimension: 'Financial', level: 'LOW', available: false }} 
+          indicator={data?.financial ?? { dimension: 'Financial', level: 'UNAVAILABLE', available: false }} 
           isLoading={isLoading} 
           isError={isError} 
         />
         <SupportNeedBadge 
-          indicator={data?.wellbeing ?? { dimension: 'Well-being', level: 'LOW', available: false }} 
+          indicator={data?.wellbeing ?? { dimension: 'Well-being', level: 'UNAVAILABLE', available: false }} 
           isLoading={isLoading} 
           isError={isError} 
         />

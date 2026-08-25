@@ -11,7 +11,7 @@ import { Magnetic } from '@/components/ui/magnetic';
 import { TextReveal } from '@/components/ui/text-reveal';
 import { submitCheckIn } from '@/lib/api/checkins';
 import { getPreferences, savePreferences } from '@/lib/api/preferences';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const prompts = [
   { key: 'mood',      title: 'How are you arriving today?',           hint: 'No right answer. Just a snapshot.' },
@@ -30,6 +30,7 @@ const labels: Record<number, Record<FormKey, string>> = {
 };
 
 export default function CheckInPage() {
+  const queryClient = useQueryClient();
   const { data: preferences, isLoading: prefsLoading } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
   const hasConsent = preferences?.find((p) => p.key === 'wellbeing_checkins')?.enabled ?? false;
 
@@ -230,7 +231,7 @@ export default function CheckInPage() {
           <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#c3f340]">Before you continue</p>
           <h1 className="mt-3 font-display text-4xl text-white">Your check-in is currently not enabled for personalized NIVARA assessment.</h1>
           <p className="mt-4 text-sm leading-6 text-white/55">If you enable Well-being Check-ins, NIVARA can use information from this check-in to provide more relevant support. You can continue without enabling it.</p>
-          <div className="mt-8 flex flex-wrap justify-end gap-3"><button onClick={async () => { const next = (preferences || []).map((p) => p.key === 'wellbeing_checkins' ? { ...p, enabled: true, status: 'CONSENTED' as const } : p); await savePreferences(next); setUseForAssessment(true); setConsentPrompt(false); }} className="rounded border border-[#c3f340] bg-[#c3f340] px-5 py-3 text-[11px] font-bold uppercase tracking-[.08em] text-[#0d1408]">Enable Well-being Check-ins</button><button onClick={() => { setUseForAssessment(false); setConsentPrompt(false); submit(); }} className="rounded border border-white/15 px-5 py-3 text-[11px] font-bold uppercase tracking-[.08em] text-white/70">Continue without enabling</button></div>
+          <div className="mt-8 flex flex-wrap justify-end gap-3"><button onClick={async () => { const next = (preferences || []).map((p) => p.key === 'wellbeing_checkins' ? { ...p, enabled: true, status: 'CONSENTED' as const } : p); const updated = await savePreferences(next); queryClient.setQueryData(['preferences'], updated); queryClient.invalidateQueries({ queryKey: ['preferences'] }); setUseForAssessment(true); setConsentPrompt(false); }} className="rounded border border-[#c3f340] bg-[#c3f340] px-5 py-3 text-[11px] font-bold uppercase tracking-[.08em] text-[#0d1408]">Enable Well-being Check-ins</button><button onClick={() => { setUseForAssessment(false); setConsentPrompt(false); submit(); }} className="rounded border border-white/15 px-5 py-3 text-[11px] font-bold uppercase tracking-[.08em] text-white/70">Continue without enabling</button></div>
         </TiltCard></div>
       </AppShell>
     );

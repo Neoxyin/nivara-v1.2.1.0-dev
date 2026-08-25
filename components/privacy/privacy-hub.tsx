@@ -30,10 +30,14 @@ import {
   AuditLogEntry 
 } from '@/lib/data/student-data';
 import { mockPreferences } from '@/lib/data/preferences';
+import { getPreferences } from '@/lib/api/preferences';
+import { useQuery } from '@tanstack/react-query';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
 
 export function PrivacyHub() {
+  const { data: preferences } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
+  const consentCategories = preferences || mockPreferences;
   const [dataFields, setDataFields] = useState<StudentDataField[]>(INITIAL_STUDENT_DATA);
   const [corrections, setCorrections] = useState<CorrectionRequest[]>(INITIAL_CORRECTIONS);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
@@ -292,7 +296,7 @@ export function PrivacyHub() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {mockPreferences.map((pref) => (
+              {consentCategories.map((pref) => (
                 <div key={pref.key} className="border border-white/[0.08] bg-white/[0.02] p-5 rounded-xl space-y-3 backdrop-blur-xl flex flex-col justify-between">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -310,8 +314,20 @@ export function PrivacyHub() {
 
                   <div className="pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs">
                     <span className="text-white/40">Status:</span>
-                    <span className={`font-semibold flex items-center gap-1 ${pref.enabled ? 'text-[#c3f340]' : 'text-white/40'}`}>
-                      <CheckCircle2 size={13} /> {pref.enabled ? 'Active Consent' : 'Opted Out / Withdrawn'}
+                    <span className={`font-semibold flex items-center gap-1 ${
+                      pref.status === 'CONSENTED'
+                        ? 'text-[#c3f340]'
+                        : pref.status === 'WITHDRAWN'
+                        ? 'text-amber-400'
+                        : 'text-white/40'
+                    }`}>
+                      <CheckCircle2 size={13} /> {
+                        pref.status === 'CONSENTED'
+                          ? 'Active Consent'
+                          : pref.status === 'WITHDRAWN'
+                          ? 'Consent Withdrawn'
+                          : 'Not Consented'
+                      }
                     </span>
                   </div>
                 </div>

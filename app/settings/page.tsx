@@ -24,10 +24,10 @@ export default function SettingsPage() {
 
   // Sync prefs when data loads
   useEffect(() => {
-    if (preferences && prefs.length === 0) {
+    if (preferences) {
       setPrefs(preferences.map((p) => ({ ...p })));
     }
-  }, [preferences, prefs.length]);
+  }, [preferences]);
 
   const toggle = (key: string) => {
     const current = prefs.find((x) => x.key === key);
@@ -37,14 +37,17 @@ export default function SettingsPage() {
       setKeepStale(true);
       return;
     }
-    setPrefs((p) => p.map((x) => x.key === key ? { ...x, enabled: true, status: 'CONSENTED' } : x));
+    const nextPrefs = prefs.map((x) => (x.key === key ? { ...x, enabled: true, status: 'CONSENTED' as const } : x));
+    setPrefs(nextPrefs);
     setSaved(false);
+    saveMutation.mutate(nextPrefs);
   };
 
   const confirmTurnOff = () => {
     if (!pendingOff) return;
     const key = pendingOff.key;
-    setPrefs((p) => p.map((x) => x.key === key ? { ...x, enabled: false, status: 'WITHDRAWN' } : x));
+    const nextPrefs = prefs.map((x) => (x.key === key ? { ...x, enabled: false, status: 'WITHDRAWN' as const } : x));
+    setPrefs(nextPrefs);
     try {
       if (!keepStale) localStorage.removeItem('nivara_current_support_assessment');
       
@@ -57,12 +60,14 @@ export default function SettingsPage() {
     } catch {}
     setPendingOff(null);
     setSaved(false);
+    saveMutation.mutate(nextPrefs);
   };
 
   const saveMutation = useMutation({
     mutationFn: savePreferences,
-    onSuccess: () => {
+    onSuccess: (updatedData) => {
       setSaved(true);
+      queryClient.setQueryData(['preferences'], updatedData);
       queryClient.invalidateQueries({ queryKey: ['preferences'] });
       setTimeout(() => setSaved(false), 2500);
     },

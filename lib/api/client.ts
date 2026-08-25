@@ -1,7 +1,7 @@
 import { mockStudent } from '../data/student';
 import { mockPreferences } from '../data/preferences';
 import { pause } from './mock-latency';
-import type { Student, ConsentPreference, UserRole } from '../types';
+import type { Student, ConsentPreference, UserRole, ConsentStatus } from '../types';
 
 /** Frontend-only data boundary. No remote/backend services are used. */
 export type AuthUser = {
@@ -109,7 +109,10 @@ export async function getConsentApi(): Promise<ConsentPreference[]> {
     try {
       const stored = localStorage.getItem('nivara_consent_preferences');
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       }
     } catch {}
   }
@@ -124,15 +127,35 @@ export async function updateConsentApi(next: ConsentPreference[]): Promise<Conse
   if (typeof window !== 'undefined') {
     try {
       const stored = localStorage.getItem('nivara_consent_preferences');
-      if (stored) current = JSON.parse(stored);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          current = parsed;
+        }
+      }
     } catch {}
   }
 
-  const updated = next.map((p) => {
+  const updated: ConsentPreference[] = next.map((p) => {
     const old = current.find((o) => o.key === p.key);
+    let status: ConsentStatus;
+
+    if (p.status === 'NOT_CONSENTED') {
+      status = 'NOT_CONSENTED';
+    } else if (p.status === 'WITHDRAWN') {
+      status = 'WITHDRAWN';
+    } else if (p.status === 'CONSENTED' || p.enabled) {
+      status = 'CONSENTED';
+    } else if (!p.enabled) {
+      status = (old?.status === 'CONSENTED' || old?.status === 'WITHDRAWN') ? 'WITHDRAWN' : 'NOT_CONSENTED';
+    } else {
+      status = 'NOT_CONSENTED';
+    }
+
     return {
       ...p,
-      status: (p.enabled ? 'CONSENTED' : (old?.status === 'CONSENTED' ? 'WITHDRAWN' : 'NOT_CONSENTED')) as ConsentPreference['status'],
+      enabled: status === 'CONSENTED',
+      status,
     };
   });
 
