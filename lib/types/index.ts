@@ -124,12 +124,28 @@ export type Recommendation = {
   };
 };
 
-export type ConsentPreference = { 
-  key: string; 
-  label: string; 
-  description: string; 
+export type DataPermissionKey = 'academic_data' | 'financial_support' | 'wellbeing_checkins';
+export type ConsentStatus = 'NOT_CONSENTED' | 'CONSENTED' | 'WITHDRAWN';
+export type ConsentPreference = {
+  key: DataPermissionKey;
+  label: string;
+  description: string;
   enabled: boolean;
-  required?: boolean;
+  status?: ConsentStatus;
+};
+
+export type AssessmentAvailability = 'FULL' | 'LIMITED' | 'ZERO_DATA' | 'STALE' | 'UNAVAILABLE';
+export type AssessmentHistoryItem = {
+  id: string;
+  createdAt: string;
+  availability: Exclude<AssessmentAvailability, 'UNAVAILABLE'>;
+  dimensions: SupportNeedProfileData;
+  sourcePermissions: DataPermissionKey[];
+  stale?: boolean;
+};
+export type AIConversationContext = {
+  allowedData: DataPermissionKey[];
+  clearedAt?: string;
 };
 
 export type AppointedSession = {
@@ -174,6 +190,7 @@ export type SupportNeedIndicator = {
   dimension: SupportDimension;
   level: SupportNeedLevel;
   available: boolean;
+  stale?: boolean;
   signals?: string[];
   lastUpdated?: string;
   explainability?: {

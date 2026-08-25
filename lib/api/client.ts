@@ -71,6 +71,9 @@ export async function getConsentApi(): Promise<ConsentPreference[]> {
 
 export async function updateConsentApi(next: ConsentPreference[]): Promise<ConsentPreference[]> {
   await pause();
-  mockPreferences.splice(0, mockPreferences.length, ...next);
+  mockPreferences.splice(0, mockPreferences.length, ...next.map((p) => ({
+    ...p,
+    status: (p.enabled ? 'CONSENTED' : (mockPreferences.find((old) => old.key === p.key)?.status === 'CONSENTED' ? 'WITHDRAWN' : 'NOT_CONSENTED')) as ConsentPreference['status'],
+  })));
   return [...mockPreferences];
 }

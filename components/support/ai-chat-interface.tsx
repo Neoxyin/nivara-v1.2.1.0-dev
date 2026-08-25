@@ -123,6 +123,14 @@ export function AiChatInterface() {
               </p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setMessages([]); setInput(''); setErrorMessage(null); hasStartedConversation.current = false; }}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/70 border border-white/10 transition-colors"
+            >
+              Clear conversation
+            </button>
+          </div>
           <div className="hidden sm:flex items-center gap-2">
             <Link 
               href="/counsellors" 
@@ -137,6 +145,9 @@ export function AiChatInterface() {
               <Compass size={13} /> Resources
             </Link>
           </div>
+        </div>
+        <div className="border-b border-white/[0.06] bg-white/[0.015] px-6 py-3 text-[11px] leading-5 text-white/45">
+          <span className="font-semibold text-white/70">Conversation context:</span> this chat uses the conversation messages you provide to support resource navigation. Clearing the conversation removes the current chat context from this student-side prototype. It does not change data permissions or assessment history.
         </div>
 
         {/* Message Scroll Area */}

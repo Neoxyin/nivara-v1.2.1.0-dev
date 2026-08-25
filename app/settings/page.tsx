@@ -6,7 +6,7 @@ import { AppShell } from '@/components/layout/nivara-shell';
 import { SectionHeading } from '@/components/shared/section-heading';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
-import { Bell, ShieldCheck, Info, LogOut } from 'lucide-react';
+import { Bell, ShieldCheck, Info, LogOut, ChevronRight } from 'lucide-react';
 import { getPreferences, savePreferences } from '@/lib/api/preferences';
 import { logoutUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -19,6 +19,8 @@ export default function SettingsPage() {
   const [prefs, setPrefs] = useState<ConsentPreference[]>([]);
   const [saved, setSaved] = useState(false);
   const [notificationsOn, setNotificationsOn] = useState(false);
+  const [pendingOff, setPendingOff] = useState<ConsentPreference | null>(null);
+  const [keepStale, setKeepStale] = useState(true);
 
   // Sync prefs when data loads
   useEffect(() => {
@@ -28,7 +30,26 @@ export default function SettingsPage() {
   }, [preferences, prefs.length]);
 
   const toggle = (key: string) => {
-    setPrefs((p) => p.map((x) => (x.key === key ? { ...x, enabled: !x.enabled } : x)));
+    const current = prefs.find((x) => x.key === key);
+    if (!current) return;
+    if (current.enabled) {
+      setPendingOff(current);
+      setKeepStale(true);
+      return;
+    }
+    setPrefs((p) => p.map((x) => x.key === key ? { ...x, enabled: true, status: 'CONSENTED' } : x));
+    setSaved(false);
+  };
+
+  const confirmTurnOff = () => {
+    if (!pendingOff) return;
+    const key = pendingOff.key;
+    setPrefs((p) => p.map((x) => x.key === key ? { ...x, enabled: false, status: 'WITHDRAWN' } : x));
+    try {
+      if (!keepStale) localStorage.removeItem('nivara_current_support_assessment');
+      localStorage.setItem('nivara_last_withdrawal', JSON.stringify({ key, keepStale, at: new Date().toISOString() }));
+    } catch {}
+    setPendingOff(null);
     setSaved(false);
   };
 
@@ -86,14 +107,14 @@ export default function SettingsPage() {
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-white">{p.label}</p>
                     <p className="mt-1 max-w-md text-xs leading-5 text-white/40">{p.description}</p>
+                    <div className="mt-2 flex gap-4 text-[10px] font-semibold uppercase tracking-[.08em] text-white/35"><button type="button" className="hover:text-[#c3f340]">Learn more</button><button type="button" onClick={() => p.enabled ? setPendingOff(p) : toggle(p.key)} className="hover:text-[#c3f340]">Manage <ChevronRight size={11} className="inline" /></button></div>
                   </div>
                   <button
                     role="switch"
                     aria-checked={p.enabled}
-                    disabled={p.required}
-                    onClick={() => !p.required && toggle(p.key)}
+                    onClick={() => toggle(p.key)}
                     data-testid={`switch-preference-${p.key}`}
-                    className={`relative inline-flex h-6 w-11 shrink-0 ${p.required ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} items-center rounded-full transition-colors duration-200 ease-out focus:outline-none ${
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-out focus:outline-none ${
                       p.enabled ? 'bg-[#c3f340] shadow-[0_0_12px_rgba(195,243,64,0.4)]' : 'bg-white/[0.12]'
                     }`}
                   >
@@ -218,6 +239,20 @@ export default function SettingsPage() {
           </aside>
         </div>
       </div>
+      {pendingOff && (
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-black/70 p-5 backdrop-blur-sm">
+          <div role="dialog" aria-modal="true" className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#151515] p-7 shadow-2xl">
+            <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#c3f340]">Withdraw permission</p>
+            <h2 className="mt-2 font-display text-3xl text-white">Turn off {pendingOff.label}?</h2>
+            <p className="mt-4 text-sm leading-6 text-white/55">New support assessments will no longer use this optional data. You can choose whether an existing personalized result remains visible as a stale historical result.</p>
+            <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <input type="checkbox" checked={keepStale} onChange={(e) => setKeepStale(e.target.checked)} className="mt-1 accent-[#c3f340]" />
+              <span><span className="block text-sm font-semibold text-white">Keep the previous result as historical/stale</span><span className="mt-1 block text-xs leading-5 text-white/40">It will be marked as an earlier assessment and will not use new data.</span></span>
+            </label>
+            <div className="mt-7 flex justify-end gap-3"><button onClick={() => setPendingOff(null)} className="rounded border border-white/10 px-4 py-2.5 text-xs font-semibold text-white/60 hover:text-white">Cancel</button><button onClick={confirmTurnOff} className="rounded border border-[#c3f340] bg-[#c3f340] px-4 py-2.5 text-xs font-bold text-[#0d1408]">Turn off permission</button></div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }

@@ -18,8 +18,11 @@ import {
 import { SupportMatching } from '@/components/shared/support-matching';
 import { SupportRecommendations } from '@/components/shared/support-recommendations';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { getPreferences } from '@/lib/api/preferences';
 import { getCheckIns } from '@/lib/api/checkins';
+import { getSupportNeedProfile } from '@/lib/api/support-needs';
+import { SupportNeedProfile } from '@/components/shared/support-need-profile';
 
 export default function SupportPage() {
   const { data: preferences, isLoading: prefsLoading } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
@@ -32,6 +35,10 @@ export default function SupportPage() {
   });
 
   const latestCheckIn = checkIns?.[0];
+  const { data: supportNeeds, isLoading: needsLoading } = useQuery({ queryKey: ['support-needs'], queryFn: () => getSupportNeedProfile('default') });
+  const consentCount = preferences?.filter((p) => p.enabled).length ?? 0;
+  const availability = consentCount === 0 ? 'ZERO_DATA' : consentCount < 3 ? 'LIMITED' : 'FULL';
+  useEffect(() => { if (!supportNeeds || typeof window === 'undefined') return; try { const key='nivara_assessment_history'; const existing=JSON.parse(localStorage.getItem(key)||'[]'); const signature=JSON.stringify(supportNeeds); if (!existing.some((x:any)=>x.signature===signature)) { const item={id:crypto.randomUUID(),createdAt:new Date().toISOString(),availability,dimensions:supportNeeds,sourcePermissions:preferences?.filter(p=>p.enabled).map(p=>p.key)||[],signature}; localStorage.setItem(key,JSON.stringify([item,...existing].slice(0,20))); localStorage.setItem('nivara_current_support_assessment',JSON.stringify(item)); } } catch {} }, [supportNeeds, availability, preferences]);
 
   return (
     <AppShell>
@@ -43,6 +50,14 @@ export default function SupportPage() {
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-3">
+            {availability === 'ZERO_DATA' ? (
+              <TiltCard maxTilt={1} className="border border-white/[0.08] bg-[#141414]/90 p-6 rounded-xl"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#c3f340]">Support Need Profile</p><h2 className="mt-2 font-display text-3xl text-white">NIVARA is here when you need it.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-white/55">Without permitted optional data, NIVARA cannot assess individual support needs. You can still explore general support without sharing anything.</p><div className="mt-5 flex flex-wrap gap-3"><Link href="/settings" className="rounded border border-[#c3f340]/30 bg-[#c3f340]/10 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-[#dff77d]">Choose what I’d like to share</Link><a href="#support-options" className="rounded border border-white/10 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-white/60">Explore all support</a></div></TiltCard>
+            ) : availability === 'LIMITED' ? (
+              <TiltCard maxTilt={1} className="border border-amber-300/15 bg-[#141414]/90 p-6 rounded-xl"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-amber-200">Limited assessment</p><h2 className="mt-2 font-display text-3xl text-white">Your assessment uses only the information you’ve chosen to share.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-white/55">You can evaluate with available data or allow more data for a fuller assessment. Sharing more is optional.</p><div className="mt-5 flex flex-wrap gap-3"><Link href="/support/history" className="rounded border border-white/10 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-white/60">Assessment History</Link><button className="rounded border border-white/10 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-white/70">Evaluate using available data</button><Link href="/settings" className="rounded border border-[#c3f340]/30 bg-[#c3f340]/10 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-[#dff77d]">Improve this assessment</Link></div></TiltCard>
+            ) : null}
+          </div>
+          <div className="lg:col-span-3">{!needsLoading && <SupportNeedProfile data={supportNeeds} />}</div>
           <div className="lg:col-span-2 space-y-6">
             
             {/* The main grid of Support Options */}
@@ -173,6 +188,7 @@ export default function SupportPage() {
           </div>
         </div>
 
+        <div id="support-options" />
         {/* Modular Support Matching Section */}
         <div className="pt-6 border-t border-white/[0.08] space-y-12">
           <SupportMatching />

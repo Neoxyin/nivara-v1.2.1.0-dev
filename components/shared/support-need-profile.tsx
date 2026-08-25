@@ -59,13 +59,14 @@ function SupportNeedBadge({ indicator, isLoading, isError }: SupportNeedBadgePro
         <div className="flex flex-col items-end">
           {isAvailable ? (
             <span className={`text-[10px] font-bold uppercase tracking-wider ${styles.text}`}>
-              {indicator.level} Need
+              {indicator.stale ? 'Previous assessment' : 'Personalized result'}
             </span>
           ) : (
             <span className="text-[10px] uppercase tracking-wider text-white/30">No Data</span>
           )}
         </div>
       </div>
+      {isAvailable && indicator.stale && <p className="mt-2 text-[10px] leading-4 text-amber-200/70">This is from an earlier assessment. New data will not be used after withdrawal.</p>}
       {isAvailable && indicator.signals && indicator.signals.length > 0 && (
         <div className="mt-2 pt-2 border-t border-white/[0.05]">
           <span className="text-[9px] text-white/40 uppercase tracking-wider mb-1.5 block">Contributing Signals:</span>

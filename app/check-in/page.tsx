@@ -10,7 +10,7 @@ import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
 import { TextReveal } from '@/components/ui/text-reveal';
 import { submitCheckIn } from '@/lib/api/checkins';
-import { getPreferences } from '@/lib/api/preferences';
+import { getPreferences, savePreferences } from '@/lib/api/preferences';
 import { useQuery } from '@tanstack/react-query';
 
 const prompts = [
@@ -34,6 +34,8 @@ export default function CheckInPage() {
   const hasConsent = preferences?.find((p) => p.key === 'wellbeing_checkins')?.enabled ?? false;
 
   const [hasStarted, setHasStarted] = useState(false);
+  const [consentPrompt, setConsentPrompt] = useState(false);
+  const [useForAssessment, setUseForAssessment] = useState(hasConsent);
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,6 +49,10 @@ export default function CheckInPage() {
 
   const submit = async () => {
     if (Object.values(prompts).some((p) => form[p.key] === null)) return;
+    if (!hasConsent && !useForAssessment && !consentPrompt) {
+      setConsentPrompt(true);
+      return;
+    }
     try {
       setIsSubmitting(true);
       setSubmitError('');
@@ -93,22 +99,18 @@ export default function CheckInPage() {
     );
   }
 
-  if (!hasConsent) {
+  if (!hasStarted && !hasConsent && !consentPrompt) {
     return (
       <AppShell>
         <div className="rise-in space-y-8">
           <div className="mx-auto max-w-2xl mt-4">
             <TiltCard maxTilt={4} className="border border-[rgba(255,255,255,.09)] bg-[#151515]/95 p-12 backdrop-blur-2xl text-center">
               <LockKeyhole size={32} className="mx-auto text-white/30" />
-              <h2 className="mt-6 font-display text-3xl text-white">Check-ins are disabled</h2>
+              <h2 className="mt-6 font-display text-3xl text-white">Well-being Check-in</h2>
               <p className="mt-4 text-sm text-white/55 max-w-md mx-auto">
-                You have chosen not to share well-being check-in data. Nivara respects this boundary. You can change this anytime in your privacy settings.
+                You can still use this check-in without enabling Well-being Check-ins. If you enable it, NIVARA may use your check-in for more relevant support.
               </p>
-              <div className="mt-8">
-                <Link href="/settings" className="inline-flex items-center gap-2 border border-white/20 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/5 transition-colors rounded">
-                  Update Settings
-                </Link>
-              </div>
+              <div className="mt-8 flex justify-center gap-3"><Link href="/settings" className="inline-flex items-center gap-2 border border-[#c3f340]/30 bg-[#c3f340]/10 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-[#dff77d] hover:bg-[#c3f340]/20 transition-colors rounded">Choose what to share</Link><button onClick={() => { setUseForAssessment(false); setHasStarted(true); }} className="inline-flex items-center gap-2 border border-white/20 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white/70 hover:bg-white/5 transition-colors rounded">Continue without enabling</button></div>
             </TiltCard>
           </div>
         </div>
@@ -217,6 +219,19 @@ export default function CheckInPage() {
             <LockKeyhole size={13} /> Your check-in is private to your Nivara space.
           </p>
         </div>
+      </AppShell>
+    );
+  }
+
+  if (consentPrompt) {
+    return (
+      <AppShell>
+        <div className="rise-in mx-auto max-w-2xl"><TiltCard maxTilt={2} className="border border-white/[0.09] bg-[#151515]/95 p-10 backdrop-blur-2xl">
+          <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#c3f340]">Before you continue</p>
+          <h1 className="mt-3 font-display text-4xl text-white">Your check-in is currently not enabled for personalized NIVARA assessment.</h1>
+          <p className="mt-4 text-sm leading-6 text-white/55">If you enable Well-being Check-ins, NIVARA can use information from this check-in to provide more relevant support. You can continue without enabling it.</p>
+          <div className="mt-8 flex flex-wrap justify-end gap-3"><button onClick={async () => { const next = (preferences || []).map((p) => p.key === 'wellbeing_checkins' ? { ...p, enabled: true, status: 'CONSENTED' as const } : p); await savePreferences(next); setUseForAssessment(true); setConsentPrompt(false); }} className="rounded border border-[#c3f340] bg-[#c3f340] px-5 py-3 text-[11px] font-bold uppercase tracking-[.08em] text-[#0d1408]">Enable Well-being Check-ins</button><button onClick={() => { setUseForAssessment(false); setConsentPrompt(false); submit(); }} className="rounded border border-white/15 px-5 py-3 text-[11px] font-bold uppercase tracking-[.08em] text-white/70">Continue without enabling</button></div>
+        </TiltCard></div>
       </AppShell>
     );
   }
