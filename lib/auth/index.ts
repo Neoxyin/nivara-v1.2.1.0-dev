@@ -18,6 +18,24 @@ export function getStoredRole(): UserRole | null {
   return null;
 }
 
+export function syncSessionCookie(): void {
+  if (typeof window !== 'undefined') {
+    const isAuth = window.localStorage.getItem(AUTH_STORAGE_KEY) === 'true';
+    const storedRole = window.localStorage.getItem(ROLE_STORAGE_KEY) as UserRole | null;
+    if (isAuth && storedRole && ['student', 'counsellor', 'admin'].includes(storedRole)) {
+      const upperRole = storedRole.toUpperCase();
+      const email = storedRole === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu';
+      const payload = encodeURIComponent(JSON.stringify({ role: upperRole, email }));
+      
+      const isHttps = window.location.protocol === 'https:';
+      document.cookie = `nivara_session=${payload}; path=/; max-age=86400; SameSite=Lax`;
+      if (isHttps) {
+        document.cookie = `nivara_session=${payload}; path=/; max-age=86400; SameSite=None; Secure`;
+      }
+    }
+  }
+}
+
 export function getCurrentUser(): Student {
   const role = getStoredRole() || 'student';
   return {
@@ -58,8 +76,9 @@ export function clearUserSession(): void {
     window.localStorage.removeItem(ROLE_STORAGE_KEY);
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
 
-    // Clear the client session cookie used by middleware.
+    // Clear the client session cookie used by middleware across all flags
     document.cookie = 'nivara_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; SameSite=Lax';
+    document.cookie = 'nivara_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; SameSite=None; Secure';
 
     // Clear one-shot session/onboarding triggers so logout never causes a
     // walkthrough or workspace selector to reopen on the public homepage.
@@ -83,7 +102,11 @@ export function setUserRole(role: UserRole): void {
     const upperRole = role.toUpperCase();
     const email = role === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu';
     const payload = encodeURIComponent(JSON.stringify({ role: upperRole, email }));
+    
     document.cookie = `nivara_session=${payload}; path=/; max-age=86400; SameSite=Lax`;
+    if (window.location.protocol === 'https:') {
+      document.cookie = `nivara_session=${payload}; path=/; max-age=86400; SameSite=None; Secure`;
+    }
 
     window.dispatchEvent(new CustomEvent('nivara-role-changed', { detail: { role } }));
   }

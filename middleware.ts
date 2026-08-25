@@ -13,13 +13,33 @@ export function middleware(request: NextRequest) {
 
   if (authCookie) {
     try {
-      let rawValue = authCookie;
+      let rawValue = authCookie.trim();
       if (rawValue.startsWith('"') && rawValue.endsWith('"')) {
-        rawValue = rawValue.slice(1, -1);
+        rawValue = rawValue.slice(1, -1).trim();
       }
-      const parsed = JSON.parse(decodeURIComponent(rawValue));
-      if (parsed && typeof parsed === 'object' && typeof parsed.role === 'string') {
-        role = parsed.role.toLowerCase();
+
+      const lowerDirect = rawValue.toLowerCase();
+      if (lowerDirect === 'student' || lowerDirect === 'counsellor' || lowerDirect === 'admin') {
+        role = lowerDirect;
+      } else {
+        let decoded = rawValue;
+        try {
+          decoded = decodeURIComponent(rawValue);
+        } catch {
+          decoded = rawValue;
+        }
+
+        try {
+          const parsed = JSON.parse(decoded);
+          if (parsed && typeof parsed === 'object' && typeof parsed.role === 'string') {
+            role = parsed.role.toLowerCase();
+          }
+        } catch {
+          const lowerDecoded = decoded.toLowerCase();
+          if (lowerDecoded === 'student' || lowerDecoded === 'counsellor' || lowerDecoded === 'admin') {
+            role = lowerDecoded;
+          }
+        }
       }
     } catch {
       role = null;

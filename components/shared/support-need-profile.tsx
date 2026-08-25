@@ -21,6 +21,7 @@ const LEVEL_STYLES: Record<SupportNeedLevel, { text: string; bg: string; border:
   'MILD': { text: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20' },
   'MODERATE': { text: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20' },
   'HIGH': { text: 'text-rose-400', bg: 'bg-rose-400/10', border: 'border-rose-400/20' },
+  'UNAVAILABLE': { text: 'text-white/40', bg: 'bg-white/[0.03]', border: 'border-white/[0.05]' },
 };
 
 function SupportNeedBadge({ indicator, isLoading, isError }: SupportNeedBadgeProps) {

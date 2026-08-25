@@ -1,7 +1,12 @@
 'use client';
-import { LandingPage } from '@/components/landing-page'
+import { Suspense } from 'react';
+import { LandingPage } from '@/components/landing-page';
 
 export default function Home() {
-  return <LandingPage />
+  return (
+    <Suspense fallback={<div className="min-h-[100dvh] bg-[#070707]" />}>
+      <LandingPage />
+    </Suspense>
+  );
 }
 

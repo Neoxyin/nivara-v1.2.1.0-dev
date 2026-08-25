@@ -47,6 +47,12 @@ export default function SettingsPage() {
     setPrefs((p) => p.map((x) => x.key === key ? { ...x, enabled: false, status: 'WITHDRAWN' } : x));
     try {
       if (!keepStale) localStorage.removeItem('nivara_current_support_assessment');
+      
+      const withdrawals = JSON.parse(localStorage.getItem('nivara_withdrawals') || '{}');
+      withdrawals[key] = { keepStale, at: new Date().toISOString() };
+      localStorage.setItem('nivara_withdrawals', JSON.stringify(withdrawals));
+      
+      // Keep old key for backward compatibility just in case
       localStorage.setItem('nivara_last_withdrawal', JSON.stringify({ key, keepStale, at: new Date().toISOString() }));
     } catch {}
     setPendingOff(null);

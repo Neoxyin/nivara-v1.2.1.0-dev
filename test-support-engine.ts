@@ -1,4 +1,4 @@
-import { buildSupportIndicator, type SupportSignals } from './lib/data/support-engine.ts';
+import { buildSupportIndicator, type SupportSignals } from './lib/data/support-engine';
 
 const academic: SupportSignals = {
   attendance: 72,

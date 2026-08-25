@@ -28,7 +28,8 @@ export type CheckIn = {
   stress: number; 
   sleep: number; 
   workload: number; 
-  reflection: string 
+  reflection: string;
+  isAssessmentEligible?: boolean;
 };
 
 export type AcademicMetric = { 
@@ -132,6 +133,7 @@ export type ConsentPreference = {
   description: string;
   enabled: boolean;
   status?: ConsentStatus;
+  required?: boolean;
 };
 
 export type AssessmentAvailability = 'FULL' | 'LIMITED' | 'ZERO_DATA' | 'STALE' | 'UNAVAILABLE';
@@ -183,7 +185,7 @@ export type FinancialSupportOption = {
   iconType: string;
 };
 
-export type SupportNeedLevel = 'LOW' | 'MILD' | 'MODERATE' | 'HIGH';
+export type SupportNeedLevel = 'LOW' | 'MILD' | 'MODERATE' | 'HIGH' | 'UNAVAILABLE';
 export type SupportDimension = 'Academic' | 'Financial' | 'Well-being';
 
 export type SupportNeedIndicator = {

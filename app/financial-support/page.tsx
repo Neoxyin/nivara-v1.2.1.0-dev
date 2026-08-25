@@ -42,15 +42,14 @@ export default function FinancialSupportPage() {
   const { data: preferences, isLoading: prefsLoading, error: prefsError } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
   
   // Use 'financial_support' matching the preference key in the system
-  const hasConsent = preferences?.find((p) => p.key === 'financial_support')?.enabled ?? false;
+  const hasConsent = (preferences?.find((p) => p.key === 'financial_support')?.status === 'CONSENTED');
 
   const { data: options, isLoading: optionsLoading, error: optionsError } = useQuery({ 
     queryKey: ['financialSupport'], 
-    queryFn: getFinancialSupportOptions,
-    enabled: hasConsent
+    queryFn: getFinancialSupportOptions
   });
 
-  const isLoading = prefsLoading || (hasConsent && optionsLoading);
+  const isLoading = prefsLoading || optionsLoading;
   const error = prefsError || optionsError;
 
   if (isLoading) {
@@ -73,27 +72,6 @@ export default function FinancialSupportPage() {
     );
   }
 
-  if (!hasConsent) {
-    return (
-      <AppShell>
-        <div className="rise-in mx-auto max-w-2xl mt-12">
-          <TiltCard maxTilt={4} className="border border-[rgba(255,255,255,.09)] bg-[#151515]/95 p-12 backdrop-blur-2xl text-center">
-            <LockKeyhole size={32} className="mx-auto text-white/30" />
-            <h2 className="mt-6 font-display text-3xl text-white">Financial Matching Disabled</h2>
-            <p className="mt-4 text-sm text-white/55 max-w-md mx-auto">
-              You have not provided consent for Financial Support Matching. Nivara respects this boundary and will not use your data or present financial support options.
-            </p>
-            <div className="mt-8">
-              <Link href="/settings" className="inline-flex items-center gap-2 border border-white/20 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/5 transition-colors rounded">
-                Update Settings
-              </Link>
-            </div>
-          </TiltCard>
-        </div>
-      </AppShell>
-    );
-  }
-
   const isEmpty = !options || options.length === 0;
 
   return (
@@ -104,6 +82,23 @@ export default function FinancialSupportPage() {
           title="Explore Support Options"
           description="NIVARA provides a directory of available financial resources. We do not determine your final eligibility, and exploring these options does not guarantee approval."
         />
+
+        {!hasConsent && (
+          <div className="mt-6 flex items-start gap-3 rounded-lg border border-white/10 bg-[#151515] p-5 backdrop-blur-md">
+            <LockKeyhole className="text-white/40 mt-0.5 shrink-0" size={18} />
+            <div>
+              <h4 className="text-sm font-semibold text-white">Personalized Matching Disabled</h4>
+              <p className="mt-1 text-xs text-white/60 leading-relaxed">
+                Showing all general financial options. Personalized financial matching is paused in your settings.
+              </p>
+              <div className="mt-3">
+                <Link href="/settings" className="text-[10px] font-bold uppercase tracking-wider text-white hover:text-white/70 transition-colors underline underline-offset-2">
+                  Update Settings
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Explicit Non-eligibility Disclaimer */}
         <div className="mt-6 mb-8 flex items-start gap-3 rounded-lg border border-amber-400/20 bg-amber-400/[0.05] p-5 backdrop-blur-md">

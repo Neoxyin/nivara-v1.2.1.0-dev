@@ -8,8 +8,6 @@ import { Providers } from './providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const dynamic = 'force-dynamic';
-
 export const metadata: Metadata = {
   title: 'Nivara — Student Success & Well-being',
   description: 'A holistic student success platform designed to bridge the gap between academic performance and mental well-being.',

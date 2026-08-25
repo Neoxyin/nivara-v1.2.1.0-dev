@@ -57,7 +57,7 @@ export default function CheckInPage() {
       setIsSubmitting(true);
       setSubmitError('');
       // @ts-ignore - we've validated that no values are null
-      await submitCheckIn(form);
+      await submitCheckIn({ ...form, isAssessmentEligible: hasConsent || useForAssessment });
       setSubmitted(true);
     } catch (e) {
       setSubmitError('Failed to save check-in. Please try again.');

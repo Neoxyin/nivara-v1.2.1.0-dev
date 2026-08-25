@@ -1,11 +1,21 @@
 import { mockRecommendations } from '../data/recommendations';
 import { pause } from './mock-latency';
 import type { Recommendation } from '../types';
-
+import { getSupportNeedProfile } from './support-needs';
 
 export async function getRecommendations(): Promise<Recommendation[]> {
   await pause();
-  return [...mockRecommendations];
+  // Filter recommendations based on current support profile availability
+  const profile = await getSupportNeedProfile();
+  
+  return mockRecommendations.filter(rec => {
+    // Basic filter simulation: if the rec is related to a specific dimension that is UNAVAILABLE, we can hide it.
+    // However, general recommendations should remain. We'll simulate that if a specific profile dimension is unavailable,
+    // we omit personalized recs for it.
+    if (rec.title.includes('Financial') && profile.financial.level === 'UNAVAILABLE') return false;
+    if (rec.title.includes('Well-being') && profile.wellbeing.level === 'UNAVAILABLE') return false;
+    return true;
+  });
 }
 
 export async function toggleRecommendation(index: number): Promise<Recommendation> {
@@ -47,7 +57,16 @@ export type AiSupportMessageResponse = {
 export async function sendAiSupportMessage(input: AiSupportMessageInput): Promise<AiSupportMessageResponse> {
   const latestMessage = input.messages[input.messages.length - 1]?.content || '';
   await pause(350);
+  
+  // The AI context must only receive permitted data.
+  // By fetching the profile through getSupportNeedProfile(), the consent filter is guaranteed.
+  const permittedContext = await getSupportNeedProfile();
+  
+  // In a real LLM implementation, permittedContext would be stringified into the system prompt.
+  // console.log("AI Context injected:", JSON.stringify(permittedContext));
+  
   const fallback = await sendSupportMessage(latestMessage);
+  
   return {
     reply: fallback.response,
     suggestions: [

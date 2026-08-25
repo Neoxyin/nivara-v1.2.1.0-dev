@@ -34,7 +34,11 @@ function levelFromScore(score: number): SupportNeedLevel {
   return 'LOW';
 }
 
-export function buildSupportIndicator(dimension: SupportDimension, signals: SupportSignals, permission: DataPermissionKey): SupportNeedIndicator {
+export function buildSupportIndicator(dimension: SupportDimension, signals: SupportSignals | null, permission: DataPermissionKey): SupportNeedIndicator {
+  if (!signals) {
+    return { dimension, level: 'UNAVAILABLE', available: false };
+  }
+
   if (dimension === 'Academic' && permission === 'academic_data') return scoreAcademic(signals);
   if (dimension === 'Financial' && permission === 'financial_support') {
     const parts: string[] = [];
@@ -48,7 +52,8 @@ export function buildSupportIndicator(dimension: SupportDimension, signals: Supp
     const score = (stress >= 4 ? 25 : 0) + (mood <= 2 ? 20 : 0) + ((signals.energy ?? 5) <= 2 ? 15 : 0) + ((signals.sleep ?? 5) <= 2 ? 10 : 0);
     return { dimension, level: levelFromScore(score), available: true, signals: score ? ['Voluntary check-in signals contributed'] : [], lastUpdated: 'Demo assessment', explainability: { contributingFactors: score ? ['Stress, mood, energy and/or sleep from a voluntary check-in'] : ['No elevated check-in signal triggered'], timeWindow: 'Latest available voluntary check-in', dataUsed: ['Voluntary well-being check-in'], dataNotUsed: ['Medical records', 'Counselling notes'] } };
   }
-  return { dimension, level: 'LOW', available: false };
+  
+  return { dimension, level: 'UNAVAILABLE', available: false };
 }
 
 export const demoPermittedSignals: SupportSignals = {
