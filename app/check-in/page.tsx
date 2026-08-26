@@ -37,6 +37,7 @@ export default function CheckInPage() {
   const [hasStarted, setHasStarted] = useState(false);
   const [consentPrompt, setConsentPrompt] = useState(false);
   const [useForAssessment, setUseForAssessment] = useState(hasConsent);
+  const [submittedEligibility, setSubmittedEligibility] = useState<'ELIGIBLE' | 'NOT_ELIGIBLE'>('ELIGIBLE');
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,23 +49,37 @@ export default function CheckInPage() {
   const cardRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
-  const submit = async () => {
+  const executeSubmission = async (eligible: boolean) => {
     if (Object.values(prompts).some((p) => form[p.key] === null)) return;
-    if (!hasConsent && !useForAssessment && !consentPrompt) {
-      setConsentPrompt(true);
-      return;
-    }
     try {
       setIsSubmitting(true);
       setSubmitError('');
+      const eligibility = eligible ? 'ELIGIBLE' : 'NOT_ELIGIBLE';
       // @ts-ignore - we've validated that no values are null
-      await submitCheckIn({ ...form, isAssessmentEligible: hasConsent || useForAssessment });
+      await submitCheckIn({
+        ...form,
+        assessmentEligibility: eligibility,
+        isAssessmentEligible: eligible,
+      });
+      setSubmittedEligibility(eligibility);
       setSubmitted(true);
+      queryClient.invalidateQueries({ queryKey: ['checkIns'] });
+      queryClient.invalidateQueries({ queryKey: ['support-needs'] });
+      queryClient.invalidateQueries({ queryKey: ['insights'] });
     } catch (e) {
       setSubmitError('Failed to save check-in. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const submit = async () => {
+    if (Object.values(prompts).some((p) => form[p.key] === null)) return;
+    if (!hasConsent && !useForAssessment && !hasStarted && !consentPrompt) {
+      setConsentPrompt(true);
+      return;
+    }
+    await executeSubmission(hasConsent && useForAssessment);
   };
 
   // GSAP Step transition effect
@@ -173,18 +188,23 @@ export default function CheckInPage() {
   }
 
   if (submitted) {
+    const isEligible = submittedEligibility === 'ELIGIBLE';
     return (
       <AppShell>
         <div className="rise-in mx-auto max-w-2xl">
-          <TiltCard maxTilt={4} className="border border-[rgba(195,243,64,.25)] bg-[#151515]/95 p-12 backdrop-blur-2xl shadow-[0_20px_80px_rgba(0,0,0,0.6)]">
-            <Pill tone="accent">Check-in saved</Pill>
+          <TiltCard maxTilt={4} className={`border ${isEligible ? 'border-[rgba(195,243,64,.25)]' : 'border-white/15'} bg-[#151515]/95 p-12 backdrop-blur-2xl shadow-[0_20px_80px_rgba(0,0,0,0.6)]`}>
+            <Pill tone={isEligible ? 'accent' : 'default'}>
+              {isEligible ? 'Check-in saved' : 'Private reflection saved'}
+            </Pill>
             <h1 className="mt-8 max-w-lg font-display text-6xl leading-[.88] text-white">
               <TextReveal type="words" duration={0.8}>You made space</TextReveal>
               <br />
-              <em className="text-[#c3f340]">to notice.</em>
+              <em className={isEligible ? 'text-[#c3f340]' : 'text-white/70'}>to notice.</em>
             </h1>
             <p className="mt-6 max-w-md text-sm leading-7 text-white/55">
-              That is useful information, not a grade. Based on this snapshot, a smaller plan and an earlier support option may help this week.
+              {isEligible
+                ? 'That is useful information, not a grade. Based on this snapshot, a smaller plan and an earlier support option may help this week.'
+                : 'Your check-in has been saved for your private reflection. Because Well-being Check-ins permission is off, this snapshot is not used in your Support Need Profile.'}
             </p>
             <div className="mt-10 flex flex-wrap gap-3">
               <Magnetic>
@@ -217,7 +237,10 @@ export default function CheckInPage() {
             </div>
           </TiltCard>
           <p className="mt-5 flex items-center gap-2 text-xs text-white/35">
-            <LockKeyhole size={13} /> Your check-in is private to your Nivara space.
+            <LockKeyhole size={13} className={isEligible ? 'text-white/40' : 'text-amber-300/70'} />
+            {isEligible
+              ? 'Your check-in is private to your Nivara space.'
+              : 'Not used for personalized assessment. You can change this anytime in your privacy settings.'}
           </p>
         </div>
       </AppShell>
@@ -227,12 +250,39 @@ export default function CheckInPage() {
   if (consentPrompt) {
     return (
       <AppShell>
-        <div className="rise-in mx-auto max-w-2xl"><TiltCard maxTilt={2} className="border border-white/[0.09] bg-[#151515]/95 p-10 backdrop-blur-2xl">
-          <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#c3f340]">Before you continue</p>
-          <h1 className="mt-3 font-display text-4xl text-white">Your check-in is currently not enabled for personalized NIVARA assessment.</h1>
-          <p className="mt-4 text-sm leading-6 text-white/55">If you enable Well-being Check-ins, NIVARA can use information from this check-in to provide more relevant support. You can continue without enabling it.</p>
-          <div className="mt-8 flex flex-wrap justify-end gap-3"><button onClick={async () => { const next = (preferences || []).map((p) => p.key === 'wellbeing_checkins' ? { ...p, enabled: true, status: 'CONSENTED' as const } : p); const updated = await savePreferences(next); queryClient.setQueryData(['preferences'], updated); queryClient.invalidateQueries({ queryKey: ['preferences'] }); setUseForAssessment(true); setConsentPrompt(false); }} className="rounded border border-[#c3f340] bg-[#c3f340] px-5 py-3 text-[11px] font-bold uppercase tracking-[.08em] text-[#0d1408]">Enable Well-being Check-ins</button><button onClick={() => { setUseForAssessment(false); setConsentPrompt(false); submit(); }} className="rounded border border-white/15 px-5 py-3 text-[11px] font-bold uppercase tracking-[.08em] text-white/70">Continue without enabling</button></div>
-        </TiltCard></div>
+        <div className="rise-in mx-auto max-w-2xl">
+          <TiltCard maxTilt={2} className="border border-white/[0.09] bg-[#151515]/95 p-10 backdrop-blur-2xl">
+            <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#c3f340]">Before you continue</p>
+            <h1 className="mt-3 font-display text-4xl text-white">Your check-in is currently not enabled for personalized NIVARA assessment.</h1>
+            <p className="mt-4 text-sm leading-6 text-white/55">If you enable Well-being Check-ins, NIVARA can use information from this check-in to provide more relevant support. You can continue without enabling it.</p>
+            <div className="mt-8 flex flex-wrap justify-end gap-3">
+              <button
+                onClick={async () => {
+                  const next = (preferences || []).map((p) => p.key === 'wellbeing_checkins' ? { ...p, enabled: true, status: 'CONSENTED' as const } : p);
+                  const updated = await savePreferences(next);
+                  queryClient.setQueryData(['preferences'], updated);
+                  queryClient.invalidateQueries({ queryKey: ['preferences'] });
+                  setUseForAssessment(true);
+                  setConsentPrompt(false);
+                  await executeSubmission(true);
+                }}
+                className="rounded border border-[#c3f340] bg-[#c3f340] px-5 py-3 text-[11px] font-bold uppercase tracking-[.08em] text-[#0d1408]"
+              >
+                Enable Well-being Check-ins
+              </button>
+              <button
+                onClick={async () => {
+                  setUseForAssessment(false);
+                  setConsentPrompt(false);
+                  await executeSubmission(false);
+                }}
+                className="rounded border border-white/15 px-5 py-3 text-[11px] font-bold uppercase tracking-[.08em] text-white/70"
+              >
+                Continue without enabling
+              </button>
+            </div>
+          </TiltCard>
+        </div>
       </AppShell>
     );
   }

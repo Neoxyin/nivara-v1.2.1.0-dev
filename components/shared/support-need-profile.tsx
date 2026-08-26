@@ -77,22 +77,32 @@ function SupportNeedBadge({ indicator, isLoading, isError }: SupportNeedBadgePro
           Generated while permission was enabled. This earlier assessment is no longer updated using new data after withdrawal.
         </p>
       )}
-      {isAvailable && indicator.signals && indicator.signals.length > 0 && (
+      {isAvailable && (
         <div className="mt-2 pt-2 border-t border-white/[0.05]">
           <span className="text-[9px] text-white/40 uppercase tracking-wider mb-1.5 block">Contributing Signals:</span>
           <ul className="flex flex-col gap-1">
-            {indicator.signals.map((signal, idx) => (
-              <li key={idx} className="text-[11px] text-white/70 flex items-start gap-1.5 leading-snug">
-                <span className={`mt-[4px] h-1 w-1 shrink-0 rounded-full bg-current ${styles.text}`} />
-                <span>{signal}</span>
-              </li>
-            ))}
+            {indicator.signals && indicator.signals.length > 0 ? (
+              indicator.signals.map((signal, idx) => (
+                <li key={idx} className="text-[11px] text-white/70 flex items-start gap-1.5 leading-snug">
+                  <span className={`mt-[4px] h-1 w-1 shrink-0 rounded-full bg-current ${styles.text}`} />
+                  <span>{signal}</span>
+                </li>
+              ))
+            ) : (
+              <li className="text-[11px] text-white/50 italic">No elevated risk signals detected in permitted records</li>
+            )}
           </ul>
           
           {indicator.explainability && (
-            <div className="mt-1 flex justify-start">
+            <div className="mt-1.5 flex justify-start">
               <ExplainabilityDialog 
                 title={`${indicator.dimension} Support Details`}
+                isStale={isStale}
+                description={
+                  isStale 
+                    ? "This earlier assessment was generated while permission was enabled and is retained based on your choice. It is no longer updated using new data."
+                    : undefined
+                }
                 contributingFactors={indicator.explainability.contributingFactors}
                 timeWindow={indicator.explainability.timeWindow}
                 dataUsed={indicator.explainability.dataUsed}

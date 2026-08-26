@@ -1,9 +1,12 @@
 import { pause } from './mock-latency';
 import { getPreferences } from './preferences';
+import { getCheckIns } from './checkins';
 import { 
   rawDemoStudentSignals, 
   filterSignalsByConsent, 
-  evaluateSupportNeedProfile 
+  evaluateSupportNeedProfile,
+  extractWellbeingSignalsFromCheckIn,
+  type RawStudentSignals
 } from '../data/support-engine';
 import type { SupportNeedProfileData, DataPermissionKey } from '../types';
 
@@ -31,11 +34,30 @@ export async function getSupportNeedProfile(_studentId: string = 'default'): Pro
     wellbeing_checkins: Boolean(withdrawals['wellbeing_checkins']?.keepStale === true),
   };
 
-  // 3. STEP A -> B: Pass raw student data through consent filter
-  // RAW STUDENT/DEMO DATA -> CONSENT FILTER -> PERMITTED ENGINE INPUT
-  const permittedEngineInputs = filterSignalsByConsent(rawDemoStudentSignals, consentMap);
+  // 3. Resolve eligible check-in data (Check-in Record ≠ Permitted Engine Input)
+  // Only check-ins explicitly marked ELIGIBLE may be converted into raw wellbeing signals
+  const allCheckIns = await getCheckIns();
+  const latestEligibleCheckIn = allCheckIns.find(
+    (c) => c.assessmentEligibility === 'ELIGIBLE' || c.isAssessmentEligible === true
+  );
+  
+  // If stored check-ins exist but NONE are eligible, derived wellbeing is null (never silently fall back or promote ineligible check-ins)
+  const hasOnlyIneligibleCheckIns = allCheckIns.length > 0 && !latestEligibleCheckIn;
+  const derivedWellbeing = hasOnlyIneligibleCheckIns
+    ? null
+    : (extractWellbeingSignalsFromCheckIn(latestEligibleCheckIn) || (allCheckIns.length === 0 ? rawDemoStudentSignals.wellbeing : null));
 
-  // 4. STEP C: Pass ONLY permitted signals into Support Need Engine
+  const studentSignals: RawStudentSignals = {
+    academic: { ...rawDemoStudentSignals.academic },
+    financial: { ...rawDemoStudentSignals.financial },
+    wellbeing: (derivedWellbeing ?? {}) as any,
+  };
+
+  // 4. STEP A -> B: Pass raw student data through consent filter
+  // RAW STUDENT/DEMO DATA -> CONSENT FILTER -> PERMITTED ENGINE INPUT
+  const permittedEngineInputs = filterSignalsByConsent(studentSignals, consentMap);
+
+  // 5. STEP C: Pass ONLY permitted signals into Support Need Engine
   // PERMITTED ENGINE INPUT -> SUPPORT NEED ENGINE
   return evaluateSupportNeedProfile(permittedEngineInputs, staleMap);
 }

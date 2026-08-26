@@ -11,7 +11,7 @@ export async function getFinancialSupportOptions(_studentId: string = 'default')
   
   // Data boundary: RAW STUDENT DATA -> CONSENT FILTER -> { feeStatus | absent } -> FINANCIAL MATCHING
   // If NOT_CONSENTED or WITHDRAWN, feeStatus is strictly null/absent (never falsified)
-  const feeStatus = hasConsent ? (rawDemoStudentSignals.financial.feeStatus ?? null) : null;
+  const feeStatus = hasConsent ? (rawDemoStudentSignals.financial?.feeStatus ?? null) : null;
 
   return matchFinancialSupportOptions(feeStatus);
 }

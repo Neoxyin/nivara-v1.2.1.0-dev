@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import { SupportNeedProfileData } from '@/lib/types';
+
 export interface RecommendationItem {
   id: string;
   category: 'Academic' | 'Financial' | 'Well-being';
@@ -35,6 +37,141 @@ export interface RecommendationItem {
     dataUsed: string[];
     dataNotUsed?: string[];
   };
+}
+
+export function buildLiveRecommendations(profile?: SupportNeedProfileData): RecommendationItem[] {
+  if (!profile) return DEFAULT_RECOMMENDATIONS;
+
+  const recs: RecommendationItem[] = [];
+
+  // Academic 1: Personalized Advisor Pacing
+  if (profile.academic.available && profile.academic.explainability) {
+    recs.push({
+      id: 'rec-acad-1',
+      category: 'Academic',
+      title: 'Review core module attendance pacing',
+      description: 'Your recent attendance in core modules has dipped slightly. Connecting early with an advisor can help you stay balanced.',
+      why: profile.academic.signals?.length ? profile.academic.signals.join(' • ') : 'Evaluated from permitted academic records',
+      supportOption: 'Academic Advisor / Peer Tutoring',
+      actionText: 'Connect with advisor',
+      actionHref: '/academics',
+      requiresConsent: true,
+      explainability: profile.academic.explainability,
+    });
+  } else {
+    recs.push({
+      id: 'rec-acad-1',
+      category: 'Academic',
+      title: 'Review core module attendance pacing',
+      description: 'Module guidance and advising resources are open to all students.',
+      why: 'General academic guidance resource (Personalization unavailable without data consent)',
+      supportOption: 'Academic Advisor / Peer Tutoring',
+      actionText: 'Connect with advisor',
+      actionHref: '/academics',
+      requiresConsent: false,
+      explainability: {
+        contributingFactors: ['Academic personalization unavailable without data consent'],
+        timeWindow: 'General resource',
+        dataUsed: ['None (General unpersonalized listing)'],
+        dataNotUsed: ['Academic records', 'Course marks', 'Attendance logs'],
+      },
+    });
+  }
+
+  // Academic 2: Study Plan
+  recs.push(DEFAULT_RECOMMENDATIONS[1]);
+
+  // Financial 1: Scholarships
+  if (profile.financial.available && profile.financial.explainability) {
+    recs.push({
+      id: 'rec-acad-3',
+      category: 'Financial',
+      title: 'Explore active scholarship directories',
+      description: 'You may want to explore this support option to check active institutional grant and bursary opportunities.',
+      why: profile.financial.signals?.length ? profile.financial.signals.join(' • ') : 'Institutional tuition fees recorded as paid',
+      supportOption: 'Scholarships & Fee Assistance',
+      actionText: 'Explore financial support',
+      actionHref: '/financial-support',
+      requiresConsent: false,
+      explainability: profile.financial.explainability,
+    });
+  } else {
+    recs.push({
+      id: 'rec-acad-3',
+      category: 'Financial',
+      title: 'Explore active scholarship directories',
+      description: 'You may want to explore this support option to check active institutional grant and bursary opportunities.',
+      why: 'General institutional bursary and flexible payment options (Personalization unavailable without consent)',
+      supportOption: 'Scholarships & Fee Assistance',
+      actionText: 'Explore financial support',
+      actionHref: '/financial-support',
+      requiresConsent: false,
+      explainability: {
+        contributingFactors: ['Financial personalization unavailable without data consent'],
+        timeWindow: 'General resource directory',
+        dataUsed: ['None (General unpersonalized directory)'],
+        dataNotUsed: [
+          'Income',
+          'Family income',
+          'Expenses',
+          'Expense categories',
+          'Bank statements',
+          'Transaction history',
+          'Credit score',
+          'Aadhaar',
+          'Debt',
+          'Financial stress',
+        ],
+      },
+    });
+  }
+
+  // Financial 2: Installment Plans
+  recs.push(DEFAULT_RECOMMENDATIONS[3]);
+
+  // Well-being 1: AI Support Space
+  recs.push(DEFAULT_RECOMMENDATIONS[4]);
+
+  // Well-being 2: Counsellor Slot / Support Circles
+  if (profile.wellbeing.available && profile.wellbeing.explainability) {
+    recs.push({
+      id: 'rec-acad-6',
+      category: 'Well-being',
+      title: 'Connect with a campus counsellor slot or join a circle',
+      description: 'Talking early is a practical, supportive step when managing sustained academic stress.',
+      why: profile.wellbeing.signals?.length ? profile.wellbeing.signals.join(' • ') : 'Evaluated from eligible voluntary check-in',
+      supportOption: 'Counsellor / Support Circles',
+      actionText: 'Join an available support circle',
+      actionHref: '/counsellors',
+      requiresConsent: true,
+      explainability: profile.wellbeing.explainability,
+    });
+  } else {
+    recs.push({
+      id: 'rec-acad-6',
+      category: 'Well-being',
+      title: 'Connect with a campus counsellor slot or join a circle',
+      description: 'Confidential support and counselling sessions are available to all students.',
+      why: 'General well-being support (Personalization unavailable without consent / eligible check-in)',
+      supportOption: 'Counsellor / Support Circles',
+      actionText: 'Join an available support circle',
+      actionHref: '/counsellors',
+      requiresConsent: false,
+      explainability: {
+        contributingFactors: ['Well-being personalization unavailable without consent / eligible check-in'],
+        timeWindow: 'General support directory',
+        dataUsed: ['None (General unpersonalized listing)'],
+        dataNotUsed: [
+          'Voluntary check-in signals',
+          'Private reflection notes',
+          'Medical / clinical records',
+          'Counselling notes',
+        ],
+      },
+    });
+  }
+
+  return recs;
 }
 
 const DEFAULT_RECOMMENDATIONS: RecommendationItem[] = [
@@ -166,17 +303,20 @@ const DEFAULT_RECOMMENDATIONS: RecommendationItem[] = [
 
 interface SupportRecommendationsProps {
   recommendations?: RecommendationItem[];
+  supportNeeds?: SupportNeedProfileData;
   isLoading?: boolean;
   error?: string | null;
   className?: string;
 }
 
 export function SupportRecommendations({ 
-  recommendations = DEFAULT_RECOMMENDATIONS, 
+  recommendations,
+  supportNeeds,
   isLoading = false, 
   error = null,
   className = '' 
 }: SupportRecommendationsProps) {
+  const activeRecommendations = recommendations ?? (supportNeeds ? buildLiveRecommendations(supportNeeds) : DEFAULT_RECOMMENDATIONS);
   const [activeTab, setActiveTab] = useState<'All' | 'Academic' | 'Financial' | 'Well-being'>('All');
   const [actionStates, setActionStates] = useState<Record<string, boolean>>({});
   const [pendingActionRec, setPendingActionRec] = useState<RecommendationItem | null>(null);
@@ -219,8 +359,8 @@ export function SupportRecommendations({
   }
 
   const filtered = activeTab === 'All' 
-    ? recommendations 
-    : recommendations.filter(r => r.category === activeTab);
+    ? activeRecommendations 
+    : activeRecommendations.filter(r => r.category === activeTab);
 
   const academicRecs = filtered.filter(r => r.category === 'Academic');
   const financialRecs = filtered.filter(r => r.category === 'Financial');

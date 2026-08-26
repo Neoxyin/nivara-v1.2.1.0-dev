@@ -18,10 +18,9 @@ export default function CheckInHistoryPage() {
   const { data: checkIns, isLoading: checkInsLoading, error: checkInsError } = useQuery({ 
     queryKey: ['checkIns'], 
     queryFn: getCheckIns,
-    enabled: hasConsent // only fetch if we have consent
   });
 
-  const isLoading = prefsLoading || (hasConsent && checkInsLoading);
+  const isLoading = prefsLoading || checkInsLoading;
   const error = prefsError || checkInsError;
 
   if (isLoading) {
@@ -44,18 +43,23 @@ export default function CheckInHistoryPage() {
     );
   }
 
-  if (!hasConsent) {
+  const isEmpty = !checkIns || checkIns.length === 0;
+
+  if (!hasConsent && isEmpty) {
     return (
       <AppShell>
         <div className="rise-in space-y-8">
           <div className="mx-auto max-w-2xl mt-4">
             <TiltCard maxTilt={4} className="border border-[rgba(255,255,255,.09)] bg-[#151515]/95 p-12 backdrop-blur-2xl text-center">
               <LockKeyhole size={32} className="mx-auto text-white/30" />
-              <h2 className="mt-6 font-display text-3xl text-white">Check-in History is disabled</h2>
+              <h2 className="mt-6 font-display text-3xl text-white">Well-being Check-ins OFF</h2>
               <p className="mt-4 text-sm text-white/55 max-w-md mx-auto">
-                You have chosen not to share well-being check-in data. Nivara respects this boundary. You can change this anytime in your privacy settings.
+                You have chosen not to share well-being check-in data. Nivara respects this boundary. You can still complete voluntary check-ins for private reflection anytime.
               </p>
-              <div className="mt-8">
+              <div className="mt-8 flex justify-center gap-3">
+                <Link href="/check-in" className="inline-flex items-center gap-2 border border-[#c3f340]/30 bg-[#c3f340]/10 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-[#dff77d] hover:bg-[#c3f340]/20 transition-colors rounded">
+                  Take Check-in
+                </Link>
                 <Link href="/settings" className="inline-flex items-center gap-2 border border-white/20 px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/5 transition-colors rounded">
                   Update Settings
                 </Link>
@@ -66,8 +70,6 @@ export default function CheckInHistoryPage() {
       </AppShell>
     );
   }
-
-  const isEmpty = !checkIns || checkIns.length === 0;
 
   return (
     <AppShell>
@@ -82,6 +84,20 @@ export default function CheckInHistoryPage() {
             </Link>
           }
         />
+
+        {!hasConsent && (
+          <div className="border border-amber-300/20 bg-amber-400/[0.04] p-4 rounded-xl flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <LockKeyhole size={16} className="text-amber-300/80 shrink-0" />
+              <p className="text-xs text-amber-200/90 leading-relaxed">
+                Well-being permission is currently OFF. Check-ins are saved for your private self-reflection only and are <strong>not used for personalized assessment</strong>.
+              </p>
+            </div>
+            <Link href="/settings" className="text-[10px] font-bold uppercase tracking-wider text-white/70 hover:text-white border border-white/10 px-3 py-1.5 rounded shrink-0">
+              Settings
+            </Link>
+          </div>
+        )}
 
         {isEmpty ? (
           <TiltCard maxTilt={2} className="mt-8 border border-white/[0.09] bg-[#151515]/95 p-12 text-center">
@@ -117,45 +133,57 @@ export default function CheckInHistoryPage() {
               <h3 className="text-sm font-semibold text-white/80 mb-2 sticky top-0 bg-[hsl(var(--background))] py-2 z-10">
                 Previous Logs
               </h3>
-              {checkIns.map((entry, i) => (
-                <TiltCard key={i} maxTilt={2} className="border border-white/[0.06] bg-white/[0.015] p-5 rounded-lg">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-xs font-bold text-white/90">{entry.date}</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-5 gap-2 mb-4">
-                    <div className="text-center">
-                      <div className="text-[10px] text-white/40 mb-1">Mood</div>
-                      <div className="text-sm font-semibold text-[#c3f340]">{entry.mood}</div>
+              {checkIns.map((entry, i) => {
+                const isIneligible = entry.assessmentEligibility === 'NOT_ELIGIBLE' || entry.isAssessmentEligible === false;
+                return (
+                  <TiltCard key={i} maxTilt={2} className="border border-white/[0.06] bg-white/[0.015] p-5 rounded-lg">
+                    <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
+                      <span className="text-xs font-bold text-white/90">{entry.date}</span>
+                      {isIneligible ? (
+                        <span className="text-[10px] font-medium text-amber-300/80 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-300/20">
+                          Not used for personalized assessment
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-medium text-[#c3f340]/80 bg-[#c3f340]/10 px-2 py-0.5 rounded border border-[#c3f340]/20">
+                          Personalized Assessment Eligible
+                        </span>
+                      )}
                     </div>
-                    <div className="text-center">
-                      <div className="text-[10px] text-white/40 mb-1">Energy</div>
-                      <div className="text-sm font-semibold text-[#e5a27d]">{entry.energy}</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-[10px] text-white/40 mb-1">Sleep</div>
-                      <div className="text-sm font-semibold text-[#a3b8cc]">{entry.sleep}</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-[10px] text-white/40 mb-1">Stress</div>
-                      <div className="text-sm font-semibold text-[#eb5e5e]">{entry.stress}</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-[10px] text-white/40 mb-1" title="Academic Pressure">Acad.</div>
-                      <div className="text-sm font-semibold text-[#b080e6]">{entry.workload}</div>
-                    </div>
-                  </div>
-
-                  {entry.reflection && (
-                    <div className="mt-3 p-3 bg-white/[0.03] rounded border border-white/[0.04]">
-                      <div className="flex items-start gap-2 text-xs text-white/70">
-                        <FileText size={12} className="mt-0.5 opacity-50 shrink-0" />
-                        <span className="leading-relaxed">{entry.reflection}</span>
+                    
+                    <div className="grid grid-cols-5 gap-2 mb-4">
+                      <div className="text-center">
+                        <div className="text-[10px] text-white/40 mb-1">Mood</div>
+                        <div className="text-sm font-semibold text-[#c3f340]">{entry.mood}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[10px] text-white/40 mb-1">Energy</div>
+                        <div className="text-sm font-semibold text-[#e5a27d]">{entry.energy}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[10px] text-white/40 mb-1">Sleep</div>
+                        <div className="text-sm font-semibold text-[#a3b8cc]">{entry.sleep}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[10px] text-white/40 mb-1">Stress</div>
+                        <div className="text-sm font-semibold text-[#eb5e5e]">{entry.stress}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-[10px] text-white/40 mb-1" title="Academic Pressure">Acad.</div>
+                        <div className="text-sm font-semibold text-[#b080e6]">{entry.workload}</div>
                       </div>
                     </div>
-                  )}
-                </TiltCard>
-              ))}
+
+                    {entry.reflection && (
+                      <div className="mt-3 p-3 bg-white/[0.03] rounded border border-white/[0.04]">
+                        <div className="flex items-start gap-2 text-xs text-white/70">
+                          <FileText size={12} className="mt-0.5 opacity-50 shrink-0" />
+                          <span className="leading-relaxed">{entry.reflection}</span>
+                        </div>
+                      </div>
+                    )}
+                  </TiltCard>
+                );
+              })}
             </div>
           </div>
         )}

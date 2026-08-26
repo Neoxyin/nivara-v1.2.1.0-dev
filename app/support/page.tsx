@@ -34,7 +34,7 @@ export default function SupportPage() {
     enabled: hasConsent
   });
 
-  const latestCheckIn = checkIns?.[0];
+  const latestEligibleCheckIn = checkIns?.find((c) => c.assessmentEligibility === 'ELIGIBLE' || c.isAssessmentEligible === true);
   const { data: supportNeeds, isLoading: needsLoading } = useQuery({ 
     queryKey: ['support-needs', preferences], 
     queryFn: () => getSupportNeedProfile('default') 
@@ -209,24 +209,24 @@ export default function SupportPage() {
                   <HeartPulse size={16} className="text-[#c3f340]" />
                   <h3 className="font-semibold text-white text-sm">Well-being Context</h3>
                 </div>
-                {latestCheckIn ? (
+                {latestEligibleCheckIn ? (
                   <div>
                     <p className="text-xs text-white/60 mb-4 leading-relaxed">
-                      Your recent check-in on <strong className="text-white">{latestCheckIn.date}</strong> can help guide which support you might need today.
+                      Your recent check-in on <strong className="text-white">{latestEligibleCheckIn.date}</strong> can help guide which support you might need today.
                     </p>
                     <div className="grid grid-cols-2 gap-2 mb-4">
                        <div className="bg-white/[0.03] rounded p-2 text-center border border-white/[0.05]">
                          <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Stress</div>
-                         <div className="text-sm font-semibold text-white">{latestCheckIn.stress} / 5</div>
+                         <div className="text-sm font-semibold text-white">{latestEligibleCheckIn.stress} / 5</div>
                        </div>
                        <div className="bg-white/[0.03] rounded p-2 text-center border border-white/[0.05]">
                          <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">Energy</div>
-                         <div className="text-sm font-semibold text-white">{latestCheckIn.energy} / 5</div>
+                         <div className="text-sm font-semibold text-white">{latestEligibleCheckIn.energy} / 5</div>
                        </div>
                     </div>
-                    {latestCheckIn.reflection && (
+                    {latestEligibleCheckIn.reflection && (
                        <div className="bg-white/[0.02] p-3 rounded border border-white/[0.04] text-xs text-white/60 italic">
-                         &quot;{latestCheckIn.reflection}&quot;
+                         &quot;{latestEligibleCheckIn.reflection}&quot;
                        </div>
                     )}
                     <div className="mt-5 pt-4 border-t border-white/[0.06]">
@@ -281,7 +281,7 @@ export default function SupportPage() {
         {/* Modular Support Matching Section */}
         <div className="pt-6 border-t border-white/[0.08] space-y-12">
           <SupportMatching />
-          <SupportRecommendations />
+          <SupportRecommendations supportNeeds={supportNeeds} />
         </div>
       </div>
     </AppShell>

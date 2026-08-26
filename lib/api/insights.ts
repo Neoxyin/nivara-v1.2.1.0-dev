@@ -1,4 +1,4 @@
-import { mockCheckIns } from '../data/checkins';
+import { getCheckIns } from './checkins';
 import { mockAcademicMetrics, mockDeadlines } from '../data/academics';
 import { pause } from './mock-latency';
 import type { Insight } from '../types';
@@ -7,8 +7,12 @@ import type { IntelligencePipelineResult } from '../intelligence/types';
 
 export async function getInsights(): Promise<Insight[]> {
   await pause();
+  const allCheckIns = await getCheckIns();
+  const eligibleCheckIns = allCheckIns.filter(
+    (c) => c.assessmentEligibility === 'ELIGIBLE' || c.isAssessmentEligible === true
+  );
 
-  const result = generateInsightsFromCheckIns(mockCheckIns, {
+  const result = generateInsightsFromCheckIns(eligibleCheckIns, {
     academicMetrics: mockAcademicMetrics,
     deadlines: mockDeadlines,
   });
@@ -17,22 +21,24 @@ export async function getInsights(): Promise<Insight[]> {
     return result.insights;
   }
 
-  // A real processing failure is distinct from "no check-ins yet" â€” throw so the
-  // UI's error state (retry action) engages instead of silently showing the
-  // insufficient-data empty state, which would misrepresent what happened.
+  // A real processing failure is distinct from "no check-ins yet"
   if (result.status === 'error') {
     throw new Error(result.errorMessage || 'Unable to process check-in signals');
   }
 
-  // Insufficient data (e.g. no check-ins submitted yet): empty array lets the
+  // Insufficient data (e.g. no eligible check-ins submitted yet): empty array lets the
   // UI show its calm "not enough signal yet" state.
   return [];
 }
 
 export async function getIntelligenceReport(): Promise<IntelligencePipelineResult> {
   await pause();
+  const allCheckIns = await getCheckIns();
+  const eligibleCheckIns = allCheckIns.filter(
+    (c) => c.assessmentEligibility === 'ELIGIBLE' || c.isAssessmentEligible === true
+  );
 
-  return generateInsightsFromCheckIns(mockCheckIns, {
+  return generateInsightsFromCheckIns(eligibleCheckIns, {
     academicMetrics: mockAcademicMetrics,
     deadlines: mockDeadlines,
   });

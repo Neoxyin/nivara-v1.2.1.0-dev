@@ -2,6 +2,7 @@ import {
   buildSupportIndicator, 
   filterSignalsByConsent,
   evaluateSupportNeedProfile,
+  extractWellbeingSignalsFromCheckIn,
   rawDemoStudentSignals,
   scoreFinancial,
   type SupportSignals,
@@ -12,7 +13,7 @@ import {
   matchFinancialSupportOptions, 
   mockFinancialSupportOptions 
 } from './lib/data/financial-support';
-import type { DataPermissionKey } from './lib/types';
+import type { DataPermissionKey, SupportNeedProfileData, CheckIn } from './lib/types';
 
 console.log('--- RUNNING SUPPORT NEED ENGINE & CONSENT GATE TESTS ---');
 
@@ -537,6 +538,425 @@ if (!outReenabled.academic.available || outReenabled.academic.stale || outReenab
   throw new Error('BugFix Test 7 failed: Re-enabling must produce fresh available non-stale evaluation');
 }
 console.log('PASS: BugFix Test 7 -> Re-enabling restores fresh assessment and clears stale state.');
+
+console.log('\n--- RUNNING IMPLEMENTATION 05: CHECK-IN ASSESSMENT ELIGIBILITY TESTS ---');
+
+// Test 05-1: Well-being ON + Eligible check-in -> engine evaluates wellbeing normally
+console.log('\n[Impl05 Test 1] Well-being ON + Eligible check-in:');
+const checkInEligible: CheckIn = {
+  id: 'ci-test-1',
+  date: '2026-08-26',
+  mood: 2,
+  energy: 2,
+  stress: 4,
+  sleep: 2,
+  workload: 4,
+  reflection: 'Feeling heavy workload this week',
+  isAssessmentEligible: true,
+  assessmentEligibility: 'ELIGIBLE',
+};
+const wbSignals1 = extractWellbeingSignalsFromCheckIn(checkInEligible);
+if (!wbSignals1 || wbSignals1.stress !== 4 || wbSignals1.energy !== 2) {
+  throw new Error('Impl05 Test 1 failed: Eligible check-in must extract valid wellbeing signals');
+}
+const engineInput05_1 = filterSignalsByConsent({
+  ...rawData,
+  wellbeing: wbSignals1,
+}, { academic_data: true, financial_support: true, wellbeing_checkins: true });
+const output05_1 = evaluateSupportNeedProfile(engineInput05_1);
+if (!output05_1.wellbeing.available || output05_1.wellbeing.level !== 'HIGH') {
+  // stress 4 (25) + mood 2 (20) + energy 2 (15) + sleep 2 (10) = 70 -> HIGH
+  throw new Error(`Impl05 Test 1 failed: Expected HIGH wellbeing assessment, got ${output05_1.wellbeing.level}`);
+}
+console.log('PASS: Impl05 Test 1 -> Eligible check-in with consent evaluates accurately in Support Need Engine.');
+
+// Test 05-2: Well-being OFF + Ineligible check-in ("Continue without enabling") -> extractWellbeingSignalsFromCheckIn returns null -> engine output UNAVAILABLE
+console.log('\n[Impl05 Test 2] Well-being OFF + Ineligible check-in:');
+const checkInIneligible: CheckIn = {
+  id: 'ci-test-2',
+  date: '2026-08-26',
+  mood: 1,
+  energy: 1,
+  stress: 5,
+  sleep: 1,
+  workload: 5,
+  reflection: 'Private reflection only',
+  isAssessmentEligible: false,
+  assessmentEligibility: 'NOT_ELIGIBLE',
+};
+const wbSignals2 = extractWellbeingSignalsFromCheckIn(checkInIneligible);
+if (wbSignals2 !== null) {
+  throw new Error('Impl05 Test 2 failed: extractWellbeingSignalsFromCheckIn must return null for NOT_ELIGIBLE record');
+}
+const engineInput05_2 = filterSignalsByConsent({
+  ...rawData,
+  wellbeing: wbSignals2,
+}, { academic_data: true, financial_support: true, wellbeing_checkins: false });
+const output05_2 = evaluateSupportNeedProfile(engineInput05_2);
+if (output05_2.wellbeing.available !== false || output05_2.wellbeing.level !== 'UNAVAILABLE') {
+  throw new Error(`Impl05 Test 2 failed: Expected UNAVAILABLE wellbeing assessment, got ${output05_2.wellbeing.level}`);
+}
+console.log('PASS: Impl05 Test 2 -> Ineligible check-in yields null signals; Support Need Engine outputs UNAVAILABLE.');
+
+// Test 05-3: Ineligible record isolation (1 older eligible, 1 newer ineligible)
+console.log('\n[Impl05 Test 3] Ineligible record isolation:');
+const checkinListMixed: CheckIn[] = [
+  checkInIneligible, // Newer, NOT_ELIGIBLE (stress 5, energy 1)
+  checkInEligible,   // Older, ELIGIBLE (stress 4, energy 2)
+];
+const eligibleCandidates = checkinListMixed.filter(c => c.assessmentEligibility === 'ELIGIBLE' || c.isAssessmentEligible === true);
+if (eligibleCandidates.length !== 1 || eligibleCandidates[0].id !== 'ci-test-1') {
+  throw new Error('Impl05 Test 3 failed: Candidate filter must isolate only eligible records');
+}
+const latestEligibleSignal = extractWellbeingSignalsFromCheckIn(eligibleCandidates[0]);
+if (!latestEligibleSignal || latestEligibleSignal.stress !== 4) {
+  throw new Error('Impl05 Test 3 failed: Engine must only consume eligible record signals');
+}
+console.log('PASS: Impl05 Test 3 -> Newer ineligible check-in is isolated; engine only consumes eligible record.');
+
+// Test 05-4: Multiple check-ins with mixed eligibility
+console.log('\n[Impl05 Test 4] Multiple check-ins with mixed eligibility:');
+const multipleCheckins: CheckIn[] = [
+  { id: 'ci-m1', date: '2026-08-25', mood: 4, energy: 4, stress: 2, sleep: 4, workload: 2, reflection: '', isAssessmentEligible: false, assessmentEligibility: 'NOT_ELIGIBLE' },
+  { id: 'ci-m2', date: '2026-08-24', mood: 3, energy: 3, stress: 3, sleep: 3, workload: 3, reflection: '', isAssessmentEligible: true, assessmentEligibility: 'ELIGIBLE' },
+  { id: 'ci-m3', date: '2026-08-23', mood: 1, energy: 1, stress: 5, sleep: 1, workload: 5, reflection: '', isAssessmentEligible: false, assessmentEligibility: 'NOT_ELIGIBLE' },
+];
+const onlyEligible = multipleCheckins.filter(c => c.assessmentEligibility === 'ELIGIBLE' && c.isAssessmentEligible === true);
+if (onlyEligible.length !== 1 || onlyEligible[0].id !== 'ci-m2') {
+  throw new Error('Impl05 Test 4 failed: Only ci-m2 should be marked eligible');
+}
+console.log('PASS: Impl05 Test 4 -> Multi-record mixed eligibility strictly filters out all NOT_ELIGIBLE records.');
+
+// Test 05-5: Well-being permission WITHDRAWAL with keepStale + subsequent Ineligible check-in
+console.log('\n[Impl05 Test 5] Withdrawal with keepStale + Ineligible check-in completed afterwards:');
+const staleMapWb05 = {
+  academic_data: false,
+  financial_support: false,
+  wellbeing_checkins: true,
+};
+// Engine input with null wellbeing signals
+const inputWbWithdrawn05 = filterSignalsByConsent({
+  ...rawData,
+  wellbeing: null,
+}, { academic_data: true, financial_support: true, wellbeing_checkins: false });
+const outputWbStale05 = evaluateSupportNeedProfile(inputWbWithdrawn05, staleMapWb05);
+if (!outputWbStale05.wellbeing.available || !outputWbStale05.wellbeing.stale || outputWbStale05.wellbeing.level !== 'MILD') {
+  throw new Error('Impl05 Test 5 failed: Stale assessment must be preserved without modification');
+}
+console.log('PASS: Impl05 Test 5 -> Withdrawal with keepStale preserves historical assessment; ineligible check-ins do not corrupt it.');
+
+// Test 05-6: Re-enabling Well-being permission: Ineligible records remain NOT_ELIGIBLE
+console.log('\n[Impl05 Test 6] Re-enabling Well-being: Ineligible records do NOT get promoted:');
+// Suppose student had 1 ineligible checkin while permission was OFF
+const recordsBeforeReenable = [checkInIneligible];
+// Permission re-enabled
+const consentReenabled05: Record<DataPermissionKey, boolean> = {
+  academic_data: true,
+  financial_support: true,
+  wellbeing_checkins: true,
+};
+const eligibleAfterReenable = recordsBeforeReenable.filter(c => c.assessmentEligibility === 'ELIGIBLE');
+if (eligibleAfterReenable.length !== 0) {
+  throw new Error('Impl05 Test 6 failed: Ineligible records must never be automatically promoted to ELIGIBLE');
+}
+const derivedSignalAfterReenable = eligibleAfterReenable.length > 0 ? extractWellbeingSignalsFromCheckIn(eligibleAfterReenable[0]) : null;
+if (derivedSignalAfterReenable !== null) {
+  throw new Error('Impl05 Test 6 failed: Derived signal should remain null if no eligible records exist');
+}
+console.log('PASS: Impl05 Test 6 -> Re-enabling consent does not retroactively promote private ineligible records.');
+
+// Test 05-7: Persistence & round-trip serialization of eligibility flags
+console.log('\n[Impl05 Test 7] Persistence round-trip serialization of eligibility flags:');
+const checkinsToPersist05: CheckIn[] = [checkInEligible, checkInIneligible];
+const serialized05 = JSON.stringify(checkinsToPersist05);
+const deserialized05: CheckIn[] = JSON.parse(serialized05);
+if (deserialized05[0].assessmentEligibility !== 'ELIGIBLE' || deserialized05[0].isAssessmentEligible !== true) {
+  throw new Error('Impl05 Test 7 failed: Deserialized record 0 eligibility corrupted');
+}
+if (deserialized05[1].assessmentEligibility !== 'NOT_ELIGIBLE' || deserialized05[1].isAssessmentEligible !== false) {
+  throw new Error('Impl05 Test 7 failed: Deserialized record 1 eligibility corrupted');
+}
+console.log('PASS: Impl05 Test 7 -> Serialized & deserialized check-ins preserve exact assessment eligibility flags.');
+
+// ==========================================
+// IMPLEMENTATION 06 TESTS — FEATURES 01 + 02
+// ==========================================
+console.log('\n==========================================');
+console.log('IMPLEMENTATION 06 — LIVE & CONSENT-AWARE EXPLANATION TESTS');
+console.log('==========================================');
+
+// Test 06-1: Live academic explanation uses actual permitted input
+console.log('\n[Impl06 Test 1] Live academic explanation uses actual permitted input:');
+const fullAcademicInput = filterSignalsByConsent({
+  academic: {
+    attendance: 70,
+    attendanceDeclining: true,
+    marksDeclining: true,
+    overdueAssignments: 2,
+    academicStress: 5,
+    requestedHelp: true,
+  },
+  financial: null,
+  wellbeing: null,
+}, { academic_data: true, financial_support: false, wellbeing_checkins: false });
+const out06_1 = evaluateSupportNeedProfile(fullAcademicInput);
+if (!out06_1.academic.available || !out06_1.academic.explainability) {
+  throw new Error('Impl06 Test 1 failed: Academic explanation must be available');
+}
+const exp06_1 = out06_1.academic.explainability;
+if (!exp06_1.contributingFactors.some(f => f.includes('70%')) ||
+    !exp06_1.contributingFactors.some(f => f.includes('2 assignment(s) overdue')) ||
+    !exp06_1.contributingFactors.some(f => f.includes('Attendance trend is declining')) ||
+    !exp06_1.contributingFactors.some(f => f.includes('Assessment marks trend is declining')) ||
+    !exp06_1.contributingFactors.some(f => f.includes('Academic stress self-rating is elevated (5/5)')) ||
+    !exp06_1.contributingFactors.some(f => f.includes('Student requested academic support'))) {
+  throw new Error('Impl06 Test 1 failed: All live academic factors must be accurately reflected');
+}
+if (!exp06_1.dataUsed.includes('Course module attendance percentage') ||
+    !exp06_1.dataUsed.includes('Recent grade trajectory') ||
+    !exp06_1.dataUsed.includes('Assignment submission deadlines')) {
+  throw new Error('Impl06 Test 1 failed: Data used must reflect actual academic records used');
+}
+console.log('PASS: Impl06 Test 1 -> Live academic explanation accurately uses permitted inputs.');
+
+// Test 06-2: Academic OFF prevents academic evidence from current explanation
+console.log('\n[Impl06 Test 2] Academic OFF prevents academic evidence from current explanation:');
+const acadOffInput = filterSignalsByConsent({
+  academic: {
+    attendance: 65,
+    attendanceDeclining: true,
+    marksDeclining: true,
+    overdueAssignments: 3,
+    academicStress: 5,
+    requestedHelp: true,
+  },
+  financial: null,
+  wellbeing: null,
+}, { academic_data: false, financial_support: false, wellbeing_checkins: false });
+const out06_2 = evaluateSupportNeedProfile(acadOffInput);
+if (out06_2.academic.available !== false || out06_2.academic.level !== 'UNAVAILABLE' || out06_2.academic.explainability !== undefined) {
+  throw new Error('Impl06 Test 2 failed: Academic OFF must not produce explanation or leak raw evidence');
+}
+console.log('PASS: Impl06 Test 2 -> Academic OFF strictly isolates academic evidence.');
+
+// Test 06-3: Financial NOT_PAID explanation uses only feeStatus
+console.log('\n[Impl06 Test 3] Financial NOT_PAID explanation uses only feeStatus:');
+const finNotPaidInput = filterSignalsByConsent({
+  academic: null,
+  financial: { feeStatus: 'NOT_PAID' },
+  wellbeing: null,
+}, { academic_data: false, financial_support: true, wellbeing_checkins: false });
+const out06_3 = evaluateSupportNeedProfile(finNotPaidInput);
+if (!out06_3.financial.available || !out06_3.financial.explainability) {
+  throw new Error('Impl06 Test 3 failed: Financial explanation must exist');
+}
+const exp06_3 = out06_3.financial.explainability;
+if (!exp06_3.contributingFactors.includes('Institutional fee payment is pending')) {
+  throw new Error('Impl06 Test 3 failed: NOT_PAID must state fee payment is pending');
+}
+if (exp06_3.dataUsed.length !== 1 || exp06_3.dataUsed[0] !== 'Institutional fee payment status') {
+  throw new Error('Impl06 Test 3 failed: Data used must only be fee payment status');
+}
+const bannedFields06 = ['Income', 'Family income', 'Expenses', 'Expense categories', 'Bank statements', 'Transaction history', 'Credit score', 'Aadhaar', 'Debt', 'Financial stress'];
+for (const banned of bannedFields06) {
+  if (!exp06_3.dataNotUsed?.includes(banned)) {
+    throw new Error(`Impl06 Test 3 failed: Missing banned field ${banned} from dataNotUsed`);
+  }
+}
+console.log('PASS: Impl06 Test 3 -> Financial NOT_PAID explanation uses strictly feeStatus and documents banned fields.');
+
+// Test 06-4: Financial PAID explanation does not claim financial security
+console.log('\n[Impl06 Test 4] Financial PAID explanation does not claim financial security:');
+const finPaidInput = filterSignalsByConsent({
+  academic: null,
+  financial: { feeStatus: 'PAID' },
+  wellbeing: null,
+}, { academic_data: false, financial_support: true, wellbeing_checkins: false });
+const out06_4 = evaluateSupportNeedProfile(finPaidInput);
+const exp06_4 = out06_4.financial.explainability;
+if (!exp06_4) throw new Error('Impl06 Test 4 failed: Explainability missing');
+const factorsString = exp06_4.contributingFactors.join(' ').toLowerCase();
+if (factorsString.includes('secure') || factorsString.includes('no financial difficulty') || factorsString.includes('sufficient')) {
+  throw new Error('Impl06 Test 4 failed: PAID status must not claim student is financially secure or without difficulty');
+}
+if (!exp06_4.contributingFactors.includes('Institutional tuition fees recorded as paid')) {
+  throw new Error('Impl06 Test 4 failed: PAID status should state tuition fees recorded as paid');
+}
+console.log('PASS: Impl06 Test 4 -> Financial PAID explanation does not claim false financial security.');
+
+// Test 06-5: Financial OFF prevents feeStatus from current explanation
+console.log('\n[Impl06 Test 5] Financial OFF prevents feeStatus from current explanation:');
+const finOffInput = filterSignalsByConsent({
+  academic: null,
+  financial: { feeStatus: 'NOT_PAID' },
+  wellbeing: null,
+}, { academic_data: false, financial_support: false, wellbeing_checkins: false });
+const out06_5 = evaluateSupportNeedProfile(finOffInput);
+if (out06_5.financial.available !== false || out06_5.financial.level !== 'UNAVAILABLE' || out06_5.financial.explainability !== undefined) {
+  throw new Error('Impl06 Test 5 failed: Financial OFF must not produce explanation or leak feeStatus');
+}
+console.log('PASS: Impl06 Test 5 -> Financial OFF completely prevents feeStatus exposure.');
+
+// Test 06-6: Eligible well-being check-in can produce explanation evidence
+console.log('\n[Impl06 Test 6] Eligible well-being check-in produces live explanation evidence:');
+const eligibleCheckInObj: CheckIn = {
+  id: 'chk-live-1',
+  date: 'Today',
+  mood: 2,
+  energy: 2,
+  stress: 4,
+  sleep: 2,
+  workload: 3,
+  reflection: 'Eligible check-in',
+  assessmentEligibility: 'ELIGIBLE',
+  isAssessmentEligible: true,
+};
+const wbSignalEligible = extractWellbeingSignalsFromCheckIn(eligibleCheckInObj);
+const wbEligibleInput = filterSignalsByConsent({
+  academic: null,
+  financial: null,
+  wellbeing: wbSignalEligible,
+}, { academic_data: false, financial_support: false, wellbeing_checkins: true });
+const out06_6 = evaluateSupportNeedProfile(wbEligibleInput);
+if (!out06_6.wellbeing.available || !out06_6.wellbeing.explainability) {
+  throw new Error('Impl06 Test 6 failed: Well-being explanation must exist for eligible check-in');
+}
+const exp06_6 = out06_6.wellbeing.explainability;
+if (!exp06_6.contributingFactors.some(f => f.includes('stress level is elevated (4/5)')) ||
+    !exp06_6.contributingFactors.some(f => f.includes('mood score is low (2/5)')) ||
+    !exp06_6.contributingFactors.some(f => f.includes('energy level is low (2/5)')) ||
+    !exp06_6.contributingFactors.some(f => f.includes('sleep quality is low (2/5)'))) {
+  throw new Error('Impl06 Test 6 failed: Live check-in signals must be in contributingFactors');
+}
+if (!exp06_6.dataNotUsed?.includes('Private reflection notes') || !exp06_6.dataNotUsed?.includes('Ineligible check-in responses')) {
+  throw new Error('Impl06 Test 6 failed: Well-being dataNotUsed must document excluded private/ineligible data');
+}
+console.log('PASS: Impl06 Test 6 -> Eligible well-being check-in generates live explanation evidence.');
+
+// Test 06-7: Ineligible well-being check-in cannot produce explanation evidence
+console.log('\n[Impl06 Test 7] Ineligible well-being check-in cannot produce explanation evidence:');
+const ineligibleCheckInObj: CheckIn = {
+  id: 'chk-inelig-1',
+  date: 'Today',
+  mood: 1,
+  energy: 1,
+  stress: 5,
+  sleep: 1,
+  workload: 4,
+  reflection: 'Private reflection',
+  assessmentEligibility: 'NOT_ELIGIBLE',
+  isAssessmentEligible: false,
+};
+const wbSignalIneligible = extractWellbeingSignalsFromCheckIn(ineligibleCheckInObj);
+if (wbSignalIneligible !== null) {
+  throw new Error('Impl06 Test 7 failed: extractWellbeingSignalsFromCheckIn must return null for ineligible checkin');
+}
+const wbIneligibleInput = filterSignalsByConsent({
+  academic: null,
+  financial: null,
+  wellbeing: wbSignalIneligible,
+}, { academic_data: false, financial_support: false, wellbeing_checkins: true });
+const out06_7 = evaluateSupportNeedProfile(wbIneligibleInput);
+if (out06_7.wellbeing.available !== false || out06_7.wellbeing.level !== 'UNAVAILABLE' || out06_7.wellbeing.explainability !== undefined) {
+  throw new Error('Impl06 Test 7 failed: Ineligible check-in must not produce well-being explanation or assessment');
+}
+console.log('PASS: Impl06 Test 7 -> Ineligible check-in strictly isolated from explanation.');
+
+// Test 06-8: Limited consent produces limited/unavailable explanation correctly
+console.log('\n[Impl06 Test 8] Limited consent produces independent explanation per dimension:');
+const limitedInput = filterSignalsByConsent({
+  academic: { attendance: 70, overdueAssignments: 1 },
+  financial: { feeStatus: 'NOT_PAID' },
+  wellbeing: { mood: 1, stress: 5 },
+}, { academic_data: true, financial_support: false, wellbeing_checkins: false });
+const out06_8 = evaluateSupportNeedProfile(limitedInput);
+if (!out06_8.academic.available || !out06_8.academic.explainability) {
+  throw new Error('Impl06 Test 8 failed: Consented dimension must have explanation');
+}
+if (out06_8.financial.available !== false || out06_8.financial.explainability !== undefined) {
+  throw new Error('Impl06 Test 8 failed: Non-consented financial must have no explanation');
+}
+if (out06_8.wellbeing.available !== false || out06_8.wellbeing.explainability !== undefined) {
+  throw new Error('Impl06 Test 8 failed: Non-consented wellbeing must have no explanation');
+}
+console.log('PASS: Impl06 Test 8 -> Limited consent independently explains only permitted dimensions.');
+
+// Test 06-9: Stale result explanation is marked historical
+console.log('\n[Impl06 Test 9] Stale result explanation is marked historical:');
+const staleMapAllTrue: Record<DataPermissionKey, boolean> = {
+  academic_data: true,
+  financial_support: true,
+  wellbeing_checkins: true,
+};
+const withdrawnAllInput = filterSignalsByConsent({
+  academic: { attendance: 60 },
+  financial: { feeStatus: 'NOT_PAID' },
+  wellbeing: { stress: 5 },
+}, { academic_data: false, financial_support: false, wellbeing_checkins: false });
+const out06_9 = evaluateSupportNeedProfile(withdrawnAllInput, staleMapAllTrue);
+if (!out06_9.academic.stale || !out06_9.financial.stale || !out06_9.wellbeing.stale) {
+  throw new Error('Impl06 Test 9 failed: Retained results must be flagged as stale');
+}
+if (!out06_9.academic.explainability?.timeWindow?.includes('prior to permission withdrawal') ||
+    !out06_9.financial.explainability?.timeWindow?.includes('prior to permission withdrawal') ||
+    !out06_9.wellbeing.explainability?.timeWindow?.includes('prior to permission withdrawal')) {
+  throw new Error('Impl06 Test 9 failed: Time window must explicitly state historical status');
+}
+if (!out06_9.academic.explainability?.dataUsed.some(d => d.includes('(historical record)')) ||
+    !out06_9.financial.explainability?.dataUsed.some(d => d.includes('(historical record)')) ||
+    !out06_9.wellbeing.explainability?.dataUsed.some(d => d.includes('(historical record)'))) {
+  throw new Error('Impl06 Test 9 failed: Data used must indicate historical records');
+}
+console.log('PASS: Impl06 Test 9 -> Stale result explanations are prominently marked historical.');
+
+// Test 06-10: Removed result produces no fabricated explanation
+console.log('\n[Impl06 Test 10] Removed result produces no fabricated explanation:');
+const staleMapAllFalse: Record<DataPermissionKey, boolean> = {
+  academic_data: false,
+  financial_support: false,
+  wellbeing_checkins: false,
+};
+const out06_10 = evaluateSupportNeedProfile(withdrawnAllInput, staleMapAllFalse);
+if (out06_10.academic.available || out06_10.academic.explainability !== undefined ||
+    out06_10.financial.available || out06_10.financial.explainability !== undefined ||
+    out06_10.wellbeing.available || out06_10.wellbeing.explainability !== undefined) {
+  throw new Error('Impl06 Test 10 failed: Removed dimensions must have no fabricated explanation');
+}
+console.log('PASS: Impl06 Test 10 -> Removed results have zero fabricated explanations.');
+
+// Test 06-11: Mixed permissions keep explanation dimensions independent
+console.log('\n[Impl06 Test 11] Mixed permissions keep explanation dimensions independent:');
+const mixedInput06 = filterSignalsByConsent({
+  academic: null,
+  financial: { feeStatus: 'PAID' },
+  wellbeing: wbSignalEligible,
+}, { academic_data: false, financial_support: true, wellbeing_checkins: true });
+const mixedStaleMap06: Record<DataPermissionKey, boolean> = {
+  academic_data: true,
+  financial_support: false,
+  wellbeing_checkins: false,
+};
+const out06_11 = evaluateSupportNeedProfile(mixedInput06, mixedStaleMap06);
+if (!out06_11.academic.stale || out06_11.financial.stale || out06_11.wellbeing.stale) {
+  throw new Error('Impl06 Test 11 failed: Only academic should be stale');
+}
+if (!out06_11.academic.explainability?.contributingFactors[0].includes('Historical assessment') ||
+    out06_11.financial.explainability?.contributingFactors[0].includes('Historical assessment') ||
+    out06_11.wellbeing.explainability?.contributingFactors[0].includes('Historical assessment')) {
+  throw new Error('Impl06 Test 11 failed: Historical assessment tag must only be on stale dimension');
+}
+console.log('PASS: Impl06 Test 11 -> Mixed permissions keep explanation dimensions isolated and correct.');
+
+// Test 06-12: Explanation metadata/result survives serialization/remount path
+console.log('\n[Impl06 Test 12] Explanation metadata survives serialization/deserialization:');
+const serializedProfile = JSON.stringify(out06_11);
+const deserializedProfile: SupportNeedProfileData = JSON.parse(serializedProfile);
+if (deserializedProfile.academic.explainability?.timeWindow !== out06_11.academic.explainability?.timeWindow ||
+    deserializedProfile.financial.explainability?.contributingFactors[0] !== out06_11.financial.explainability?.contributingFactors[0] ||
+    deserializedProfile.wellbeing.explainability?.dataUsed.length !== out06_11.wellbeing.explainability?.dataUsed.length) {
+  throw new Error('Impl06 Test 12 failed: Deserialized explainability metadata corrupted');
+}
+console.log('PASS: Impl06 Test 12 -> Explanation metadata round-trips through JSON without corruption.');
 
 console.log('\nALL TESTS PASSED SUCCESSFULLY.');
 

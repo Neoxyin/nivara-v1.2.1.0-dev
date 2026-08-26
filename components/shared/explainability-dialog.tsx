@@ -13,6 +13,8 @@ import { HelpCircle, Info, ShieldCheck, Database, Calendar } from 'lucide-react'
 
 export interface ExplainabilityProps {
   title?: string;
+  description?: string;
+  isStale?: boolean;
   trigger?: React.ReactNode;
   contributingFactors: string[];
   timeWindow?: string;
@@ -22,12 +24,18 @@ export interface ExplainabilityProps {
 
 export function ExplainabilityDialog({
   title = "Why am I seeing this?",
+  description,
+  isStale = false,
   trigger,
   contributingFactors,
   timeWindow,
   dataUsed,
   dataNotUsed,
 }: ExplainabilityProps) {
+  const defaultDescription = isStale
+    ? "This historical assessment was generated prior to permission withdrawal and is retained based on your choice. It is no longer updated with new data."
+    : "Based on your consented information, this indicator was generated to help connect you with relevant support.";
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -47,7 +55,7 @@ export function ExplainabilityDialog({
             {title}
           </DialogTitle>
           <DialogDescription className="text-white/60 mt-1.5 text-sm">
-            Based on your consented information, this indicator was generated to help connect you with relevant support.
+            {description || defaultDescription}
           </DialogDescription>
         </DialogHeader>
 

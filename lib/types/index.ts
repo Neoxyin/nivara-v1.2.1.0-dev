@@ -21,7 +21,10 @@ export type Student = {
   consentState: ConsentState 
 };
 
+export type CheckInEligibility = 'ELIGIBLE' | 'NOT_ELIGIBLE';
+
 export type CheckIn = { 
+  id?: string;
   date: string; 
   mood: number; 
   energy: number; 
@@ -29,6 +32,7 @@ export type CheckIn = {
   sleep: number; 
   workload: number; 
   reflection: string;
+  assessmentEligibility?: CheckInEligibility;
   isAssessmentEligible?: boolean;
 };
 
