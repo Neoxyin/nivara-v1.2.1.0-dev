@@ -18,7 +18,7 @@ import {
 import { SupportMatching } from '@/components/shared/support-matching';
 import { SupportRecommendations } from '@/components/shared/support-recommendations';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getPreferences } from '@/lib/api/preferences';
 import { getCheckIns } from '@/lib/api/checkins';
 import { getSupportNeedProfile } from '@/lib/api/support-needs';
@@ -35,10 +35,63 @@ export default function SupportPage() {
   });
 
   const latestCheckIn = checkIns?.[0];
-  const { data: supportNeeds, isLoading: needsLoading } = useQuery({ queryKey: ['support-needs'], queryFn: () => getSupportNeedProfile('default') });
+  const { data: supportNeeds, isLoading: needsLoading } = useQuery({ 
+    queryKey: ['support-needs', preferences], 
+    queryFn: () => getSupportNeedProfile('default') 
+  });
   const consentCount = preferences?.filter((p) => p.enabled).length ?? 0;
   const availability = consentCount === 0 ? 'ZERO_DATA' : consentCount < 3 ? 'LIMITED' : 'FULL';
-  useEffect(() => { if (!supportNeeds || typeof window === 'undefined') return; try { const key='nivara_assessment_history'; const existing=JSON.parse(localStorage.getItem(key)||'[]'); const signature=JSON.stringify(supportNeeds); if (!existing.some((x:any)=>x.signature===signature)) { const item={id:crypto.randomUUID(),createdAt:new Date().toISOString(),availability,dimensions:supportNeeds,sourcePermissions:preferences?.filter(p=>p.enabled).map(p=>p.key)||[],signature}; localStorage.setItem(key,JSON.stringify([item,...existing].slice(0,20))); localStorage.setItem('nivara_current_support_assessment',JSON.stringify(item)); } } catch {} }, [supportNeeds, availability, preferences]);
+
+  const [dismissedStaleNotice, setDismissedStaleNotice] = useState(false);
+  const [permanentlyDismissed, setPermanentlyDismissed] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('nivara_dismiss_stale_notice') === 'true') {
+        setPermanentlyDismissed(true);
+      }
+    } catch {}
+  }, []);
+
+  const hasStaleDimension = Boolean(
+    supportNeeds && (
+      supportNeeds.academic?.stale ||
+      supportNeeds.financial?.stale ||
+      supportNeeds.wellbeing?.stale
+    )
+  );
+
+  const showStaleNotice = hasStaleDimension && !dismissedStaleNotice && !permanentlyDismissed;
+
+  useEffect(() => { 
+    if (!supportNeeds || typeof window === 'undefined') return; 
+    try { 
+      const key = 'nivara_assessment_history'; 
+      const existing = JSON.parse(localStorage.getItem(key) || '[]'); 
+      const signature = JSON.stringify(supportNeeds); 
+      const isStale = Boolean(supportNeeds.academic?.stale || supportNeeds.financial?.stale || supportNeeds.wellbeing?.stale);
+      if (!existing.some((x: any) => x.signature === signature)) { 
+        const item = {
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+          availability,
+          dimensions: supportNeeds,
+          sourcePermissions: preferences?.filter(p => p.enabled).map(p => p.key) || [],
+          stale: isStale,
+          signature
+        }; 
+        localStorage.setItem(key, JSON.stringify([item, ...existing].slice(0, 20))); 
+        localStorage.setItem('nivara_current_support_assessment', JSON.stringify(item)); 
+      } 
+    } catch {} 
+  }, [supportNeeds, availability, preferences]);
+
+  const handleDismissStaleNoticePermanently = () => {
+    try {
+      localStorage.setItem('nivara_dismiss_stale_notice', 'true');
+    } catch {}
+    setPermanentlyDismissed(true);
+  };
 
   return (
     <AppShell>
@@ -50,6 +103,42 @@ export default function SupportPage() {
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {showStaleNotice && (
+            <div className="lg:col-span-3">
+              <TiltCard maxTilt={1} className="border border-amber-300/25 bg-amber-400/[0.03] p-5 rounded-xl">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[.12em] text-amber-200">
+                      Earlier assessment notice
+                    </p>
+                    <h3 className="mt-1 font-display text-lg text-white">
+                      Retained historical assessment
+                    </h3>
+                    <p className="mt-1 max-w-2xl text-xs leading-5 text-white/60">
+                      One or more dimensions of your Support Need Profile reflect an earlier assessment kept after permission withdrawal. New data will not be used to update these results.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setDismissedStaleNotice(true)}
+                      className="rounded border border-white/10 px-3 py-1.5 text-[10px] font-semibold text-white/70 hover:text-white transition-colors"
+                    >
+                      Remind me later
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDismissStaleNoticePermanently}
+                      className="rounded border border-amber-300/30 bg-amber-300/10 px-3 py-1.5 text-[10px] font-bold text-amber-100 hover:bg-amber-300/20 transition-colors"
+                    >
+                      Don’t ask again
+                    </button>
+                  </div>
+                </div>
+              </TiltCard>
+            </div>
+          )}
+
           <div className="lg:col-span-3">
             {availability === 'ZERO_DATA' ? (
               <TiltCard maxTilt={1} className="border border-white/[0.08] bg-[#141414]/90 p-6 rounded-xl"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#c3f340]">Support Need Profile</p><h2 className="mt-2 font-display text-3xl text-white">NIVARA is here when you need it.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-white/55">Without permitted optional data, NIVARA cannot assess individual support needs. You can still explore general support without sharing anything.</p><div className="mt-5 flex flex-wrap gap-3"><Link href="/settings" className="rounded border border-[#c3f340]/30 bg-[#c3f340]/10 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-[#dff77d]">Choose what I’d like to share</Link><a href="#support-options" className="rounded border border-white/10 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-white/60">Explore all support</a></div></TiltCard>

@@ -19,20 +19,16 @@ export async function getSupportNeedProfile(_studentId: string = 'default'): Pro
   };
 
   // 2. Resolve stale retention preferences from withdrawal choices
-  let withdrawals: Record<string, { keepStale: boolean }> = {};
+  let withdrawals: Record<string, { keepStale?: boolean }> = {};
   if (typeof window !== 'undefined') { 
     try { 
       withdrawals = JSON.parse(localStorage.getItem('nivara_withdrawals') || '{}'); 
-      const old = JSON.parse(localStorage.getItem('nivara_last_withdrawal') || 'null');
-      if (old && old.key && !withdrawals[old.key]) {
-        withdrawals[old.key] = { keepStale: old.keepStale };
-      }
     } catch {} 
   }
   const staleMap: Record<DataPermissionKey, boolean> = {
-    academic_data: withdrawals['academic_data']?.keepStale === true,
-    financial_support: withdrawals['financial_support']?.keepStale === true,
-    wellbeing_checkins: withdrawals['wellbeing_checkins']?.keepStale === true,
+    academic_data: Boolean(withdrawals['academic_data']?.keepStale === true),
+    financial_support: Boolean(withdrawals['financial_support']?.keepStale === true),
+    wellbeing_checkins: Boolean(withdrawals['wellbeing_checkins']?.keepStale === true),
   };
 
   // 3. STEP A -> B: Pass raw student data through consent filter

@@ -10,8 +10,7 @@ export type RawAcademicSignals = {
 };
 
 export type RawFinancialSignals = {
-  expenseDifficulty?: number;
-  currentAidStatus?: 'receiving' | 'not_receiving';
+  feeStatus?: 'PAID' | 'NOT_PAID';
 };
 
 export type RawWellbeingSignals = {
@@ -46,8 +45,7 @@ export const rawDemoStudentSignals: RawStudentSignals = {
     requestedHelp: true,
   },
   financial: {
-    expenseDifficulty: 3,
-    currentAidStatus: 'not_receiving',
+    feeStatus: 'NOT_PAID',
   },
   wellbeing: {
     stress: 4,
@@ -113,23 +111,35 @@ export function scoreAcademic(signals: RawAcademicSignals | null): SupportNeedIn
 }
 
 export function scoreFinancial(signals: RawFinancialSignals | null): SupportNeedIndicator {
-  if (!signals) {
+  if (!signals || !signals.feeStatus) {
     return { dimension: 'Financial', level: 'UNAVAILABLE', available: false };
   }
   const parts: string[] = [];
-  if ((signals.expenseDifficulty ?? 0) >= 4) parts.push('Expense difficulty is high');
-  if (signals.currentAidStatus === 'not_receiving') parts.push('No current aid reported');
+  if (signals.feeStatus === 'NOT_PAID') {
+    parts.push('Institutional fee payment pending');
+  }
   return {
     dimension: 'Financial',
-    level: parts.length > 1 ? 'MODERATE' : parts.length ? 'MILD' : 'LOW',
+    level: signals.feeStatus === 'NOT_PAID' ? 'MODERATE' : 'LOW',
     available: true,
     signals: parts,
     lastUpdated: 'Demo assessment',
     explainability: {
-      contributingFactors: parts,
-      timeWindow: 'Current support context',
-      dataUsed: parts.length ? parts : ['General student context'],
-      dataNotUsed: ['Bank statements', 'Transaction history', 'Credit score', 'Aadhaar'],
+      contributingFactors: parts.length ? parts : ['Fee status recorded as paid'],
+      timeWindow: 'Current semester fee record',
+      dataUsed: ['Fee payment status'],
+      dataNotUsed: [
+        'Income',
+        'Family income',
+        'Expenses',
+        'Expense categories',
+        'Bank statements',
+        'Transaction history',
+        'Credit score',
+        'Aadhaar',
+        'Debt',
+        'Financial stress',
+      ],
     },
   };
 }
@@ -170,22 +180,64 @@ export function evaluateSupportNeedProfile(
   permittedInputs: PermittedEngineInputs,
   staleMap: Record<DataPermissionKey, boolean> = { academic_data: false, financial_support: false, wellbeing_checkins: false }
 ): SupportNeedProfileData {
+  const baseAcademic = scoreAcademic(rawDemoStudentSignals.academic);
   const academic = permittedInputs.academic
     ? scoreAcademic(permittedInputs.academic)
     : staleMap['academic_data']
-    ? { ...scoreAcademic(rawDemoStudentSignals.academic), stale: true }
+    ? {
+        ...baseAcademic,
+        stale: true,
+        lastUpdated: 'Earlier assessment (Permission withdrawn)',
+        explainability: {
+          contributingFactors: baseAcademic.explainability?.contributingFactors || [],
+          timeWindow: 'Generated prior to permission withdrawal; no longer updated with new data',
+          dataUsed: (baseAcademic.explainability?.dataUsed || []).map((d) => `${d} (historical)`),
+          dataNotUsed: [
+            ...(baseAcademic.explainability?.dataNotUsed || []),
+            'Newly recorded academic data after withdrawal',
+          ],
+        },
+      }
     : { dimension: 'Academic' as const, level: 'UNAVAILABLE' as const, available: false };
 
+  const baseFinancial = scoreFinancial(rawDemoStudentSignals.financial);
   const financial = permittedInputs.financial
     ? scoreFinancial(permittedInputs.financial)
     : staleMap['financial_support']
-    ? { ...scoreFinancial(rawDemoStudentSignals.financial), stale: true }
+    ? {
+        ...baseFinancial,
+        stale: true,
+        lastUpdated: 'Earlier assessment (Permission withdrawn)',
+        explainability: {
+          contributingFactors: baseFinancial.explainability?.contributingFactors || [],
+          timeWindow: 'Generated prior to permission withdrawal; no longer updated with new data',
+          dataUsed: (baseFinancial.explainability?.dataUsed || []).map((d) => `${d} (historical)`),
+          dataNotUsed: [
+            ...(baseFinancial.explainability?.dataNotUsed || []),
+            'Newly recorded fee status after withdrawal',
+          ],
+        },
+      }
     : { dimension: 'Financial' as const, level: 'UNAVAILABLE' as const, available: false };
 
+  const baseWellbeing = scoreWellbeing(rawDemoStudentSignals.wellbeing);
   const wellbeing = permittedInputs.wellbeing
     ? scoreWellbeing(permittedInputs.wellbeing)
     : staleMap['wellbeing_checkins']
-    ? { ...scoreWellbeing(rawDemoStudentSignals.wellbeing), stale: true }
+    ? {
+        ...baseWellbeing,
+        stale: true,
+        lastUpdated: 'Earlier assessment (Permission withdrawn)',
+        explainability: {
+          contributingFactors: baseWellbeing.explainability?.contributingFactors || [],
+          timeWindow: 'Generated prior to permission withdrawal; no longer updated with new data',
+          dataUsed: (baseWellbeing.explainability?.dataUsed || []).map((d) => `${d} (historical)`),
+          dataNotUsed: [
+            ...(baseWellbeing.explainability?.dataNotUsed || []),
+            'Newly submitted check-in responses after withdrawal',
+          ],
+        },
+      }
     : { dimension: 'Well-being' as const, level: 'UNAVAILABLE' as const, available: false };
 
   return { academic, financial, wellbeing };

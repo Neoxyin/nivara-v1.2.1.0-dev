@@ -92,3 +92,17 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     iconType: 'landmark'
   }
 ];
+
+export function matchFinancialSupportOptions(feeStatus?: 'PAID' | 'NOT_PAID' | null): FinancialSupportOption[] {
+  if (feeStatus === 'NOT_PAID') {
+    // Surface existing fee-related scholarship/fee-assistance/installment resources first
+    const feeRelatedIds = ['fee-assistance', 'scholarships', 'installments', 'emergency-funds'];
+    const prioritized = mockFinancialSupportOptions.filter((opt) => feeRelatedIds.includes(opt.id));
+    const others = mockFinancialSupportOptions.filter((opt) => !feeRelatedIds.includes(opt.id));
+    return [...prioritized, ...others];
+  }
+  // When feeStatus is 'PAID' or absent/null, return all existing general options in standard order
+  return [...mockFinancialSupportOptions];
+}
+
+

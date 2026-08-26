@@ -45,8 +45,8 @@ export default function FinancialSupportPage() {
   const hasConsent = (preferences?.find((p) => p.key === 'financial_support')?.status === 'CONSENTED');
 
   const { data: options, isLoading: optionsLoading, error: optionsError } = useQuery({ 
-    queryKey: ['financialSupport'], 
-    queryFn: getFinancialSupportOptions
+    queryKey: ['financialSupport', hasConsent], 
+    queryFn: () => getFinancialSupportOptions()
   });
 
   const isLoading = prefsLoading || optionsLoading;

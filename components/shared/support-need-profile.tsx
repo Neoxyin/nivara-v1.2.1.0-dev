@@ -48,10 +48,15 @@ function SupportNeedBadge({ indicator, isLoading, isError }: SupportNeedBadgePro
 
   const Icon = DIMENSION_ICONS[indicator.dimension] || HelpCircle;
   const isAvailable = indicator.available;
-  const styles = isAvailable ? LEVEL_STYLES[indicator.level] : { text: 'text-white/40', bg: 'bg-white/[0.03]', border: 'border-white/[0.05]' };
+  const isStale = Boolean(indicator.stale);
+  const styles = isAvailable 
+    ? (isStale 
+        ? { text: 'text-amber-300', bg: 'bg-amber-400/[0.04]', border: 'border-amber-400/25' } 
+        : LEVEL_STYLES[indicator.level]) 
+    : { text: 'text-white/40', bg: 'bg-white/[0.03]', border: 'border-white/[0.05]' };
 
   return (
-    <div className={`flex flex-col p-3 rounded-lg border transition-colors ${styles.border} ${styles.bg}`}>
+    <div className={`flex flex-col p-3.5 rounded-lg border transition-colors ${styles.border} ${styles.bg}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icon size={14} className={styles.text} />
@@ -60,14 +65,18 @@ function SupportNeedBadge({ indicator, isLoading, isError }: SupportNeedBadgePro
         <div className="flex flex-col items-end">
           {isAvailable ? (
             <span className={`text-[10px] font-bold uppercase tracking-wider ${styles.text}`}>
-              {indicator.stale ? 'Previous assessment' : 'Personalized result'}
+              {isStale ? 'Previous assessment' : 'Personalized result'}
             </span>
           ) : (
             <span className="text-[10px] uppercase tracking-wider text-white/30">No Data</span>
           )}
         </div>
       </div>
-      {isAvailable && indicator.stale && <p className="mt-2 text-[10px] leading-4 text-amber-200/70">This is from an earlier assessment. New data will not be used after withdrawal.</p>}
+      {isAvailable && isStale && (
+        <p className="mt-2 text-[10px] leading-4 text-amber-200/80">
+          Generated while permission was enabled. This earlier assessment is no longer updated using new data after withdrawal.
+        </p>
+      )}
       {isAvailable && indicator.signals && indicator.signals.length > 0 && (
         <div className="mt-2 pt-2 border-t border-white/[0.05]">
           <span className="text-[9px] text-white/40 uppercase tracking-wider mb-1.5 block">Contributing Signals:</span>

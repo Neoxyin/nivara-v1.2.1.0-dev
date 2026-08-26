@@ -41,20 +41,56 @@ export default function AssessmentHistoryPage() {
         {items.length === 0 ? (
           <TiltCard maxTilt={1} className="border border-white/10 bg-[#141414]/90 p-8"><History size={22} className="text-white/30"/><h2 className="mt-4 text-lg font-semibold text-white">No saved assessments</h2><p className="mt-2 text-sm text-white/45">New student-facing assessments will appear here when available.</p></TiltCard>
         ) : (
-          <div className="space-y-3">{items.map(item => (
-            <TiltCard key={item.id} maxTilt={1} className="border border-white/10 bg-[#141414]/90 p-6">
-              <p className="text-xs font-semibold text-white">{new Date(item.createdAt).toLocaleString()}</p>
-              <p className="mt-1 text-[10px] uppercase tracking-[.1em] text-white/35">{item.availability}{item.stale ? ' · STALE' : ''}</p>
-              <div className="mt-5 grid gap-2 md:grid-cols-3">
-                {[item.dimensions.academic,item.dimensions.financial,item.dimensions.wellbeing].map(d => (
-                  <div key={d.dimension} className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-white/35">{d.dimension}</p>
-                    <p className="mt-1 text-sm font-semibold text-white">{d.available ? (d.stale ? 'Previous assessment' : 'Personalized result') : 'Unavailable'}</p>
+          <div className="space-y-3">{items.map(item => {
+            const hasStale = Boolean(item.stale || Object.values(item.dimensions || {}).some((d: any) => d?.stale));
+            return (
+              <TiltCard key={item.id} maxTilt={1} className={`border p-6 ${hasStale ? 'border-amber-400/20 bg-[#141414]/95' : 'border-white/10 bg-[#141414]/90'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-white">{new Date(item.createdAt).toLocaleString()}</p>
+                    <p className="mt-1 text-[10px] uppercase tracking-[.1em] text-white/35">
+                      {item.availability} {hasStale ? '· Stale / Historical' : '· Current Assessment'}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </TiltCard>
-          ))}</div>
+                  {hasStale && (
+                    <span className="rounded border border-amber-300/30 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-200">
+                      Historical
+                    </span>
+                  )}
+                </div>
+                <div className="mt-5 grid gap-2 md:grid-cols-3">
+                  {[item.dimensions.academic, item.dimensions.financial, item.dimensions.wellbeing].map(d => (
+                    <div 
+                      key={d.dimension} 
+                      className={`rounded-lg border p-3 ${
+                        d.stale 
+                          ? 'border-amber-300/20 bg-amber-400/[0.02]' 
+                          : 'border-white/[0.07] bg-white/[0.02]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] uppercase tracking-wider text-white/35">{d.dimension}</p>
+                        {d.stale && <span className="text-[9px] font-bold uppercase tracking-wider text-amber-200/80">Stale</span>}
+                      </div>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {d.available ? (d.stale ? 'Previous assessment' : 'Personalized result') : 'Unavailable'}
+                      </p>
+                      {d.available && d.stale && (
+                        <p className="mt-1.5 text-[10px] leading-4 text-amber-200/65">
+                          Generated prior to withdrawal. Not updated with new data.
+                        </p>
+                      )}
+                      {d.available && !d.stale && (
+                        <p className="mt-1 text-[10px] text-white/40">
+                          Evaluated level: {d.level}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </TiltCard>
+            );
+          })}</div>
         )}
         {confirming && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/70 p-5 backdrop-blur-sm"><div role="dialog" aria-modal="true" className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#151515] p-7"><p className="text-[10px] font-bold uppercase tracking-[.12em] text-rose-200">Clear assessment history</p><h2 className="mt-2 font-display text-3xl text-white">Delete saved Support Need history?</h2><p className="mt-4 text-sm leading-6 text-white/55">This removes saved Support Need assessment history and associated historical explanations. It does not change permissions, academic/financial/well-being data, support access, or unrelated data.</p><div className="mt-7 flex justify-end gap-3"><button onClick={() => setConfirming(false)} className="rounded border border-white/10 px-4 py-2.5 text-xs text-white/60">Cancel</button><button onClick={clearHistory} className="rounded border border-rose-300/30 bg-rose-300/10 px-4 py-2.5 text-xs font-bold text-rose-100">Clear history</button></div></div></div>}
       </div>

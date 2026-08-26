@@ -29,16 +29,31 @@ export default function SettingsPage() {
     }
   }, [preferences]);
 
+  const openWithdrawalModal = (pref: ConsentPreference) => {
+    try {
+      const withdrawals = JSON.parse(localStorage.getItem('nivara_withdrawals') || '{}');
+      const existing = withdrawals[pref.key]?.keepStale;
+      setKeepStale(typeof existing === 'boolean' ? existing : true);
+    } catch {
+      setKeepStale(true);
+    }
+    setPendingOff(pref);
+  };
+
   const toggle = (key: string) => {
     const current = prefs.find((x) => x.key === key);
     if (!current) return;
     if (current.enabled) {
-      setPendingOff(current);
-      setKeepStale(true);
+      openWithdrawalModal(current);
       return;
     }
     const nextPrefs = prefs.map((x) => (x.key === key ? { ...x, enabled: true, status: 'CONSENTED' as const } : x));
     setPrefs(nextPrefs);
+    try {
+      const withdrawals = JSON.parse(localStorage.getItem('nivara_withdrawals') || '{}');
+      delete withdrawals[key];
+      localStorage.setItem('nivara_withdrawals', JSON.stringify(withdrawals));
+    } catch {}
     setSaved(false);
     saveMutation.mutate(nextPrefs);
   };
@@ -49,14 +64,13 @@ export default function SettingsPage() {
     const nextPrefs = prefs.map((x) => (x.key === key ? { ...x, enabled: false, status: 'WITHDRAWN' as const } : x));
     setPrefs(nextPrefs);
     try {
-      if (!keepStale) localStorage.removeItem('nivara_current_support_assessment');
-      
       const withdrawals = JSON.parse(localStorage.getItem('nivara_withdrawals') || '{}');
-      withdrawals[key] = { keepStale, at: new Date().toISOString() };
+      withdrawals[key] = { keepStale: Boolean(keepStale), at: new Date().toISOString() };
       localStorage.setItem('nivara_withdrawals', JSON.stringify(withdrawals));
       
-      // Keep old key for backward compatibility just in case
-      localStorage.setItem('nivara_last_withdrawal', JSON.stringify({ key, keepStale, at: new Date().toISOString() }));
+      if (!keepStale) {
+        localStorage.removeItem('nivara_current_support_assessment');
+      }
     } catch {}
     setPendingOff(null);
     setSaved(false);
@@ -69,6 +83,9 @@ export default function SettingsPage() {
       setSaved(true);
       queryClient.setQueryData(['preferences'], updatedData);
       queryClient.invalidateQueries({ queryKey: ['preferences'] });
+      queryClient.invalidateQueries({ queryKey: ['support-needs'] });
+      queryClient.invalidateQueries({ queryKey: ['financialSupport'] });
+      queryClient.invalidateQueries({ queryKey: ['checkIns'] });
       setTimeout(() => setSaved(false), 2500);
     },
   });
@@ -118,7 +135,7 @@ export default function SettingsPage() {
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-white">{p.label}</p>
                     <p className="mt-1 max-w-md text-xs leading-5 text-white/40">{p.description}</p>
-                    <div className="mt-2 flex gap-4 text-[10px] font-semibold uppercase tracking-[.08em] text-white/35"><button type="button" className="hover:text-[#c3f340]">Learn more</button><button type="button" onClick={() => p.enabled ? setPendingOff(p) : toggle(p.key)} className="hover:text-[#c3f340]">Manage <ChevronRight size={11} className="inline" /></button></div>
+                    <div className="mt-2 flex gap-4 text-[10px] font-semibold uppercase tracking-[.08em] text-white/35"><button type="button" className="hover:text-[#c3f340]">Learn more</button><button type="button" onClick={() => p.enabled ? openWithdrawalModal(p) : toggle(p.key)} className="hover:text-[#c3f340]">Manage <ChevronRight size={11} className="inline" /></button></div>
                   </div>
                   <button
                     role="switch"
@@ -255,12 +272,83 @@ export default function SettingsPage() {
           <div role="dialog" aria-modal="true" className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#151515] p-7 shadow-2xl">
             <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[#c3f340]">Withdraw permission</p>
             <h2 className="mt-2 font-display text-3xl text-white">Turn off {pendingOff.label}?</h2>
-            <p className="mt-4 text-sm leading-6 text-white/55">New support assessments will no longer use this optional data. You can choose whether an existing personalized result remains visible as a stale historical result.</p>
-            <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <input type="checkbox" checked={keepStale} onChange={(e) => setKeepStale(e.target.checked)} className="mt-1 accent-[#c3f340]" />
-              <span><span className="block text-sm font-semibold text-white">Keep the previous result as historical/stale</span><span className="mt-1 block text-xs leading-5 text-white/40">It will be marked as an earlier assessment and will not use new data.</span></span>
-            </label>
-            <div className="mt-7 flex justify-end gap-3"><button onClick={() => setPendingOff(null)} className="rounded border border-white/10 px-4 py-2.5 text-xs font-semibold text-white/60 hover:text-white">Cancel</button><button onClick={confirmTurnOff} className="rounded border border-[#c3f340] bg-[#c3f340] px-4 py-2.5 text-xs font-bold text-[#0d1408]">Turn off permission</button></div>
+            <p className="mt-4 text-sm leading-6 text-white/55">
+              {pendingOff.key === 'academic_data' && 'Academic-based personalization will stop using newly withdrawn academic data.'}
+              {pendingOff.key === 'financial_support' && 'Financial personalization will stop using the withdrawn fee-status signal.'}
+              {pendingOff.key === 'wellbeing_checkins' && 'Well-being-based personalization will stop using newly withdrawn check-in data.'}
+              {' '}You can choose what happens to your existing personalized assessment:
+            </p>
+
+            <div className="mt-6 space-y-3">
+              <div 
+                data-testid="option-keep-stale"
+                onClick={() => setKeepStale(true)}
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${
+                  keepStale ? 'border-[#c3f340]/40 bg-[#c3f340]/[0.04]' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.04]'
+                }`}
+              >
+                <input 
+                  type="radio" 
+                  id="choice-keep-stale"
+                  name="withdrawalChoice" 
+                  checked={keepStale} 
+                  onChange={() => setKeepStale(true)} 
+                  className="mt-1 accent-[#c3f340]" 
+                />
+                <div>
+                  <label htmlFor="choice-keep-stale" className="block text-sm font-semibold text-white cursor-pointer">
+                    Keep previous result as historical/stale
+                  </label>
+                  <span className="mt-1 block text-xs leading-5 text-white/45">
+                    Your previous assessment remains visible in your Support Need Profile and Assessment History, marked as an earlier assessment that is no longer updated using new data.
+                  </span>
+                </div>
+              </div>
+
+              <div 
+                data-testid="option-remove-recalculate"
+                onClick={() => setKeepStale(false)}
+                className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-colors ${
+                  !keepStale ? 'border-rose-400/40 bg-rose-400/[0.04]' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.04]'
+                }`}
+              >
+                <input 
+                  type="radio" 
+                  id="choice-remove-recalculate"
+                  name="withdrawalChoice" 
+                  checked={!keepStale} 
+                  onChange={() => setKeepStale(false)} 
+                  className="mt-1 accent-rose-400" 
+                />
+                <div>
+                  <label htmlFor="choice-remove-recalculate" className="block text-sm font-semibold text-white cursor-pointer">
+                    Remove / recalculate
+                  </label>
+                  <span className="mt-1 block text-xs leading-5 text-white/45">
+                    Removes the current personalized result. This dimension becomes unavailable in future assessments. Other permitted dimensions continue to evaluate normally.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-7 flex justify-end gap-3">
+              <button 
+                type="button" 
+                onClick={() => setPendingOff(null)} 
+                data-testid="button-cancel-withdrawal"
+                className="rounded border border-white/10 px-4 py-2.5 text-xs font-semibold text-white/60 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={confirmTurnOff} 
+                data-testid="button-confirm-withdrawal"
+                className="rounded border border-[#c3f340] bg-[#c3f340] px-4 py-2.5 text-xs font-bold text-[#0d1408] hover:bg-[#dff77d] transition-colors"
+              >
+                Confirm withdrawal
+              </button>
+            </div>
           </div>
         </div>
       )}
