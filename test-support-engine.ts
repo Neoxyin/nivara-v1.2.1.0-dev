@@ -55,10 +55,10 @@ if (input2.academic !== null) {
   throw new Error('Test 2 failed: Academic input must be null when withdrawn/not consented');
 }
 const output2 = evaluateSupportNeedProfile(input2);
-if (output2.academic.level !== 'UNAVAILABLE' || output2.academic.available !== false) {
-  throw new Error(`Test 2 failed: Academic output must be UNAVAILABLE, got ${output2.academic.level}`);
+if (output2.academic.available !== false || output2.academic.level !== undefined) {
+  throw new Error(`Test 2 failed: Academic output must be unavailable, got ${output2.academic.level}`);
 }
-console.log('PASS: Test 2 (Academic withdrawn) -> Input is strictly null, output is UNAVAILABLE.');
+console.log('PASS: Test 2 (Academic withdrawn) -> Input is strictly null, output is unavailable.');
 
 // Test 3: Financial withdrawn -> actual engine input contains no financial data
 console.log('\n[Test 3] Financial Withdrawn:');
@@ -72,10 +72,10 @@ if (input3.financial !== null) {
   throw new Error('Test 3 failed: Financial input must be null when withdrawn/not consented');
 }
 const output3 = evaluateSupportNeedProfile(input3);
-if (output3.financial.level !== 'UNAVAILABLE' || output3.financial.available !== false) {
-  throw new Error(`Test 3 failed: Financial output must be UNAVAILABLE, got ${output3.financial.level}`);
+if (output3.financial.available !== false || output3.financial.level !== undefined) {
+  throw new Error(`Test 3 failed: Financial output must be unavailable, got ${output3.financial.level}`);
 }
-console.log('PASS: Test 3 (Financial withdrawn) -> Input is strictly null, output is UNAVAILABLE.');
+console.log('PASS: Test 3 (Financial withdrawn) -> Input is strictly null, output is unavailable.');
 
 // Test 4: Well-being withdrawn -> actual engine input contains no well-being data
 console.log('\n[Test 4] Well-being Withdrawn:');
@@ -89,10 +89,10 @@ if (input4.wellbeing !== null) {
   throw new Error('Test 4 failed: Well-being input must be null when withdrawn/not consented');
 }
 const output4 = evaluateSupportNeedProfile(input4);
-if (output4.wellbeing.level !== 'UNAVAILABLE' || output4.wellbeing.available !== false) {
-  throw new Error(`Test 4 failed: Well-being output must be UNAVAILABLE, got ${output4.wellbeing.level}`);
+if (output4.wellbeing.available !== false || output4.wellbeing.level !== undefined) {
+  throw new Error(`Test 4 failed: Well-being output must be unavailable, got ${output4.wellbeing.level}`);
 }
-console.log('PASS: Test 4 (Well-being withdrawn) -> Input is strictly null, output is UNAVAILABLE.');
+console.log('PASS: Test 4 (Well-being withdrawn) -> Input is strictly null, output is unavailable.');
 
 // Test 5: All unavailable -> no personalized severity is generated; assessment is unavailable/insufficient data
 console.log('\n[Test 5] All Unavailable (Zero data):');
@@ -107,13 +107,13 @@ if (input5.academic !== null || input5.financial !== null || input5.wellbeing !=
 }
 const output5 = evaluateSupportNeedProfile(input5);
 if (
-  output5.academic.level !== 'UNAVAILABLE' || output5.academic.available ||
-  output5.financial.level !== 'UNAVAILABLE' || output5.financial.available ||
-  output5.wellbeing.level !== 'UNAVAILABLE' || output5.wellbeing.available
+  output5.academic.available || output5.academic.level !== undefined ||
+  output5.financial.available || output5.financial.level !== undefined ||
+  output5.wellbeing.available || output5.wellbeing.level !== undefined
 ) {
-  throw new Error('Test 5 failed: All dimensions must be UNAVAILABLE and available: false');
+  throw new Error('Test 5 failed: All dimensions must be available: false');
 }
-console.log('PASS: Test 5 (All unavailable) -> Zero personalized severity generated; all UNAVAILABLE.');
+console.log('PASS: Test 5 (All unavailable) -> Zero personalized severity generated; all unavailable.');
 
 // Test 6: Academic only -> engine receives only permitted academic data
 console.log('\n[Test 6] Academic Only (Limited data):');
@@ -130,10 +130,10 @@ const output6 = evaluateSupportNeedProfile(input6);
 if (output6.academic.level !== 'HIGH' || !output6.academic.available) {
   throw new Error(`Test 6 failed: Academic must be scored, got ${output6.academic.level}`);
 }
-if (output6.financial.level !== 'UNAVAILABLE' || output6.wellbeing.level !== 'UNAVAILABLE') {
-  throw new Error('Test 6 failed: Non-consented dimensions must be UNAVAILABLE');
+if (output6.financial.available !== false || output6.wellbeing.available !== false) {
+  throw new Error('Test 6 failed: Non-consented dimensions must be unavailable');
 }
-console.log('PASS: Test 6 (Academic only) -> Only academic data reached engine; other dimensions UNAVAILABLE.');
+console.log('PASS: Test 6 (Academic only) -> Only academic data reached engine; other dimensions unavailable.');
 
 // Test 7: Re-enable Academic WITHDRAWN -> CONSENTED -> academic data becomes eligible again
 console.log('\n[Test 7] Re-enable Academic (WITHDRAWN -> CONSENTED):');
@@ -145,7 +145,7 @@ let dynamicConsent: Record<DataPermissionKey, boolean> = {
 let stepAInput = filterSignalsByConsent(rawData, dynamicConsent);
 if (stepAInput.academic !== null) throw new Error('Test 7 step A failed');
 let stepAOutput = evaluateSupportNeedProfile(stepAInput);
-if (stepAOutput.academic.level !== 'UNAVAILABLE') throw new Error('Test 7 step A output must be UNAVAILABLE');
+if (stepAOutput.academic.available !== false) throw new Error('Test 7 step A output must be unavailable');
 
 // User re-consents to academic_data
 dynamicConsent = {
@@ -225,10 +225,10 @@ if (matchedWithdrawnNotPaid.length !== mockFinancialSupportOptions.length) {
   throw new Error('Impl 03 Test 3 failed: General resources must remain available');
 }
 const scoreResultWithdrawn = scoreFinancial(filteredWithdrawnNotPaid.financial);
-if (scoreResultWithdrawn.level !== 'UNAVAILABLE' || scoreResultWithdrawn.available !== false) {
-  throw new Error('Impl 03 Test 3 failed: Financial dimension must be UNAVAILABLE');
+if (scoreResultWithdrawn.available !== false || scoreResultWithdrawn.level !== undefined) {
+  throw new Error('Impl 03 Test 3 failed: Financial dimension must be unavailable');
 }
-console.log('PASS: Impl 03 Test 3 -> feeStatus is absent; personalization UNAVAILABLE; general resources browsable.');
+console.log('PASS: Impl 03 Test 3 -> feeStatus is absent; personalization unavailable; general resources browsable.');
 
 // Impl 03 Test 4: Financial OFF/WITHDRAWN + feeStatus=PAID
 console.log('\n[Impl 03 Test 4] Financial OFF/WITHDRAWN + feeStatus=PAID:');
@@ -241,10 +241,10 @@ if (filteredWithdrawnPaid.financial !== null) {
   throw new Error('Impl 03 Test 4 failed: Financial input must be strictly null');
 }
 const scoreResultWithdrawnPaid = scoreFinancial(filteredWithdrawnPaid.financial);
-if (scoreResultWithdrawnPaid.level !== 'UNAVAILABLE' || scoreResultWithdrawnPaid.available !== false) {
-  throw new Error('Impl 03 Test 4 failed: Financial dimension must be UNAVAILABLE');
+if (scoreResultWithdrawnPaid.available !== false || scoreResultWithdrawnPaid.level !== undefined) {
+  throw new Error('Impl 03 Test 4 failed: Financial dimension must be unavailable');
 }
-console.log('PASS: Impl 03 Test 4 -> feeStatus is absent; personalization UNAVAILABLE; general resources browsable.');
+console.log('PASS: Impl 03 Test 4 -> feeStatus is absent; personalization unavailable; general resources browsable.');
 
 // Impl 03 Test 5: Inspect ACTUAL object immediately before financial engine call
 console.log('\n[Impl 03 Test 5] Inspecting permitted financial object:');
@@ -300,8 +300,8 @@ console.log('PASS: Impl 04 Test 1 -> Academic result retained as stale; marked s
 console.log('\n[Impl 04 Test 2] Academic withdrawn + REMOVE / RECALCULATE:');
 const staleMapNone = { academic_data: false, financial_support: false, wellbeing_checkins: false };
 const outputAcadRemoved = evaluateSupportNeedProfile(inputAcadWithdrawn, staleMapNone);
-if (outputAcadRemoved.academic.available || outputAcadRemoved.academic.level !== 'UNAVAILABLE') {
-  throw new Error('Impl 04 Test 2 failed: Academic must be UNAVAILABLE');
+if (outputAcadRemoved.academic.available || outputAcadRemoved.academic.level !== undefined) {
+  throw new Error('Impl 04 Test 2 failed: Academic must be unavailable');
 }
 if (!outputAcadRemoved.financial.available || outputAcadRemoved.financial.level !== 'MODERATE') {
   throw new Error('Impl 04 Test 2 failed: Permitted Financial dimension must evaluate normally');
@@ -309,7 +309,7 @@ if (!outputAcadRemoved.financial.available || outputAcadRemoved.financial.level 
 if (!outputAcadRemoved.wellbeing.available || outputAcadRemoved.wellbeing.level !== 'MILD') {
   throw new Error('Impl 04 Test 2 failed: Permitted Well-being dimension must evaluate normally');
 }
-console.log('PASS: Impl 04 Test 2 -> Academic removed (UNAVAILABLE); other permitted dimensions evaluated normally.');
+console.log('PASS: Impl 04 Test 2 -> Academic removed (unavailable); other permitted dimensions evaluated normally.');
 
 // Impl 04 Test 3: Financial withdrawn + KEEP PREVIOUS RESULT
 console.log('\n[Impl 04 Test 3] Financial withdrawn + KEEP PREVIOUS RESULT:');
@@ -328,14 +328,14 @@ console.log('PASS: Impl 04 Test 3 -> Financial result retained as stale; feeStat
 // Impl 04 Test 4: Financial withdrawn + REMOVE / RECALCULATE
 console.log('\n[Impl 04 Test 4] Financial withdrawn + REMOVE / RECALCULATE:');
 const outputFinRemoved = evaluateSupportNeedProfile(inputFinWithdrawn, staleMapNone);
-if (outputFinRemoved.financial.available || outputFinRemoved.financial.level !== 'UNAVAILABLE') {
-  throw new Error('Impl 04 Test 4 failed: Financial must be UNAVAILABLE');
+if (outputFinRemoved.financial.available || outputFinRemoved.financial.level !== undefined) {
+  throw new Error('Impl 04 Test 4 failed: Financial must be unavailable');
 }
 const generalOptions = matchFinancialSupportOptions(null);
 if (generalOptions.length !== mockFinancialSupportOptions.length) {
   throw new Error('Impl 04 Test 4 failed: General financial options must still be accessible');
 }
-console.log('PASS: Impl 04 Test 4 -> Financial removed (UNAVAILABLE); general financial options still accessible.');
+console.log('PASS: Impl 04 Test 4 -> Financial removed (unavailable); general financial options still accessible.');
 
 // Impl 04 Test 5: Well-being withdrawn + KEEP PREVIOUS RESULT
 console.log('\n[Impl 04 Test 5] Well-being withdrawn + KEEP PREVIOUS RESULT:');
@@ -354,10 +354,10 @@ console.log('PASS: Impl 04 Test 5 -> Well-being result retained as stale; marked
 // Impl 04 Test 6: Well-being withdrawn + REMOVE / RECALCULATE
 console.log('\n[Impl 04 Test 6] Well-being withdrawn + REMOVE / RECALCULATE:');
 const outputWbRemoved = evaluateSupportNeedProfile(inputWbWithdrawn, staleMapNone);
-if (outputWbRemoved.wellbeing.available || outputWbRemoved.wellbeing.level !== 'UNAVAILABLE') {
-  throw new Error('Impl 04 Test 6 failed: Well-being must be UNAVAILABLE');
+if (outputWbRemoved.wellbeing.available || outputWbRemoved.wellbeing.level !== undefined) {
+  throw new Error('Impl 04 Test 6 failed: Well-being must be unavailable');
 }
-console.log('PASS: Impl 04 Test 6 -> Well-being removed (UNAVAILABLE); standalone check-ins still operable.');
+console.log('PASS: Impl 04 Test 6 -> Well-being removed (unavailable); standalone check-ins still operable.');
 
 // Impl 04 Test 7: Multi-permission scenario: Academic kept stale, Financial removed, Well-being consented/current
 console.log('\n[Impl 04 Test 7] Multi-permission mixed state (Academic Stale, Financial Removed, Well-being Current):');
@@ -368,8 +368,8 @@ const mixedOutput = evaluateSupportNeedProfile(mixedInputs, mixedStaleMap);
 if (!mixedOutput.academic.available || !mixedOutput.academic.stale) {
   throw new Error('Impl 04 Test 7 failed: Academic must be available and marked stale');
 }
-if (mixedOutput.financial.available || mixedOutput.financial.level !== 'UNAVAILABLE') {
-  throw new Error('Impl 04 Test 7 failed: Financial must be UNAVAILABLE');
+if (mixedOutput.financial.available || mixedOutput.financial.level !== undefined) {
+  throw new Error('Impl 04 Test 7 failed: Financial must be unavailable');
 }
 if (!mixedOutput.wellbeing.available || mixedOutput.wellbeing.stale || mixedOutput.wellbeing.level !== 'MILD') {
   throw new Error('Impl 04 Test 7 failed: Well-being must be available, current (not stale), and evaluated to MILD');
@@ -474,10 +474,10 @@ console.log('\n[BugFix Test 2] Academic ON -> Remove -> OFF = academic UNAVAILAB
 storage.clear();
 storage.setItem('nivara_withdrawals', JSON.stringify({ academic_data: { keepStale: false, at: new Date().toISOString() } }));
 const result2 = simulateEngineRun(prefsTest1);
-if (result2.academic.available !== false || result2.academic.level !== 'UNAVAILABLE' || result2.academic.stale === true) {
-  throw new Error('BugFix Test 2 failed: Academic should be UNAVAILABLE and not stale');
+if (result2.academic.available !== false || result2.academic.level !== undefined || result2.academic.stale === true) {
+  throw new Error('BugFix Test 2 failed: Academic should be unavailable and not stale');
 }
-console.log('PASS: BugFix Test 2 -> Academic correctly removed (UNAVAILABLE).');
+console.log('PASS: BugFix Test 2 -> Academic correctly removed (unavailable).');
 
 // 3. Refresh/remount after Keep preserves stale state.
 console.log('\n[BugFix Test 3] Refresh/remount after Keep preserves stale state:');
@@ -491,7 +491,7 @@ console.log('PASS: BugFix Test 3 -> Refresh/remount preserves stale state faithf
 // 4. Refresh/remount after Remove preserves unavailable state.
 console.log('\n[BugFix Test 4] Refresh/remount after Remove preserves unavailable state:');
 const result4 = simulateEngineRun(prefsTest1);
-if (result4.academic.available !== false || result4.academic.level !== 'UNAVAILABLE') {
+if (result4.academic.available !== false || result4.academic.level !== undefined) {
   throw new Error('BugFix Test 4 failed: Refresh after Remove must preserve unavailable state');
 }
 console.log('PASS: BugFix Test 4 -> Refresh/remount preserves unavailable state faithfully.');
@@ -517,7 +517,7 @@ if (!outKeep.academic.available || !outKeep.academic.stale) {
 // Switch to Remove
 storage.setItem('nivara_withdrawals', JSON.stringify({ academic_data: { keepStale: false } }));
 const outRemove = simulateEngineRun(prefsTest1);
-if (outRemove.academic.available !== false || outRemove.academic.level !== 'UNAVAILABLE') {
+if (outRemove.academic.available !== false || outRemove.academic.level !== undefined) {
   throw new Error('BugFix Test 6 failed: Step 2 Remove failed');
 }
 console.log('PASS: BugFix Test 6 -> Switching from Keep to Remove dynamically produces distinct outcomes.');
@@ -593,10 +593,10 @@ const engineInput05_2 = filterSignalsByConsent({
   wellbeing: wbSignals2,
 }, { academic_data: true, financial_support: true, wellbeing_checkins: false });
 const output05_2 = evaluateSupportNeedProfile(engineInput05_2);
-if (output05_2.wellbeing.available !== false || output05_2.wellbeing.level !== 'UNAVAILABLE') {
-  throw new Error(`Impl05 Test 2 failed: Expected UNAVAILABLE wellbeing assessment, got ${output05_2.wellbeing.level}`);
+if (output05_2.wellbeing.available !== false || output05_2.wellbeing.level !== undefined) {
+  throw new Error(`Impl05 Test 2 failed: Expected unavailable wellbeing assessment, got ${output05_2.wellbeing.level}`);
 }
-console.log('PASS: Impl05 Test 2 -> Ineligible check-in yields null signals; Support Need Engine outputs UNAVAILABLE.');
+console.log('PASS: Impl05 Test 2 -> Ineligible check-in yields null signals; Support Need Engine outputs unavailable.');
 
 // Test 05-3: Ineligible record isolation (1 older eligible, 1 newer ineligible)
 console.log('\n[Impl05 Test 3] Ineligible record isolation:');
@@ -734,7 +734,7 @@ const acadOffInput = filterSignalsByConsent({
   wellbeing: null,
 }, { academic_data: false, financial_support: false, wellbeing_checkins: false });
 const out06_2 = evaluateSupportNeedProfile(acadOffInput);
-if (out06_2.academic.available !== false || out06_2.academic.level !== 'UNAVAILABLE' || out06_2.academic.explainability !== undefined) {
+if (out06_2.academic.available !== false || out06_2.academic.level !== undefined || out06_2.academic.explainability !== undefined) {
   throw new Error('Impl06 Test 2 failed: Academic OFF must not produce explanation or leak raw evidence');
 }
 console.log('PASS: Impl06 Test 2 -> Academic OFF strictly isolates academic evidence.');
@@ -792,7 +792,7 @@ const finOffInput = filterSignalsByConsent({
   wellbeing: null,
 }, { academic_data: false, financial_support: false, wellbeing_checkins: false });
 const out06_5 = evaluateSupportNeedProfile(finOffInput);
-if (out06_5.financial.available !== false || out06_5.financial.level !== 'UNAVAILABLE' || out06_5.financial.explainability !== undefined) {
+if (out06_5.financial.available !== false || out06_5.financial.level !== undefined || out06_5.financial.explainability !== undefined) {
   throw new Error('Impl06 Test 5 failed: Financial OFF must not produce explanation or leak feeStatus');
 }
 console.log('PASS: Impl06 Test 5 -> Financial OFF completely prevents feeStatus exposure.');
@@ -857,7 +857,7 @@ const wbIneligibleInput = filterSignalsByConsent({
   wellbeing: wbSignalIneligible,
 }, { academic_data: false, financial_support: false, wellbeing_checkins: true });
 const out06_7 = evaluateSupportNeedProfile(wbIneligibleInput);
-if (out06_7.wellbeing.available !== false || out06_7.wellbeing.level !== 'UNAVAILABLE' || out06_7.wellbeing.explainability !== undefined) {
+if (out06_7.wellbeing.available !== false || out06_7.wellbeing.level !== undefined || out06_7.wellbeing.explainability !== undefined) {
   throw new Error('Impl06 Test 7 failed: Ineligible check-in must not produce well-being explanation or assessment');
 }
 console.log('PASS: Impl06 Test 7 -> Ineligible check-in strictly isolated from explanation.');

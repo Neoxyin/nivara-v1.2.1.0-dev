@@ -21,25 +21,39 @@ import {
   ShieldCheck,
   RefreshCw,
   Check,
+  Lock,
+  Inbox,
+  Filter,
 } from 'lucide-react';
-import { getAppointedSessions, updateSessionStatus, addSessionNote, updateSessionNotes } from '@/lib/api/counsellors';
+import { getAppointedSessions, updateSessionStatus, getActiveCounsellorName, setActiveCounsellorName } from '@/lib/api/counsellors';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AppointedSession } from '@/lib/types';
+import { SessionNotesEditor } from '@/components/counsellor/session-notes-editor';
 
 export default function CounsellorAppointmentsPage() {
   const queryClient = useQueryClient();
   const [mounted, setMounted] = useState(false);
+  const [activeCounsellor, setActiveCounsellor] = useState<string>('Aisha Rahman');
+  const [viewMode, setViewMode] = useState<'all' | 'today' | 'pending'>('all');
   const [dateFilter, setDateFilter] = useState<'all' | 'Today' | 'Tomorrow' | 'Past'>('all');
-  const [statusFilter, setStatusFilter] = useState<
-    'all' | 'requested' | 'pending' | 'accepted' | 'completed' | 'follow-up' | 'closed'
-  >('all');
+  const [statusFilter, setStatusFilter] = useState<AppointedSession['status'] | 'all'>('all');
   const [inspectedSession, setInspectedSession] = useState<AppointedSession | null>(null);
-  const [newNoteText, setNewNoteText] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
-  const [noteSuccess, setNoteSuccess] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    setActiveCounsellor(getActiveCounsellorName());
+
+    const handleCounsellorChange = (e: any) => {
+      if (e?.detail?.name) {
+        setActiveCounsellor(e.detail.name);
+      }
+    };
+    window.addEventListener('nivara-active-counsellor-changed', handleCounsellorChange);
+    return () => {
+      window.removeEventListener('nivara-active-counsellor-changed', handleCounsellorChange);
+    };
   }, []);
 
   const { data: sessions, isLoading, isError, refetch } = useQuery({
@@ -52,6 +66,12 @@ export default function CounsellorAppointmentsPage() {
       updateSessionStatus(id, status, notes),
     onSuccess: (updated) => {
       setActionError(null);
+      if (updated.status === 'accepted') {
+        setActionSuccess(`Accepted request for ${updated.studentName} ✓`);
+      } else {
+        setActionSuccess(`Status updated to ${updated.status} ✓`);
+      }
+      setTimeout(() => setActionSuccess(null), 3500);
       queryClient.invalidateQueries({ queryKey: ['appointedSessions'] });
       if (inspectedSession && inspectedSession.id === updated.id) {
         setInspectedSession(updated);
@@ -62,36 +82,34 @@ export default function CounsellorAppointmentsPage() {
     },
   });
 
-  const addNoteMutation = useMutation({
-    mutationFn: ({ id, note }: { id: string; note: string }) => addSessionNote(id, note),
-    onSuccess: (updated) => {
-      setActionError(null);
-      setNoteSuccess('Note saved successfully ✓');
-      setTimeout(() => setNoteSuccess(null), 3500);
-      queryClient.invalidateQueries({ queryKey: ['appointedSessions'] });
-      if (inspectedSession && inspectedSession.id === updated.id) {
-        setInspectedSession(updated);
-      }
-      setNewNoteText('');
-    },
-    onError: (err: any) => {
-      setActionError(err?.message || 'Failed to add confidential note.');
-    },
-  });
+  const isPending = (status: AppointedSession['status']) =>
+    status === 'requested' || status === 'pending';
+
+  const pendingCount = sessions?.filter((s) => isPending(s.status)).length || 0;
+  const todayCount = sessions?.filter((s) => s.sessionDate === 'Today' && !isPending(s.status)).length || 0;
 
   const filteredSessions = useMemo(() => {
     if (!sessions) return [];
     return sessions.filter((s) => {
+      // Quick view mode filter
+      if (viewMode === 'today') {
+        if (s.sessionDate !== 'Today' || isPending(s.status)) return false;
+      } else if (viewMode === 'pending') {
+        if (!isPending(s.status)) return false;
+      }
+
+      // Detailed date filter
       const matchDate =
         dateFilter === 'all' ||
         (dateFilter === 'Today' && s.sessionDate === 'Today') ||
         (dateFilter === 'Tomorrow' && s.sessionDate === 'Tomorrow') ||
         (dateFilter === 'Past' && (s.sessionDate === 'Past' || s.sessionDate === 'Last Week' || s.sessionDate.includes('Days Ago')));
       
+      // Detailed status filter
       const matchStatus = statusFilter === 'all' || s.status === statusFilter;
       return matchDate && matchStatus;
     });
-  }, [sessions, dateFilter, statusFilter]);
+  }, [sessions, viewMode, dateFilter, statusFilter]);
 
   const renderStatusBadge = (status: AppointedSession['status']) => {
     const map: Record<string, { label: string; className: string }> = {
@@ -129,6 +147,54 @@ export default function CounsellorAppointmentsPage() {
         }
       />
 
+      {/* Top Quick Focus Tabs */}
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => {
+            setViewMode('all');
+            setDateFilter('all');
+            setStatusFilter('all');
+          }}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-[.08em] border transition-colors ${
+            viewMode === 'all'
+              ? 'border-[#c3f340] bg-[#c3f340]/15 text-[#dff77d]'
+              : 'border-white/[0.08] bg-white/[0.02] text-white/60 hover:text-white'
+          }`}
+        >
+          <Filter size={13} /> All Consultations ({sessions?.length || 0})
+        </button>
+
+        <button
+          onClick={() => {
+            setViewMode('today');
+            setDateFilter('all');
+            setStatusFilter('all');
+          }}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-[.08em] border transition-colors ${
+            viewMode === 'today'
+              ? 'border-[#c3f340] bg-[#c3f340]/15 text-[#dff77d]'
+              : 'border-white/[0.08] bg-white/[0.02] text-white/60 hover:text-white'
+          }`}
+        >
+          <Clock3 size={13} /> Today&apos;s Sessions ({todayCount})
+        </button>
+
+        <button
+          onClick={() => {
+            setViewMode('pending');
+            setDateFilter('all');
+            setStatusFilter('all');
+          }}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-[.08em] border transition-colors ${
+            viewMode === 'pending'
+              ? 'border-[#c3f340] bg-[#c3f340]/15 text-[#dff77d]'
+              : 'border-white/[0.08] bg-white/[0.02] text-white/60 hover:text-white'
+          }`}
+        >
+          <Inbox size={13} /> Pending Requests ({pendingCount})
+        </button>
+      </div>
+
       {/* Lifecycle Flow Legend */}
       <div className="mb-6 rounded-xl border border-white/[0.08] bg-[#121212]/90 p-4 backdrop-blur-xl">
         <p className="serenity-label text-[9px] text-[#c3f340] mb-2 font-mono-ui uppercase tracking-[.1em]">
@@ -138,10 +204,11 @@ export default function CounsellorAppointmentsPage() {
           {lifecycleStages.map((stage, idx) => (
             <div
               key={stage}
-              className={`rounded-lg border px-3 py-2 text-center text-[10px] font-bold uppercase tracking-[.08em] flex items-center justify-center gap-1.5 ${
+              onClick={() => setStatusFilter(statusFilter === stage ? 'all' : stage)}
+              className={`rounded-lg border px-3 py-2 text-center text-[10px] font-bold uppercase tracking-[.08em] flex items-center justify-center gap-1.5 cursor-pointer transition-colors ${
                 statusFilter === stage
                   ? 'border-[#c3f340] bg-[#c3f340]/20 text-[#c3f340]'
-                  : 'border-white/[0.08] bg-white/[0.02] text-white/60'
+                  : 'border-white/[0.08] bg-white/[0.02] text-white/60 hover:border-white/20'
               }`}
             >
               <span className="text-[9px] text-white/35 font-mono">{idx + 1}.</span>
@@ -158,9 +225,12 @@ export default function CounsellorAppointmentsPage() {
           {(['all', 'Today', 'Tomorrow', 'Past'] as const).map((df) => (
             <button
               key={df}
-              onClick={() => setDateFilter(df)}
+              onClick={() => {
+                setDateFilter(df);
+                if (viewMode !== 'all') setViewMode('all');
+              }}
               className={`rounded px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] transition-colors ${
-                dateFilter === df
+                dateFilter === df && viewMode === 'all'
                   ? 'bg-[#c3f340] text-[#0d1408] shadow-[0_0_10px_rgba(195,243,64,0.3)]'
                   : 'border border-white/[0.08] text-white/40 hover:text-white/70'
               }`}
@@ -175,9 +245,12 @@ export default function CounsellorAppointmentsPage() {
           {(['all', 'requested', 'pending', 'accepted', 'completed', 'follow-up', 'closed'] as const).map((st) => (
             <button
               key={st}
-              onClick={() => setStatusFilter(st)}
+              onClick={() => {
+                setStatusFilter(st);
+                if (viewMode !== 'all') setViewMode('all');
+              }}
               className={`rounded px-2.5 py-1 text-[9px] font-bold uppercase tracking-[.08em] transition-colors ${
-                statusFilter === st
+                statusFilter === st && viewMode === 'all'
                   ? 'bg-[#c3f340] text-[#0d1408] shadow-[0_0_10px_rgba(195,243,64,0.3)]'
                   : 'border border-white/[0.08] text-white/40 hover:text-white/70'
               }`}
@@ -187,6 +260,18 @@ export default function CounsellorAppointmentsPage() {
           ))}
         </div>
       </div>
+
+      {actionSuccess && (
+        <div className="mb-6 rounded-lg border border-[#c3f340]/40 bg-[#c3f340]/10 p-3 text-xs text-[#dff77d] flex items-center justify-between animate-fadeIn">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={15} className="text-[#c3f340]" />
+            <span>{actionSuccess}</span>
+          </div>
+          <button onClick={() => setActionSuccess(null)} className="text-white/40 hover:text-white">
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {actionError && (
         <div className="mb-6 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-300 flex items-center justify-between">
@@ -226,10 +311,15 @@ export default function CounsellorAppointmentsPage() {
           </div>
           <h3 className="font-display text-xl text-white">No appointments found</h3>
           <p className="mt-1.5 text-xs text-white/45 max-w-sm mx-auto">
-            No consultations match the selected date or PRD lifecycle status filter. Try resetting filters to review all records.
+            {viewMode === 'pending'
+              ? 'No incoming appointment requests awaiting review.'
+              : viewMode === 'today'
+              ? 'No accepted sessions scheduled for today.'
+              : 'No consultations match the selected date or PRD lifecycle status filter. Try resetting filters to review all records.'}
           </p>
           <button
             onClick={() => {
+              setViewMode('all');
               setDateFilter('all');
               setStatusFilter('all');
             }}
@@ -247,7 +337,11 @@ export default function CounsellorAppointmentsPage() {
             <div key={session.id} className="stagger-item">
               <TiltCard
                 maxTilt={2}
-                className="border border-white/[0.09] bg-[hsl(var(--card))]/90 p-6 backdrop-blur-xl rounded-xl flex flex-col justify-between min-h-[280px] transition-all hover:border-[#c3f340]/40"
+                className={`border bg-[hsl(var(--card))]/90 p-6 backdrop-blur-xl rounded-xl flex flex-col justify-between min-h-[280px] transition-all ${
+                  isPending(session.status)
+                    ? 'border-[#c3f340]/30 hover:border-[#c3f340]/60'
+                    : 'border-white/[0.09] hover:border-[#c3f340]/40'
+                }`}
               >
                 <div>
                   <div className="flex items-start justify-between">
@@ -267,22 +361,34 @@ export default function CounsellorAppointmentsPage() {
                   </div>
 
                   <div className="mt-4 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-                    <div className="flex items-center gap-2 text-xs text-[#c3f340] font-medium">
-                      <Clock3 size={13} /> {session.sessionTime} ({session.sessionDate})
+                    <div className="flex items-center justify-between text-xs text-[#c3f340] font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <Clock3 size={13} /> {session.sessionTime} ({session.sessionDate})
+                      </div>
+                      <span className="text-[10px] text-white/40">{session.sessionType}</span>
                     </div>
                     <p className="mt-1.5 text-xs text-white/70 leading-relaxed line-clamp-2">
                       {session.reason}
                     </p>
                   </div>
+
+                  {/* Pre-acceptance limited visibility notice */}
+                  {isPending(session.status) && (
+                    <div className="mt-2 flex items-center gap-1.5 text-[10px] text-amber-300/80">
+                      <Lock size={11} />
+                      <span>Limited Preview: Full dossier & private notes unlock after acceptance</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-5 pt-3 border-t border-white/[0.07] flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     {/* Status-dependent actions adhering to valid lifecycle transitions */}
-                    {(session.status === 'requested' || session.status === 'pending') && (
+                    {isPending(session.status) && (
                       <button
                         onClick={() => updateStatusMutation.mutate({ id: session.id, status: 'accepted' })}
-                        className="btn-sweep inline-flex items-center gap-1.5 rounded border border-[#c3f340]/40 bg-[#c3f340]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[#dff77d] hover:bg-[#c3f340] hover:text-[#0d1408]"
+                        disabled={updateStatusMutation.isPending}
+                        className="btn-sweep inline-flex items-center gap-1.5 rounded border border-[#c3f340] bg-[#c3f340] px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[#0d1408] shadow-[0_0_15px_rgba(195,243,64,0.3)] hover:scale-102 transition-all disabled:opacity-50"
                       >
                         <Check size={11} /> Accept Request
                       </button>
@@ -336,7 +442,7 @@ export default function CounsellorAppointmentsPage() {
                       onClick={() => setInspectedSession(session)}
                       className="btn-sweep inline-flex items-center gap-1.5 rounded border border-white/[0.12] bg-[#141414] px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-white/70 hover:border-[#c3f340]/40 hover:text-[#c3f340]"
                     >
-                      <FileText size={12} /> Dossier & Notes
+                      <FileText size={12} /> {isPending(session.status) ? 'Review Request' : 'Dossier & Notes'}
                     </button>
                   </Magnetic>
                 </div>
@@ -346,7 +452,7 @@ export default function CounsellorAppointmentsPage() {
         </StaggerContainer>
       )}
 
-      {/* FULL STUDENT DOSSIER & NOTES MODAL */}
+      {/* FULL STUDENT DOSSIER & NOTES MODAL OR LIMITED PREVIEW (IF PENDING) */}
       {mounted && inspectedSession && createPortal(
         <div
           onClick={() => setInspectedSession(null)}
@@ -381,102 +487,104 @@ export default function CounsellorAppointmentsPage() {
                 </button>
               </div>
 
-              {/* Session Details */}
-              <div className="mt-5 rounded-xl border border-white/[0.08] bg-[#161616] p-4">
-                <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5 flex-wrap gap-2">
-                  <div className="flex items-center gap-2 text-xs text-white/80">
-                    <Calendar size={13} className="text-[#c3f340]" />
-                    <strong>{inspectedSession.sessionTime}</strong>
-                    <span className="text-white/40">with {inspectedSession.counsellorName}</span>
+              {/* Pre-acceptance limited visibility view */}
+              {isPending(inspectedSession.status) ? (
+                <div className="mt-6 space-y-6">
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+                    <div className="flex items-center gap-2 text-amber-300 text-xs font-semibold">
+                      <Lock size={14} />
+                      <span>Limited Pre-Acceptance Preview</span>
+                    </div>
+                    <p className="mt-1 text-xs text-white/70 leading-relaxed">
+                      Detailed academic signals, module grades, and confidential session notes are protected by student consent and privacy policy until this appointment request is officially accepted.
+                    </p>
                   </div>
-                  <span className="serenity-label text-[9px] text-[#c3f340]">{inspectedSession.sessionType}</span>
-                </div>
-                <p className="mt-2.5 text-xs text-white/70">
-                  <strong className="text-white/40 font-mono-ui uppercase text-[9px] mr-1">Topic / Reason:</strong>
-                  {inspectedSession.reason}
-                </p>
-              </div>
 
-              {/* Academic & Wellbeing Signals */}
-              <div className="mt-6 grid grid-cols-3 gap-3">
-                <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3 text-center">
-                  <p className="serenity-label text-white/40 text-[9px]">Overall Rhythm</p>
-                  <p className="font-display text-xl text-white mt-1">{inspectedSession.academics.overallRhythm}%</p>
-                </div>
-                <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3 text-center">
-                  <p className="serenity-label text-white/40 text-[9px]">Wellbeing Score</p>
-                  <p className="font-display text-xl text-[#c3f340] mt-1">{inspectedSession.academics.wellbeingScore}/100</p>
-                </div>
-                <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3 text-center">
-                  <p className="serenity-label text-white/40 text-[9px]">Attendance</p>
-                  <p className="font-display text-xl text-white mt-1">{inspectedSession.academics.attendance}%</p>
-                </div>
-              </div>
-
-              {/* Confidential Session Notes */}
-              <div className="mt-6 border-t border-white/[0.08] pt-5">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="serenity-label text-[#c3f340] text-[9px] flex items-center gap-1.5">
-                    <span>🔒</span> Private Confidential Counselling Notes — Encrypted & FERPA Protected (Counsellor Access Only)
-                  </p>
-                  <span className="text-[9px] font-mono text-white/30">Zero Surveillance / No Student Access</span>
-                </div>
-                <p className="text-[11px] text-white/45 mb-3">
-                  This prototype keeps counselling notes within the current frontend session; no backend data service is connected.
-                </p>
-
-                {noteSuccess && (
-                  <div className="mb-3 rounded border border-emerald-500/40 bg-emerald-500/10 p-2.5 text-xs text-emerald-300 flex items-center gap-2 animate-pulse">
-                    <CheckCircle2 size={14} /> {noteSuccess}
+                  <div className="rounded-xl border border-white/[0.08] bg-[#161616] p-5">
+                    <p className="serenity-label text-[9px] text-[#c3f340] mb-2 font-mono-ui uppercase">
+                      Appointment Request Details
+                    </p>
+                    <div className="grid grid-cols-2 gap-4 text-xs text-white/80">
+                      <div>
+                        <span className="text-white/40 block text-[10px]">Requested Slot</span>
+                        <strong className="text-white">{inspectedSession.sessionTime} ({inspectedSession.sessionDate})</strong>
+                      </div>
+                      <div>
+                        <span className="text-white/40 block text-[10px]">Session Format</span>
+                        <strong className="text-white">{inspectedSession.sessionType}</strong>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-white/[0.06]">
+                      <span className="text-white/40 block text-[10px]">Student Stated Reason / Focus</span>
+                      <p className="mt-1 text-xs text-white/90 leading-relaxed">{inspectedSession.reason}</p>
+                    </div>
                   </div>
-                )}
 
-                {addNoteMutation.isError && (
-                  <div className="mb-3 rounded border border-red-500/40 bg-red-500/10 p-2.5 text-xs text-red-300">
-                    Failed to save note. Please try again.
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      onClick={() => setInspectedSession(null)}
+                      className="rounded border border-white/15 px-4 py-2 text-xs font-bold text-white/60 hover:text-white"
+                    >
+                      Close Review
+                    </button>
+                    <button
+                      onClick={() => {
+                        updateStatusMutation.mutate({ id: inspectedSession.id, status: 'accepted' });
+                      }}
+                      className="btn-sweep inline-flex items-center gap-1.5 rounded border border-[#c3f340] bg-[#c3f340] px-5 py-2.5 text-xs font-bold uppercase tracking-[.08em] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.3)] hover:scale-102 transition-all"
+                    >
+                      <Check size={13} /> Accept Appointment Request
+                    </button>
                   </div>
-                )}
+                </div>
+              ) : (
+                /* Full Dossier & Notes View for Accepted / Active Sessions */
+                <div>
+                  {/* Session Details */}
+                  <div className="mt-5 rounded-xl border border-white/[0.08] bg-[#161616] p-4">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-2.5 flex-wrap gap-2">
+                      <div className="flex items-center gap-2 text-xs text-white/80">
+                        <Calendar size={13} className="text-[#c3f340]" />
+                        <strong>{inspectedSession.sessionTime}</strong>
+                        <span className="text-white/40">with {inspectedSession.counsellorName}</span>
+                      </div>
+                      <span className="serenity-label text-[9px] text-[#c3f340]">{inspectedSession.sessionType}</span>
+                    </div>
+                    <p className="mt-2.5 text-xs text-white/70">
+                      <strong className="text-white/40 font-mono-ui uppercase text-[9px] mr-1">Topic / Reason:</strong>
+                      {inspectedSession.reason}
+                    </p>
+                  </div>
 
-                {inspectedSession.notes ? (
-                  <div className="mb-3 rounded border border-white/[0.07] bg-white/[0.02] p-3 text-xs text-white/75 whitespace-pre-line leading-relaxed">
-                    {inspectedSession.notes}
+                  {/* Academic & Wellbeing Signals */}
+                  <div className="mt-6 grid grid-cols-3 gap-3">
+                    <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3 text-center">
+                      <p className="serenity-label text-white/40 text-[9px]">Overall Rhythm</p>
+                      <p className="font-display text-xl text-white mt-1">{inspectedSession.academics.overallRhythm}%</p>
+                    </div>
+                    <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3 text-center">
+                      <p className="serenity-label text-white/40 text-[9px]">Wellbeing Score</p>
+                      <p className="font-display text-xl text-[#c3f340] mt-1">{inspectedSession.academics.wellbeingScore}/100</p>
+                    </div>
+                    <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3 text-center">
+                      <p className="serenity-label text-white/40 text-[9px]">Attendance</p>
+                      <p className="font-display text-xl text-white mt-1">{inspectedSession.academics.attendance}%</p>
+                    </div>
                   </div>
-                ) : (
-                  <div className="mb-3 rounded border border-white/[0.05] bg-white/[0.01] p-3 text-xs text-white/35 italic">
-                    No confidential notes recorded yet for this session.
-                  </div>
-                )}
 
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (!newNoteText.trim() || addNoteMutation.isPending) return;
-                    addNoteMutation.mutate({ id: inspectedSession.id, note: newNoteText.trim() });
-                  }}
-                  className="flex gap-2"
-                >
-                  <input
-                    value={newNoteText}
-                    onChange={(e) => setNewNoteText(e.target.value)}
-                    disabled={addNoteMutation.isPending}
-                    placeholder="Document discussion outcomes or action steps (private & encrypted)..."
-                    className="flex-1 rounded border border-white/[0.09] bg-white/[0.02] px-3.5 py-2 text-xs text-white outline-none placeholder:text-white/25 focus:border-[#c3f340]/50 disabled:opacity-50"
-                  />
-                  <button
-                    type="submit"
-                    disabled={addNoteMutation.isPending}
-                    className="btn-sweep rounded border border-[#c3f340] bg-[#c3f340] px-4 py-2 text-[10px] font-bold uppercase tracking-[.1em] text-[#0d1408] disabled:opacity-50 inline-flex items-center gap-1.5"
-                  >
-                    {addNoteMutation.isPending ? (
-                      <>
-                        <RefreshCw size={11} className="animate-spin" /> Saving...
-                      </>
-                    ) : (
-                      'Save note'
-                    )}
-                  </button>
-                </form>
-              </div>
+                  {/* Private Consultation Record & Session Notes */}
+                  <div className="mt-6">
+                    <SessionNotesEditor
+                      session={inspectedSession}
+                      activeCounsellorName={activeCounsellor}
+                      onSessionUpdated={(updated) => {
+                        setInspectedSession(updated);
+                        queryClient.invalidateQueries({ queryKey: ['appointedSessions'] });
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </TiltCard>
           </div>
         </div>,

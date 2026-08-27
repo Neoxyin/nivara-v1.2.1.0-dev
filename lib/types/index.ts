@@ -154,6 +154,26 @@ export type AIConversationContext = {
   clearedAt?: string;
 };
 
+export type ConsultationRecord = {
+  sessionId: string;
+  studentName: string;
+  studentEmail: string;
+  course: string;
+  year: number;
+  counsellorName: string;
+  sessionTime: string;
+  sessionDate: string;
+  sessionType: string;
+  reason: string;
+  status: AppointedSession['status'];
+  notes: string;
+  outcomeSummary?: string;
+  agreedActionPlan?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  version?: number;
+};
+
 export type AppointedSession = {
   id: string;
   studentName: string;
@@ -168,6 +188,7 @@ export type AppointedSession = {
   sessionType: string;
   reason: string;
   notes?: string;
+  consultationRecord?: ConsultationRecord;
   academics: {
     overallRhythm: number;
     wellbeingScore: number;
@@ -189,12 +210,51 @@ export type FinancialSupportOption = {
   iconType: string;
 };
 
-export type SupportNeedLevel = 'LOW' | 'MILD' | 'MODERATE' | 'HIGH' | 'UNAVAILABLE';
+export type SupportNeedLevel = 'LOW' | 'MILD' | 'MODERATE' | 'HIGH';
 export type SupportDimension = 'Academic' | 'Financial' | 'Well-being';
+
+export type FollowUpStatus = 'pending' | 'completed';
+
+export type CounsellorFollowUp = {
+  id: string;
+  sessionId?: string;
+  studentName: string;
+  studentEmail: string;
+  course: string;
+  year: number;
+  counsellorName: string;
+  dueDate: string;
+  dueTime?: string;
+  reason: string;
+  notes?: string;
+  status: FollowUpStatus;
+  createdAt: string;
+  completedAt?: string;
+};
+
+export type SupportAlert = {
+  id: string;
+  sessionId: string;
+  studentName: string;
+  studentAvatar: string;
+  studentEmail: string;
+  course: string;
+  year: number;
+  counsellorName: string;
+  dimension: SupportDimension;
+  title: string;
+  summary: string;
+  contributingFactors: string[];
+  recommendedAction: string;
+  severity: 'attention' | 'watch';
+  createdAt: string;
+  reviewed?: boolean;
+  reviewedAt?: string;
+};
 
 export type SupportNeedIndicator = {
   dimension: SupportDimension;
-  level: SupportNeedLevel;
+  level?: SupportNeedLevel;
   available: boolean;
   stale?: boolean;
   signals?: string[];

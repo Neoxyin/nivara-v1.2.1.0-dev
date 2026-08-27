@@ -17,6 +17,7 @@ export default function StudentCounsellorsPage() {
   const [selected, setSelected] = useState<Counsellor | null>(null);
   const [dayChoice, setDayChoice] = useState<'today' | 'tomorrow'>('today');
   const [selectedSlot, setSelectedSlot] = useState<string>('14:30');
+  const [bookingReason, setBookingReason] = useState<string>('Workload pacing and course deadline support');
   const [filterTopic, setFilterTopic] = useState<string | null>(null);
   const [requested, setRequested] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -51,8 +52,14 @@ export default function StudentCounsellorsPage() {
     ? counsellors?.filter((c) => c.specializations.includes(filterTopic))
     : counsellors;
 
-  const handleRequest = async (name: string) => {
-    await requestAppointment(name, `${dayChoice} at ${selectedSlot}`);
+  const handleRequest = async (counsellor: Counsellor) => {
+    await requestAppointment({
+      counsellorName: counsellor.name,
+      dayChoice,
+      slot: selectedSlot,
+      reason: bookingReason.trim() || 'Workload pacing and course deadline support',
+      sessionType: '1-on-1 Confidential Guidance',
+    });
     setRequested(true);
   };
 
@@ -248,13 +255,45 @@ export default function StudentCounsellorsPage() {
                       </div>
                     </div>
 
+                    {/* Focus / Stated Reason */}
+                    <div>
+                      <label className="serenity-label text-[9px] text-white/40 mb-1.5 block">Focus or topic (optional)</label>
+                      <div className="mb-2 flex flex-wrap gap-1.5">
+                        {[
+                          'Workload pacing & deadlines',
+                          'Exam preparation & stress',
+                          'First-year transition',
+                          'Focus & timetable balance',
+                        ].map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => setBookingReason(preset)}
+                            className={`rounded px-2 py-0.5 text-[9px] font-bold uppercase tracking-[.06em] border transition-colors ${
+                              bookingReason === preset
+                                ? 'border-[#c3f340] bg-[#c3f340]/15 text-[#dff77d]'
+                                : 'border-white/[0.08] text-white/50 hover:text-white/80'
+                            }`}
+                          >
+                            {preset}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        value={bookingReason}
+                        onChange={(e) => setBookingReason(e.target.value)}
+                        placeholder="What would you like to discuss? (e.g. deadline clustering)"
+                        className="w-full rounded border border-white/[0.09] bg-white/[0.02] px-3 py-2 text-xs text-white outline-none placeholder:text-white/25 focus:border-[#c3f340]/50"
+                      />
+                    </div>
+
                     <p className="text-[11px] text-white/35 leading-tight pt-1">
                       No commitment required — you can cancel or reschedule at any moment.
                     </p>
 
                     <Magnetic>
                       <button
-                        onClick={() => handleRequest(selected.name)}
+                        onClick={() => handleRequest(selected)}
                         className="btn-sweep mt-3 w-full border border-[#c3f340] bg-[#c3f340] px-4 py-3 text-[11px] font-bold uppercase tracking-[.1em] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.3)] transition-all hover:scale-102 rounded"
                       >
                         Confirm {dayChoice === 'today' ? 'Today' : 'Tomorrow'} at {selectedSlot}

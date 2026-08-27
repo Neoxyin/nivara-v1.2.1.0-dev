@@ -9,11 +9,9 @@ export async function getRecommendations(): Promise<Recommendation[]> {
   const profile = await getSupportNeedProfile();
   
   return mockRecommendations.filter(rec => {
-    // Basic filter simulation: if the rec is related to a specific dimension that is UNAVAILABLE, we can hide it.
-    // However, general recommendations should remain. We'll simulate that if a specific profile dimension is unavailable,
-    // we omit personalized recs for it.
-    if (rec.title.includes('Financial') && profile.financial.level === 'UNAVAILABLE') return false;
-    if (rec.title.includes('Well-being') && profile.wellbeing.level === 'UNAVAILABLE') return false;
+    // Basic filter simulation: if the rec is related to a specific dimension that is unavailable, we omit personalized recs for it.
+    if (rec.title.includes('Financial') && !profile.financial.available) return false;
+    if (rec.title.includes('Well-being') && !profile.wellbeing.available) return false;
     return true;
   });
 }

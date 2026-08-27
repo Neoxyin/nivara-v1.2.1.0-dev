@@ -85,7 +85,7 @@ function levelFromScore(score: number): SupportNeedLevel {
 
 export function scoreAcademic(signals: RawAcademicSignals | null): SupportNeedIndicator {
   if (!signals) {
-    return { dimension: 'Academic', level: 'UNAVAILABLE', available: false };
+    return { dimension: 'Academic', available: false };
   }
   let score = 0;
   const contributing: string[] = [];
@@ -136,7 +136,7 @@ export function scoreAcademic(signals: RawAcademicSignals | null): SupportNeedIn
     signals: contributing,
     lastUpdated: 'Current semester evaluation',
     explainability: {
-      contributingFactors: contributing.length ? contributing : ['No active academic risk factors identified in permitted records'],
+      contributingFactors: contributing.length ? contributing : ['No elevated academic support indicators identified in permitted records'],
       timeWindow: 'Current semester academic records',
       dataUsed: dataUsed.length ? dataUsed : ['Permitted academic records'],
       dataNotUsed: [
@@ -151,7 +151,7 @@ export function scoreAcademic(signals: RawAcademicSignals | null): SupportNeedIn
 
 export function scoreFinancial(signals: RawFinancialSignals | null): SupportNeedIndicator {
   if (!signals || !signals.feeStatus) {
-    return { dimension: 'Financial', level: 'UNAVAILABLE', available: false };
+    return { dimension: 'Financial', available: false };
   }
   const parts: string[] = [];
   const dataUsed: string[] = ['Institutional fee payment status'];
@@ -208,7 +208,7 @@ export function extractWellbeingSignalsFromCheckIn(checkIn?: CheckIn | null): Ra
 
 export function scoreWellbeing(signals: RawWellbeingSignals | null): SupportNeedIndicator {
   if (!signals) {
-    return { dimension: 'Well-being', level: 'UNAVAILABLE', available: false };
+    return { dimension: 'Well-being', available: false };
   }
   const stress = signals.stress ?? 0;
   const mood = signals.mood ?? 0;
@@ -264,12 +264,12 @@ export function scoreWellbeing(signals: RawWellbeingSignals | null): SupportNeed
 
 export function buildSupportIndicator(dimension: SupportDimension, signals: SupportSignals | null, permission: DataPermissionKey): SupportNeedIndicator {
   if (!signals) {
-    return { dimension, level: 'UNAVAILABLE', available: false };
+    return { dimension, available: false };
   }
   if (dimension === 'Academic' && permission === 'academic_data') return scoreAcademic(signals);
   if (dimension === 'Financial' && permission === 'financial_support') return scoreFinancial(signals);
   if (dimension === 'Well-being' && permission === 'wellbeing_checkins') return scoreWellbeing(signals);
-  return { dimension, level: 'UNAVAILABLE', available: false };
+  return { dimension, available: false };
 }
 
 export function evaluateSupportNeedProfile(
@@ -296,7 +296,7 @@ export function evaluateSupportNeedProfile(
           ],
         },
       }
-    : { dimension: 'Academic' as const, level: 'UNAVAILABLE' as const, available: false };
+    : { dimension: 'Academic' as const, available: false };
 
   const baseFinancial = scoreFinancial(rawDemoStudentSignals.financial);
   const financial = permittedInputs.financial
@@ -318,7 +318,7 @@ export function evaluateSupportNeedProfile(
           ],
         },
       }
-    : { dimension: 'Financial' as const, level: 'UNAVAILABLE' as const, available: false };
+    : { dimension: 'Financial' as const, available: false };
 
   const baseWellbeing = scoreWellbeing(rawDemoStudentSignals.wellbeing);
   const wellbeing = permittedInputs.wellbeing
@@ -340,7 +340,7 @@ export function evaluateSupportNeedProfile(
           ],
         },
       }
-    : { dimension: 'Well-being' as const, level: 'UNAVAILABLE' as const, available: false };
+    : { dimension: 'Well-being' as const, available: false };
 
   return { academic, financial, wellbeing };
 }
