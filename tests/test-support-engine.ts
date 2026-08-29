@@ -8,12 +8,12 @@ import {
   type SupportSignals,
   type RawStudentSignals,
   type RawFinancialSignals
-} from './lib/data/support-engine';
+} from '../src/lib/data/support-engine';
 import { 
   matchFinancialSupportOptions, 
   mockFinancialSupportOptions 
-} from './lib/data/financial-support';
-import type { DataPermissionKey, SupportNeedProfileData, CheckIn } from './lib/types';
+} from '../src/lib/data/financial-support';
+import type { DataPermissionKey, SupportNeedProfileData, CheckIn } from '../src/lib/types';
 
 console.log('--- RUNNING SUPPORT NEED ENGINE & CONSENT GATE TESTS ---');
 

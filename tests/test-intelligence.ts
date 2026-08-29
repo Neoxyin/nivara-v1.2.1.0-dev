@@ -1,5 +1,5 @@
-import { generateInsightsFromCheckIns } from './lib/intelligence';
-import type { CheckIn } from './lib/types';
+import { generateInsightsFromCheckIns } from '../src/lib/intelligence';
+import type { CheckIn } from '../src/lib/types';
 
 console.log('--- Testing NIVARA Phase B Intelligence Engine ---');
 
