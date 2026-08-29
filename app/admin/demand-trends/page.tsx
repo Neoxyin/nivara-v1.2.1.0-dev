@@ -9,7 +9,7 @@ export default function AdminDemandTrendsPage() {
   return (
     <AdminShell
       title="Demand Trends"
-      subtitle="Examine booking volume spikes, peak demand hours, and projected counselling needs across departments."
+      subtitle="Aggregate longitudinal support-need volume and capacity trends across Academic, Financial, and Well-being dimensions."
     >
       <DemandTrendChart data={demandTrends} />
     </AdminShell>

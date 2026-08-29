@@ -8,7 +8,7 @@ import { resources } from '@/lib/data/admin';
 export default function AdminResourcesPage() {
   return (
     <AdminShell
-      title="Resource Directory"
+      title="Resources"
       subtitle="Publish, curate, and audit verified emergency, academic, and wellness support toolkits."
     >
       <ResourceEditor resources={resources} />

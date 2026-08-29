@@ -78,7 +78,6 @@ export function StudentRosterTable({ students }: StudentRosterTableProps) {
                 <th className="px-5 py-3.5">Student</th>
                 <th className="px-5 py-3.5">Cohort / Dept</th>
                 <th className="px-5 py-3.5">Consent Status</th>
-                <th className="px-5 py-3.5">Support Status</th>
                 <th className="px-5 py-3.5">Assigned Lead</th>
                 <th className="px-5 py-3.5">Last Activity</th>
               </tr>
@@ -105,19 +104,6 @@ export function StudentRosterTable({ students }: StudentRosterTableProps) {
                       )}
                       <span className="capitalize">{s.consentLevel}</span>
                     </span>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <Pill
-                      tone={
-                        s.supportStatus === 'active-plan'
-                          ? 'accent'
-                          : s.supportStatus === 'monitoring'
-                          ? 'warm'
-                          : 'default'
-                      }
-                    >
-                      {s.supportStatus}
-                    </Pill>
                   </td>
                   <td className="px-5 py-3.5 text-white/70">{s.assignedCounsellor || '—'}</td>
                   <td className="px-5 py-3.5 text-white/50 font-mono text-[11px]">{s.lastActivityDate}</td>

@@ -18,12 +18,10 @@ import {
   Menu,
   X,
   LogOut,
-  ExternalLink,
-  ShieldAlert,
   Activity,
-  HeartPulse,
 } from 'lucide-react';
 import gsap from 'gsap';
+import { logoutUser } from '@/lib/auth';
 import { Mark } from '@/components/shared/mark';
 import { FluidBackground } from '@/components/ui/fluid-background';
 import { Magnetic } from '@/components/ui/magnetic';
@@ -118,14 +116,10 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="shrink-0 flex items-center justify-between pb-3 border-b border-white/[0.06]">
             <div className="flex items-center gap-2">
               <Mark inverse href="/admin" />
-              <div className="leading-tight">
-                <p className="text-xs font-bold text-white uppercase tracking-wider">NIVARA</p>
-                <p className="text-[10px] text-[#c3f340] font-mono">Governance</p>
-              </div>
             </div>
             <button
               onClick={() => setMobileMenuOpen(false)}
@@ -135,18 +129,8 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
             </button>
           </div>
 
-          {/* Governance Notice */}
-          <div className="rounded-xl border border-[#c3f340]/20 bg-[#c3f340]/[0.03] p-3 text-[11px] text-white/70">
-            <div className="flex items-center gap-1.5 font-bold text-[#c3f340] uppercase tracking-wider text-[10px]">
-              <ShieldAlert size={12} /> Governance Principle
-            </div>
-            <p className="mt-1 leading-relaxed text-white/60 text-[10px]">
-              Observe → Understand → Govern → Improve. Strictly non-punitive.
-            </p>
-          </div>
-
           {/* Nav Links */}
-          <nav className="space-y-1 overflow-y-auto max-h-[calc(100vh-280px)] pr-1">
+          <nav className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 py-3 space-y-1 pr-1">
             {ADMIN_NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive = item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -176,17 +160,21 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
         </div>
 
         {/* Mobile Footer */}
-        <div className="pt-3 border-t border-white/[0.06] space-y-2">
+        <div className="shrink-0 pt-3 border-t border-white/[0.06] space-y-2">
           <div className="flex items-center justify-between text-[11px] text-white/40 font-mono">
-            <span>Role: Campus Admin</span>
+            <span>Role: Campus Oversight</span>
             <span className="text-emerald-400">● Live</span>
           </div>
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] py-2 text-xs font-bold text-white/70 hover:bg-white/[0.08]"
+          <button
+            type="button"
+            onClick={async () => {
+              await logoutUser();
+              window.location.replace('/');
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] py-2 text-xs font-bold text-white/70 hover:bg-white/[0.08] hover:text-white transition-all"
           >
-            <LogOut size={13} /> Exit to Student App
-          </Link>
+            <LogOut size={13} /> Sign Out
+          </button>
         </div>
       </div>
 
@@ -198,7 +186,7 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
             collapsed ? 'w-[72px]' : 'w-[264px]'
           }`}
         >
-          <div>
+          <div className="flex flex-col flex-1 min-h-0">
             {/* Header / Brand */}
             <div className="mb-4 flex h-11 shrink-0 items-center justify-between px-3">
               <div
@@ -209,16 +197,8 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
                 }`}
               >
                 <Magnetic radius={24} strength={0.018} maxDisplacement={1.5}>
-                  <div className="cursor-pointer flex items-center gap-2.5">
+                  <div className="cursor-pointer flex items-center">
                     <Mark inverse href="/admin" />
-                    <div className="leading-tight">
-                      <span className="font-display text-xs font-bold uppercase tracking-wider text-white">
-                        NIVARA
-                      </span>
-                      <span className="block text-[9px] font-mono tracking-widest text-[#c3f340] uppercase">
-                        Governance
-                      </span>
-                    </div>
                   </div>
                 </Magnetic>
               </div>
@@ -234,26 +214,8 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
               </div>
             </div>
 
-            {/* Governance Principle Badge */}
-            <div
-              className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                collapsed
-                  ? 'max-h-0 opacity-0 mb-0 pointer-events-none'
-                  : 'max-h-24 opacity-100 mb-3 px-3'
-              }`}
-            >
-              <div className="rounded-xl border border-[#c3f340]/20 bg-[#c3f340]/[0.03] p-2.5 text-[10px] text-white/70">
-                <div className="flex items-center gap-1.5 font-bold text-[#c3f340] uppercase tracking-wider">
-                  <ShieldAlert size={12} /> Governance Principle
-                </div>
-                <p className="mt-1 leading-relaxed text-white/60">
-                  Observe → Understand → Govern → Improve.
-                </p>
-              </div>
-            </div>
-
-            {/* Nav list */}
-            <nav className="space-y-1 px-3">
+            {/* Nav list with scrolling */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 px-3 pb-2 space-y-1">
               <div
                 className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                   collapsed ? 'max-h-0 opacity-0 mb-0' : 'max-h-6 opacity-100 mb-2 px-1'
@@ -262,73 +224,75 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
                 <p className="serenity-label text-[#c3f340]/70">Admin Control Center</p>
               </div>
 
-              {ADMIN_NAV_ITEMS.map((item) => {
-                const Icon = item.icon;
-                const isActive = item.exact
-                  ? pathname === item.href
-                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              <nav className="space-y-1">
+                {ADMIN_NAV_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = item.exact
+                    ? pathname === item.href
+                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-                return (
-                  <div key={item.href} className="group relative">
-                    <Link
-                      href={item.href}
-                      className={`relative flex h-10 w-full items-center rounded-xl transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98] ${
-                        isActive
-                          ? 'bg-white/[0.08] text-white shadow-[0_0_14px_rgba(195,243,64,0.08),inset_0_1px_0_rgba(255,255,255,0.08)]'
-                          : 'text-white/55 hover:bg-white/[0.04] hover:text-white'
-                      }`}
-                    >
-                      {isActive && (
-                        <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-[#c3f340] shadow-[0_0_10px_#c3f340]" />
-                      )}
-
-                      <div className="flex h-10 w-11 shrink-0 items-center justify-center">
-                        <Icon
-                          size={16}
-                          strokeWidth={1.8}
-                          className={`transition-colors duration-150 ${
-                            isActive ? 'text-[#c3f340]' : 'text-white/55 group-hover:text-white'
-                          }`}
-                        />
-                      </div>
-
-                      <span
-                        className={`truncate text-[12px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                          collapsed
-                            ? 'max-w-0 opacity-0 pointer-events-none blur-sm -translate-x-2'
-                            : 'max-w-[150px] opacity-100 blur-0 translate-x-0'
+                  return (
+                    <div key={item.href} className="group relative">
+                      <Link
+                        href={item.href}
+                        className={`relative flex h-10 w-full items-center rounded-xl transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98] ${
+                          isActive
+                            ? 'bg-white/[0.08] text-white shadow-[0_0_14px_rgba(195,243,64,0.08),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                            : 'text-white/55 hover:bg-white/[0.04] hover:text-white'
                         }`}
                       >
-                        {item.label}
-                      </span>
+                        {isActive && (
+                          <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-[#c3f340] shadow-[0_0_10px_#c3f340]" />
+                        )}
 
-                      {!collapsed && item.badge && (
-                        <span className="ml-auto mr-2 rounded-full bg-[#c3f340]/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-[#c3f340]">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-
-                    {/* Tooltip when collapsed */}
-                    {collapsed && (
-                      <div
-                        role="tooltip"
-                        className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 opacity-0 -translate-x-1 scale-95 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-150 ease-out z-[60] flex items-center"
-                      >
-                        <div className="relative rounded-md border border-white/[0.12] bg-[#141414]/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.7),0_0_10px_rgba(195,243,64,0.15)] backdrop-blur-xl whitespace-nowrap">
-                          {item.label}
-                          <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rotate-45 border-b border-l border-white/[0.12] bg-[#141414]" />
+                        <div className="flex h-10 w-11 shrink-0 items-center justify-center">
+                          <Icon
+                            size={16}
+                            strokeWidth={1.8}
+                            className={`transition-colors duration-150 ${
+                              isActive ? 'text-[#c3f340]' : 'text-white/55 group-hover:text-white'
+                            }`}
+                          />
                         </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </nav>
+
+                        <span
+                          className={`truncate text-[12px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                            collapsed
+                              ? 'max-w-0 opacity-0 pointer-events-none blur-sm -translate-x-2'
+                              : 'max-w-[150px] opacity-100 blur-0 translate-x-0'
+                          }`}
+                        >
+                          {item.label}
+                        </span>
+
+                        {!collapsed && item.badge && (
+                          <span className="ml-auto mr-2 rounded-full bg-[#c3f340]/20 px-1.5 py-0.2 font-mono text-[9px] font-bold text-[#c3f340]">
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+
+                      {/* Tooltip when collapsed */}
+                      {collapsed && (
+                        <div
+                          role="tooltip"
+                          className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 opacity-0 -translate-x-1 scale-95 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-150 ease-out z-[60] flex items-center"
+                        >
+                          <div className="relative rounded-md border border-white/[0.12] bg-[#141414]/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.7),0_0_10px_rgba(195,243,64,0.15)] backdrop-blur-xl whitespace-nowrap">
+                            {item.label}
+                            <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rotate-45 border-b border-l border-white/[0.12] bg-[#141414]" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </nav>
+            </div>
           </div>
 
           {/* Desktop Footer Navigation & Role Info */}
-          <div className="space-y-2 px-3 pt-3 border-t border-white/[0.06]">
+          <div className="shrink-0 space-y-2 px-3 pt-3 border-t border-white/[0.06]">
             {!collapsed && (
               <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-2.5 text-[11px]">
                 <div className="flex items-center justify-between">
@@ -339,24 +303,18 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
               </div>
             )}
 
-            <div className="space-y-1">
-              <Link
-                href="/dashboard"
-                className="flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold text-white/70 hover:bg-white/[0.08] hover:text-white transition-all"
-                title={collapsed ? 'Exit to Student App' : undefined}
-              >
-                <LogOut size={13} />
-                {!collapsed && <span>Student Portal</span>}
-              </Link>
-              <Link
-                href="/counsellor"
-                className="flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-[#c3f340]/20 bg-[#c3f340]/[0.04] text-[11px] font-semibold text-[#c3f340] hover:bg-[#c3f340]/10 transition-all"
-                title={collapsed ? 'Switch to Counsellor Space' : undefined}
-              >
-                <HeartPulse size={13} />
-                {!collapsed && <span>Counsellor Space</span>}
-              </Link>
-            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                await logoutUser();
+                window.location.replace('/');
+              }}
+              className="flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] font-semibold text-white/70 hover:bg-white/[0.08] hover:text-white transition-all"
+              title={collapsed ? 'Sign Out' : undefined}
+            >
+              <LogOut size={13} />
+              {!collapsed && <span>Sign Out</span>}
+            </button>
           </div>
         </aside>
 

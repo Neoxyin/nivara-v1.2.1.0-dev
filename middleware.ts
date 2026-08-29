@@ -81,7 +81,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (role) {
-    if (isCounsellorRoute && role !== 'counsellor' && role !== 'admin') {
+    if (isCounsellorRoute && role !== 'counsellor') {
       return NextResponse.redirect(new URL('/unauthorized', request.url));
     }
 

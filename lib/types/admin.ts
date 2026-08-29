@@ -83,6 +83,25 @@ export interface DemandTrendPoint {
   topStressFactors?: string[];
 }
 
+export interface FairnessGroupMetric {
+  group: string;
+  sampleSize: number;
+  selectionRate: number;
+  falsePositiveRate?: number;
+  falseNegativeRate?: number;
+  truePositiveRate?: number;
+  disparateImpact?: number;
+  sufficientData: boolean;
+}
+
+export interface FairnessMetrics {
+  dimension: string;
+  referenceGroup: string;
+  groups: FairnessGroupMetric[];
+  humanReviewRequired: boolean;
+  lastEvaluated: string;
+}
+
 export interface FairnessMetric {
   id: string;
   cohort: string;
@@ -94,31 +113,35 @@ export interface FairnessMetric {
   notes: string;
 }
 
-export interface AdminResource {
+export interface SupportResource {
   id: string;
   title: string;
-  category: 'Mental Health' | 'Academic Rhythm' | 'Financial & Food' | 'Emergency Crisis' | 'Accessibility';
-  format: 'Guide' | 'Hotline' | 'Booking' | 'Toolkit';
-  targetAudience: string;
-  verifiedBy: string;
-  lastAudited: string;
-  status: 'published' | 'review' | 'archived';
-  viewsThisMonth: number;
-  description?: string;
+  description: string;
+  category: "academic" | "financial" | "wellbeing" | "general";
+  provider: string;
+  contact?: string;
+  url?: string;
+  location?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
+
+// Backwards-compatible alias for existing imports
+export type AdminResource = SupportResource;
 
 export interface SupportProgram {
   id: string;
-  title: string;
-  category: string;
-  targetCohort: string;
-  enrolledCount: number;
-  capacity: number;
-  status: 'active' | 'draft' | 'archived';
-  facilitator: string;
-  startDate: string;
-  budgetAllocated: string;
-  meetingCadence?: string;
+  name: string;
+  provider: string;
+  description: string;
+  category: "scholarship" | "fee-assistance" | "emergency-fund" | "hostel" | "food" | "transport" | "equipment" | "work-study" | "government-scheme";
+  eligibilitySummary: string;
+  applicationUrl?: string;
+  deadline?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AdminCounsellor {
@@ -145,7 +168,6 @@ export interface AdminStudentRoster {
   department: string;
   year: number;
   consentLevel: 'full' | 'academic-only' | 'wellbeing-only' | 'revoked';
-  supportStatus: 'none' | 'active-plan' | 'monitoring' | 'completed';
   assignedCounsellor?: string;
   lastActivityDate: string;
 }
