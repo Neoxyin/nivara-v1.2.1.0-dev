@@ -6,16 +6,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   GraduationCap,
   HeartHandshake,
+  ShieldCheck,
   ArrowRight,
   LockKeyhole,
   Sparkles,
   X,
-  ShieldCheck,
   Check,
   KeyRound,
   Mail,
   Building2,
   AlertCircle,
+  Scale,
 } from 'lucide-react';
 import { Pill } from '@/components/shared/pill';
 import { Magnetic } from '@/components/ui/magnetic';
@@ -25,8 +26,8 @@ import { loginApi } from '@/lib/api/client';
 interface LoginPortalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultRole?: 'student' | 'counsellor';
-  lockedRole?: 'student' | 'counsellor' | null;
+  defaultRole?: 'student' | 'counsellor' | 'admin';
+  lockedRole?: 'student' | 'counsellor' | 'admin' | null;
 }
 
 export function LoginPortalModal({
@@ -37,9 +38,13 @@ export function LoginPortalModal({
 }: LoginPortalModalProps) {
   const router = useRouter();
   const effectiveRole = lockedRole || defaultRole;
-  const [selectedRole, setSelectedRole] = useState<'student' | 'counsellor'>(effectiveRole);
+  const [selectedRole, setSelectedRole] = useState<'student' | 'counsellor' | 'admin'>(effectiveRole);
   const [email, setEmail] = useState(
-    effectiveRole === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu'
+    effectiveRole === 'student'
+      ? 'aria.chen@university.edu'
+      : effectiveRole === 'admin'
+      ? 'marcus.vance@governance.university.edu'
+      : 'a.ross@wellbeing.university.edu'
   );
   const [password, setPassword] = useState('••••••••••••');
   const [isLoading, setIsLoading] = useState(false);
@@ -52,18 +57,23 @@ export function LoginPortalModal({
       setErrorMsg('');
       if (roleToUse === 'student') {
         setEmail('aria.chen@university.edu');
+      } else if (roleToUse === 'admin') {
+        setEmail('marcus.vance@governance.university.edu');
       } else {
         setEmail('a.ross@wellbeing.university.edu');
       }
     }
   }, [lockedRole, defaultRole, isOpen]);
 
-  const handleRoleSelect = (role: 'student' | 'counsellor') => {
+  const handleRoleSelect = (role: 'student' | 'counsellor' | 'admin') => {
     if (lockedRole) return;
     setSelectedRole(role);
     setErrorMsg('');
     if (role === 'student') {
       setEmail('aria.chen@university.edu');
+      setPassword('••••••••••••');
+    } else if (role === 'admin') {
+      setEmail('marcus.vance@governance.university.edu');
       setPassword('••••••••••••');
     } else {
       setEmail('a.ross@wellbeing.university.edu');
@@ -88,7 +98,7 @@ export function LoginPortalModal({
       setIsLoading(false);
       onClose();
 
-      const targetPath = selectedRole === 'counsellor' ? '/counsellor' : '/dashboard';
+      const targetPath = selectedRole === 'admin' ? '/admin' : selectedRole === 'counsellor' ? '/counsellor' : '/dashboard';
       router.push(targetPath);
     } catch (err) {
       setErrorMsg('Login failed. Please verify your credentials.');
@@ -96,9 +106,14 @@ export function LoginPortalModal({
     }
   };
 
-  const handleQuickDemoLogin = async (role: 'student' | 'counsellor') => {
+  const handleQuickDemoLogin = async (role: 'student' | 'counsellor' | 'admin') => {
     setSelectedRole(role);
-    const demoEmail = role === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu';
+    const demoEmail =
+      role === 'student'
+        ? 'aria.chen@university.edu'
+        : role === 'admin'
+        ? 'marcus.vance@governance.university.edu'
+        : 'a.ross@wellbeing.university.edu';
     
     setIsLoading(true);
     try {
@@ -106,7 +121,7 @@ export function LoginPortalModal({
       setUserRole(role);
       setIsLoading(false);
       onClose();
-      const targetPath = role === 'counsellor' ? '/counsellor' : '/dashboard';
+      const targetPath = role === 'admin' ? '/admin' : role === 'counsellor' ? '/counsellor' : '/dashboard';
       router.push(targetPath);
     } catch (err) {
       setErrorMsg('Quick login failed');
@@ -134,7 +149,7 @@ export function LoginPortalModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-white/[0.12] bg-[#111111]/95 p-6 sm:p-8 text-white shadow-[0_24px_64px_rgba(0,0,0,0.8),0_0_30px_rgba(195,243,64,0.06)] backdrop-blur-2xl my-auto"
+            className="relative z-10 w-full max-w-xl overflow-hidden rounded-2xl border border-white/[0.12] bg-[#111111]/95 p-6 sm:p-8 text-white shadow-[0_24px_64px_rgba(0,0,0,0.8),0_0_30px_rgba(195,243,64,0.06)] backdrop-blur-2xl my-auto"
           >
             {/* Ambient inner glow */}
             <div className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full bg-[#c3f340]/[0.08] blur-3xl" />
@@ -169,6 +184,8 @@ export function LoginPortalModal({
                   ? 'Sign in to Student Space'
                   : lockedRole === 'counsellor'
                   ? 'Sign in to Counsellor Portal'
+                  : lockedRole === 'admin'
+                  ? 'Sign in to Administrator Portal'
                   : 'Sign in to your space'}
               </h2>
               <p className="mt-1.5 text-xs sm:text-sm text-white/55">
@@ -176,6 +193,8 @@ export function LoginPortalModal({
                   ? 'Access your private student sanctuary, check-ins, and coursework rhythm.'
                   : lockedRole === 'counsellor'
                   ? 'Access clinical caseload triage, student appointments, and notes.'
+                  : lockedRole === 'admin'
+                  ? 'Access institutional oversight, demand trends, and campus system health.'
                   : 'Select your institutional workspace to load your authenticated environment.'}
               </p>
             </div>
@@ -215,13 +234,30 @@ export function LoginPortalModal({
                   </p>
                 </div>
               </div>
+            ) : lockedRole === 'admin' ? (
+              <div className="mt-5 flex items-center gap-3 p-3.5 rounded-xl border border-[#c3f340]/40 bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]">
+                <div className="grid h-8 w-8 place-items-center rounded-lg border border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]">
+                  <Scale size={16} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-white">Administrator Portal</p>
+                    <span className="text-[9px] font-bold uppercase tracking-[.1em] text-[#c3f340] border border-[#c3f340]/30 bg-[#c3f340]/10 px-2 py-0.5 rounded-full">
+                      Selected Role
+                    </span>
+                  </div>
+                  <p className="text-[11px] leading-tight text-white/55 mt-0.5">
+                    Campus support overview, demand trends & service health
+                  </p>
+                </div>
+              </div>
             ) : (
-              <div className="mt-5 grid grid-cols-2 gap-3">
+              <div className="mt-5 grid grid-cols-3 gap-2.5">
                 {/* Student Card */}
                 <button
                   type="button"
                   onClick={() => handleRoleSelect('student')}
-                  className={`relative flex flex-col items-start p-3.5 rounded-xl border text-left transition-all duration-200 ${
+                  className={`relative flex flex-col items-start p-3 rounded-xl border text-left transition-all duration-200 ${
                     selectedRole === 'student'
                       ? 'border-[#c3f340] bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]'
                       : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
@@ -229,23 +265,23 @@ export function LoginPortalModal({
                 >
                   <div className="flex w-full items-center justify-between">
                     <div
-                      className={`grid h-8 w-8 place-items-center rounded-lg border ${
+                      className={`grid h-7 w-7 place-items-center rounded-lg border ${
                         selectedRole === 'student'
                           ? 'border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]'
                           : 'border-white/10 bg-white/5 text-white/50'
                       }`}
                     >
-                      <GraduationCap size={16} />
+                      <GraduationCap size={14} />
                     </div>
                     {selectedRole === 'student' && (
-                      <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c3f340] text-[#0d1408]">
-                        <Check size={10} strokeWidth={3} />
+                      <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c3f340] text-[#0d1408]">
+                        <Check size={9} strokeWidth={3} />
                       </span>
                     )}
                   </div>
-                  <p className="mt-3 text-xs font-bold text-white">Student Space</p>
-                  <p className="mt-0.5 text-[11px] leading-tight text-white/45">
-                    Academic rhythm, energy & private check-ins
+                  <p className="mt-2.5 text-xs font-bold text-white">Student Space</p>
+                  <p className="mt-0.5 text-[10px] leading-tight text-white/45">
+                    Coursework & check-ins
                   </p>
                 </button>
 
@@ -253,7 +289,7 @@ export function LoginPortalModal({
                 <button
                   type="button"
                   onClick={() => handleRoleSelect('counsellor')}
-                  className={`relative flex flex-col items-start p-3.5 rounded-xl border text-left transition-all duration-200 ${
+                  className={`relative flex flex-col items-start p-3 rounded-xl border text-left transition-all duration-200 ${
                     selectedRole === 'counsellor'
                       ? 'border-[#c3f340] bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]'
                       : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
@@ -261,23 +297,55 @@ export function LoginPortalModal({
                 >
                   <div className="flex w-full items-center justify-between">
                     <div
-                      className={`grid h-8 w-8 place-items-center rounded-lg border ${
+                      className={`grid h-7 w-7 place-items-center rounded-lg border ${
                         selectedRole === 'counsellor'
                           ? 'border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]'
                           : 'border-white/10 bg-white/5 text-white/50'
                       }`}
                     >
-                      <HeartHandshake size={16} />
+                      <HeartHandshake size={14} />
                     </div>
                     {selectedRole === 'counsellor' && (
-                      <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c3f340] text-[#0d1408]">
-                        <Check size={10} strokeWidth={3} />
+                      <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c3f340] text-[#0d1408]">
+                        <Check size={9} strokeWidth={3} />
                       </span>
                     )}
                   </div>
-                  <p className="mt-3 text-xs font-bold text-white">Counsellor Space</p>
-                  <p className="mt-0.5 text-[11px] leading-tight text-white/45">
-                    Caseload triage, cohort alerts & clinical notes
+                  <p className="mt-2.5 text-xs font-bold text-white">Counsellor Portal</p>
+                  <p className="mt-0.5 text-[10px] leading-tight text-white/45">
+                    Caseload triage & notes
+                  </p>
+                </button>
+
+                {/* Admin Card */}
+                <button
+                  type="button"
+                  onClick={() => handleRoleSelect('admin')}
+                  className={`relative flex flex-col items-start p-3 rounded-xl border text-left transition-all duration-200 ${
+                    selectedRole === 'admin'
+                      ? 'border-[#c3f340] bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]'
+                      : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <div className="flex w-full items-center justify-between">
+                    <div
+                      className={`grid h-7 w-7 place-items-center rounded-lg border ${
+                        selectedRole === 'admin'
+                          ? 'border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]'
+                          : 'border-white/10 bg-white/5 text-white/50'
+                      }`}
+                    >
+                      <Scale size={14} />
+                    </div>
+                    {selectedRole === 'admin' && (
+                      <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c3f340] text-[#0d1408]">
+                        <Check size={9} strokeWidth={3} />
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2.5 text-xs font-bold text-white">Admin Portal</p>
+                  <p className="mt-0.5 text-[10px] leading-tight text-white/45">
+                    Campus overview & health
                   </p>
                 </button>
               </div>
@@ -309,6 +377,8 @@ export function LoginPortalModal({
                     placeholder={
                       selectedRole === 'student'
                         ? 'student.id@university.edu'
+                        : selectedRole === 'admin'
+                        ? 'marcus.vance@governance.university.edu'
                         : 'counsellor.staff@university.edu'
                     }
                     className="w-full rounded-lg border border-white/10 bg-white/[0.04] py-2.5 pl-9 pr-3 text-xs text-white placeholder-white/25 outline-none transition focus:border-[#c3f340] focus:bg-white/[0.07]"
@@ -353,7 +423,7 @@ export function LoginPortalModal({
                       </span>
                     ) : (
                       <>
-                        Sign In to {selectedRole === 'student' ? 'Student Space' : 'Counsellor Space'}
+                        Sign In to {selectedRole === 'student' ? 'Student Space' : selectedRole === 'admin' ? 'Admin Portal' : 'Counsellor Space'}
                         <ArrowRight size={14} strokeWidth={2.5} />
                       </>
                     )}
@@ -401,8 +471,22 @@ export function LoginPortalModal({
                   </div>
                   <ArrowRight size={13} className="text-white/30 group-hover:text-[#c3f340]" />
                 </button>
+              ) : lockedRole === 'admin' ? (
+                <button
+                  type="button"
+                  onClick={() => handleQuickDemoLogin('admin')}
+                  className="group flex w-full items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2.5 text-left transition hover:border-[#c3f340]/40 hover:bg-[#c3f340]/[0.05]"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-bold text-white group-hover:text-[#c3f340]">
+                      Dr. Marcus Vance
+                    </p>
+                    <p className="text-[10px] text-white/40">Administrator Demo Profile · Governance & Oversight</p>
+                  </div>
+                  <ArrowRight size={13} className="text-white/30 group-hover:text-[#c3f340]" />
+                </button>
               ) : (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => handleQuickDemoLogin('student')}
@@ -412,9 +496,9 @@ export function LoginPortalModal({
                       <p className="truncate text-[11px] font-bold text-white group-hover:text-[#c3f340]">
                         Aria Chen
                       </p>
-                      <p className="text-[9px] text-white/40">Student Demo</p>
+                      <p className="text-[9px] text-white/40">Student</p>
                     </div>
-                    <ArrowRight size={12} className="text-white/30 group-hover:text-[#c3f340]" />
+                    <ArrowRight size={11} className="text-white/30 group-hover:text-[#c3f340]" />
                   </button>
 
                   <button
@@ -424,11 +508,25 @@ export function LoginPortalModal({
                   >
                     <div className="min-w-0">
                       <p className="truncate text-[11px] font-bold text-white group-hover:text-[#c3f340]">
-                        Dr. A. Ross
+                        Dr. Ross
                       </p>
-                      <p className="text-[9px] text-white/40">Counsellor Demo</p>
+                      <p className="text-[9px] text-white/40">Counsellor</p>
                     </div>
-                    <ArrowRight size={12} className="text-white/30 group-hover:text-[#c3f340]" />
+                    <ArrowRight size={11} className="text-white/30 group-hover:text-[#c3f340]" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickDemoLogin('admin')}
+                    className="group flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] p-2 text-left transition hover:border-[#c3f340]/40 hover:bg-[#c3f340]/[0.05]"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] font-bold text-white group-hover:text-[#c3f340]">
+                        Dr. Vance
+                      </p>
+                      <p className="text-[9px] text-white/40">Admin</p>
+                    </div>
+                    <ArrowRight size={11} className="text-white/30 group-hover:text-[#c3f340]" />
                   </button>
                 </div>
               )}

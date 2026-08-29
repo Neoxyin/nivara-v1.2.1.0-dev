@@ -84,7 +84,7 @@ export const mockAcademicSuggestions: AcademicSuggestion[] = [
     description:
       'You are currently at 88% in Creative Coding (14/16 sessions). Attending the next two scheduled labs will lift attendance above 90% and ensure full project credit.',
     impact: '+2.8% projected attendance boost',
-    actionText: 'View Class Timetable',
+    actionText: 'View Module Records',
     actionHref: '#modules',
     tone: 'accent',
   },

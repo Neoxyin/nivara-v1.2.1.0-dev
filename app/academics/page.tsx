@@ -10,10 +10,8 @@ import { RingProgress } from '@/components/dashboard/ring-progress';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
 import { StaggerContainer } from '@/components/ui/stagger-container';
-import { TimetableSection } from '@/components/academics/timetable-section';
 import {
   getTrendData,
-  getDeadlines,
   getAcademicMetrics,
   getAttendanceSummary,
   getAcademicSuggestions,
@@ -31,12 +29,10 @@ import {
   Clock3,
   Sparkles,
   BookOpen,
-  CalendarCheck,
   ShieldCheck,
   ArrowUpRight,
   GraduationCap,
   Activity,
-  Calendar,
 } from 'lucide-react';
 
 const TrendChart = dynamicImport(
@@ -51,13 +47,11 @@ const TrendChart = dynamicImport(
 
 export default function AcademicsPage() {
   const [range, setRange] = useState('6 weeks');
-  const [activeTab, setActiveTab] = useState<'all' | 'schedule' | 'modules' | 'deadlines'>('all');
 
   const { data: preferences } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
   const hasAcademicConsent = preferences?.find((p) => p.key === 'academic_data')?.enabled ?? false;
 
   const { data: trendData } = useQuery({ queryKey: ['trendData'], queryFn: getTrendData, enabled: hasAcademicConsent });
-  const { data: deadlines } = useQuery({ queryKey: ['deadlines'], queryFn: getDeadlines, enabled: hasAcademicConsent });
   const { data: metrics } = useQuery({ queryKey: ['academicMetrics'], queryFn: getAcademicMetrics, enabled: hasAcademicConsent });
   const { data: attendanceSummary } = useQuery({
     queryKey: ['attendanceSummary'],
@@ -78,8 +72,8 @@ export default function AcademicsPage() {
         {/* Page Header */}
         <SectionHeading
           eyebrow="Academic rhythm · Continuous tracking"
-          title="Academics, Schedule & Attendance."
-          description="A transparent view of course timetable, verified attendance records, module workload, and actionable pacing suggestions — without stress or surveillance."
+          title="Academics & Attendance."
+          description="A transparent view of verified attendance records, module workload, and actionable pacing suggestions — without stress or surveillance."
           action={
             <div className="flex items-center gap-2">
               <div className="flex border border-white/[0.09] bg-white/[0.02] p-1 rounded-md backdrop-blur-md">
@@ -179,15 +173,12 @@ export default function AcademicsPage() {
                     <p className="mt-0.5 font-display text-xl text-white">4 subjects</p>
                   </div>
                   <div>
-                    <p className="serenity-label text-white/40">Timetable Status</p>
-                    <p className="mt-0.5 font-display text-xl text-[#c3f340]">Synced & Active</p>
+                    <p className="serenity-label text-white/40">Semester Pace</p>
+                    <p className="mt-0.5 font-display text-xl text-[#c3f340]">On Track</p>
                   </div>
                 </div>
               </TiltCard>
             </div>
-
-            {/* Timetable & Schedule Upload Section */}
-            <TimetableSection />
 
             {/* Actionable Suggestions & Early Pacing Alerts */}
             <div>
@@ -316,44 +307,6 @@ export default function AcademicsPage() {
                       <div className="mt-4 pt-3 border-t border-white/[0.07] flex items-center justify-between text-[10px] text-white/45">
                         <span>Next: {metric.nextSession || 'Check schedule'}</span>
                         <span className="font-mono text-[#c3f340]">Score: {metric.score}/100</span>
-                      </div>
-                    </TiltCard>
-                  </div>
-                ))}
-              </StaggerContainer>
-            </div>
-
-            {/* Upcoming Deadlines */}
-            <div>
-              <div className="mb-4 flex items-center gap-3">
-                <Clock3 size={15} className="text-[#c3f340]" />
-                <h3 className="font-display text-xl text-white">Upcoming Coursework Milestones</h3>
-                <span className="h-px flex-1 bg-white/[0.07]" />
-              </div>
-
-              <StaggerContainer stagger={0.05} className="space-y-2.5">
-                {deadlines?.map((deadline, i) => (
-                  <div key={i} className="stagger-item">
-                    <TiltCard
-                      maxTilt={2}
-                      className="flex items-center justify-between border border-white/[0.09] bg-[hsl(var(--card))]/90 px-6 py-4 backdrop-blur-xl transition-all hover:border-white/20 rounded-xl"
-                      data-testid={`row-deadline-${i}`}
-                    >
-                      <div className="flex items-center gap-3.5">
-                        <div className="grid h-8 w-8 place-items-center rounded bg-white/[0.04] border border-white/[0.08] text-white/60">
-                          <CalendarCheck size={15} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-white">{deadline.title}</p>
-                          <p className="mt-0.5 text-xs text-white/40">{deadline.subject}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <p className="serenity-label text-white/50">{deadline.date}</p>
-                        <Pill tone={deadline.priority === 'high' ? 'warm' : 'default'}>
-                          {deadline.priority}
-                        </Pill>
                       </div>
                     </TiltCard>
                   </div>

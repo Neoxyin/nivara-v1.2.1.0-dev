@@ -14,7 +14,7 @@ export const mockSupportNeeds: Record<string, SupportNeedProfileData> = {
           'Consecutive missed tutorials over the last 2 weeks.'
         ],
         timeWindow: 'Last 14 days',
-        dataUsed: ['Module attendance records', 'Timetable data'],
+        dataUsed: ['Module attendance records', 'Coursework pacing data'],
         dataNotUsed: ['Library swipe data', 'Campus Wi-Fi logs']
       }
     },

@@ -192,7 +192,7 @@ const DEFAULT_RECOMMENDATIONS: RecommendationItem[] = [
         'Consecutive missed tutorials over the past two weeks.'
       ],
       timeWindow: 'Last 14 days',
-      dataUsed: ['Module attendance logs', 'Timetable records'],
+      dataUsed: ['Module attendance logs', 'Coursework records'],
       dataNotUsed: ['Library swipe data', 'Campus Wi-Fi logs']
     }
   },
@@ -272,10 +272,10 @@ const DEFAULT_RECOMMENDATIONS: RecommendationItem[] = [
     explainability: {
       contributingFactors: [
         'Reported energy has trended lower over the last 3 check-ins.',
-        'Timetable shows busy back-to-back afternoon classes.'
+        'Weekly pattern shows busy back-to-back study blocks.'
       ],
       timeWindow: 'Last 7 days',
-      dataUsed: ['Voluntary well-being check-ins', 'Class timetable'],
+      dataUsed: ['Voluntary well-being check-ins', 'Coursework schedule'],
       dataNotUsed: ['Academic grades', 'Health center records']
     }
   },

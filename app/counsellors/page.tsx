@@ -263,7 +263,7 @@ export default function StudentCounsellorsPage() {
                           'Workload pacing & deadlines',
                           'Exam preparation & stress',
                           'First-year transition',
-                          'Focus & timetable balance',
+                          'Focus & study pacing',
                         ].map((preset) => (
                           <button
                             key={preset}

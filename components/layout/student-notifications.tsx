@@ -31,15 +31,6 @@ export interface StudentNotification {
 
 const INITIAL_NOTIFICATIONS: StudentNotification[] = [
   {
-    id: 'notif-timetable',
-    title: 'Class Timing Reminder',
-    description: 'Interaction Systems starts at 10:00 AM in Studio 3B. Bring your interactive prototype sketches.',
-    timestamp: '25m ago',
-    read: false,
-    type: 'academic',
-    link: '/academics#timetable',
-  },
-  {
     id: 'notif-1',
     title: 'Check-in Reminder',
     description: 'Log your morning 1-minute well-being check-in to calibrate your daily study rhythm.',

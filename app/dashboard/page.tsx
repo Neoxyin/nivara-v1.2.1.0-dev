@@ -11,9 +11,6 @@ import {
   MoreHorizontal,
   Sparkles,
   TrendingUp,
-  Calendar,
-  MapPin,
-  Upload,
 } from 'lucide-react';
 import { AppShell } from '@/components/layout/nivara-shell';
 import { MetricCard } from '@/components/dashboard/metric-card';
@@ -26,7 +23,6 @@ import { StaggerContainer } from '@/components/ui/stagger-container';
 import { getCurrentUser } from '@/lib/auth';
 import { getRecommendations, toggleRecommendation } from '@/lib/api/support';
 import { getTrendData } from '@/lib/api/academics';
-import { getTimetable, getNextUpcomingClass } from '@/lib/api/timetable';
 import { getPreferences } from '@/lib/api/preferences';
 import { useQuery } from '@tanstack/react-query';
 
@@ -44,12 +40,9 @@ export default function DashboardPage() {
   const student = getCurrentUser();
   const { data: recommendations } = useQuery({ queryKey: ['recommendations'], queryFn: getRecommendations });
   const { data: trendData } = useQuery({ queryKey: ['trendData'], queryFn: getTrendData });
-  const { data: timetable = [] } = useQuery({ queryKey: ['timetable'], queryFn: getTimetable });
   const { data: preferences } = useQuery({ queryKey: ['preferences'], queryFn: getPreferences });
   
   const hasWellbeingConsent = preferences?.find((p) => p.key === 'wellbeing_checkins')?.enabled !== false;
-
-  const nextClassInfo = getNextUpcomingClass(timetable);
 
   // Initialise done state only once recommendations load
   const [done, setDone] = useState<boolean[]>([]);
@@ -85,14 +78,6 @@ export default function DashboardPage() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Magnetic>
-              <Link
-                href="/academics#timetable"
-                className="inline-flex items-center gap-2 border border-white/15 bg-white/[0.03] px-4 py-3 text-[11px] font-bold uppercase tracking-[.1em] text-white/80 transition-colors hover:border-[#c3f340]/50 hover:text-white"
-              >
-                <Calendar size={13} className="text-[#c3f340]" /> Timetable & Schedule
-              </Link>
-            </Magnetic>
             {hasWellbeingConsent && (
               <Magnetic>
                 <Link
@@ -106,39 +91,6 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-
-        {/* Live Next Class Schedule Alert Ticker */}
-        {nextClassInfo.nextClass && (
-          <TiltCard
-            maxTilt={1.5}
-            spotlightColor="rgba(195, 243, 64, 0.12)"
-            className="flex items-center justify-between rounded-xl border border-[#c3f340]/25 bg-[#141a10]/90 px-5 py-3 text-white backdrop-blur-xl transition hover:border-[#c3f340]/40"
-          >
-            <div className="flex items-center gap-3">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#c3f340]/20 text-[#dff77d]">
-                <Clock3 size={16} />
-              </span>
-              <div className="flex items-center gap-3">
-                <p className="text-xs font-semibold text-white">
-                  Next Class: <span className="text-[#c3f340]">{nextClassInfo.nextClass.subject}</span> ({nextClassInfo.nextClass.moduleCode})
-                </p>
-                <span className="hidden sm:inline text-xs text-white/50">· {nextClassInfo.nextClass.room}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Pill tone="accent">
-                {nextClassInfo.statusText}
-              </Pill>
-              <Link
-                href="/academics#timetable"
-                className="text-[10px] font-bold uppercase tracking-[.08em] text-white/50 hover:text-[#c3f340] transition-colors inline-flex items-center gap-1"
-              >
-                View full schedule <ArrowUpRight size={11} />
-              </Link>
-            </div>
-          </TiltCard>
-        )}
 
         {/* Metric row with GSAP Stagger - all 4 cards fully interactive */}
         <StaggerContainer stagger={0.07} className="grid grid-cols-4 gap-3">

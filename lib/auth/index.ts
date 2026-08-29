@@ -24,7 +24,7 @@ export function syncSessionCookie(): void {
     const storedRole = window.localStorage.getItem(ROLE_STORAGE_KEY) as UserRole | null;
     if (isAuth && storedRole && ['student', 'counsellor', 'admin'].includes(storedRole)) {
       const upperRole = storedRole.toUpperCase();
-      const email = storedRole === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu';
+      const email = storedRole === 'student' ? 'aria.chen@university.edu' : storedRole === 'admin' ? 'marcus.vance@governance.university.edu' : 'a.ross@wellbeing.university.edu';
       const payload = encodeURIComponent(JSON.stringify({ role: upperRole, email }));
       
       const isHttps = window.location.protocol === 'https:';
@@ -100,7 +100,7 @@ export function setUserRole(role: UserRole): void {
       
     // Synchronize session cookie for Next.js middleware and SSR
     const upperRole = role.toUpperCase();
-    const email = role === 'student' ? 'aria.chen@university.edu' : 'a.ross@wellbeing.university.edu';
+    const email = role === 'student' ? 'aria.chen@university.edu' : role === 'admin' ? 'marcus.vance@governance.university.edu' : 'a.ross@wellbeing.university.edu';
     const payload = encodeURIComponent(JSON.stringify({ role: upperRole, email }));
     
     document.cookie = `nivara_session=${payload}; path=/; max-age=86400; SameSite=Lax`;

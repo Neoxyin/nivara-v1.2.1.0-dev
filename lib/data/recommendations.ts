@@ -26,10 +26,10 @@ export const mockRecommendations: Recommendation[] = [
     explainability: {
       contributingFactors: [
         'Reported energy has trended lower over the last 3 check-ins.',
-        'Your timetable shows back-to-back afternoon classes.'
+        'Your weekly schedule shows concentrated study blocks.'
       ],
       timeWindow: 'Last 7 days',
-      dataUsed: ['Well-being check-ins', 'Class timetable'],
+      dataUsed: ['Well-being check-ins', 'Coursework schedule'],
       dataNotUsed: ['Academic grades']
     }
   },

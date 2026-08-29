@@ -50,7 +50,7 @@ export function middleware(request: NextRequest) {
   // them into the existing role-specific login modal flow on the landing page.
   if (pathname === '/login') {
     const requestedRole = searchParams.get('role');
-    const role = requestedRole === 'student' || requestedRole === 'counsellor' ? requestedRole : null;
+    const role = requestedRole === 'student' || requestedRole === 'counsellor' || requestedRole === 'admin' ? requestedRole : null;
     const url = new URL('/', request.url);
     url.searchParams.set('auth', 'required');
     if (role) url.searchParams.set('role', role);
@@ -76,6 +76,7 @@ export function middleware(request: NextRequest) {
     url.searchParams.set('auth', 'required');
     if (isCounsellorRoute) url.searchParams.set('role', 'counsellor');
     else if (isStudentRoute) url.searchParams.set('role', 'student');
+    else if (isAdminRoute) url.searchParams.set('role', 'admin');
     return NextResponse.redirect(url);
   }
 

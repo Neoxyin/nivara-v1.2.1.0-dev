@@ -21,7 +21,7 @@ import { setUserRole } from '@/lib/auth';
 interface RoleSelectionPopinProps {
   forceOpen?: boolean;
   onClose?: () => void;
-  onSelectRole?: (role: 'student' | 'counsellor') => void;
+  onSelectRole?: (role: 'student' | 'counsellor' | 'admin') => void;
 }
 
 
@@ -32,7 +32,7 @@ export function RoleSelectionPopin({
 }: RoleSelectionPopinProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [hoveredRole, setHoveredRole] = useState<'student' | 'counsellor' | null>(null);
+  const [hoveredRole, setHoveredRole] = useState<'student' | 'counsellor' | 'admin' | null>(null);
 
   useEffect(() => {
     if (forceOpen) {
@@ -46,7 +46,7 @@ export function RoleSelectionPopin({
   // explicit action from the landing page (Get Started). Logging out must
   // return to the landing page without reopening the selector.
 
-  const handleSelectRole = (role: 'student' | 'counsellor') => {
+  const handleSelectRole = (role: 'student' | 'counsellor' | 'admin') => {
     setIsOpen(false);
     if (onClose) onClose();
 
@@ -57,7 +57,9 @@ export function RoleSelectionPopin({
 
     setUserRole(role);
 
-    if (role === 'counsellor') {
+    if (role === 'admin') {
+      router.push('/admin');
+    } else if (role === 'counsellor') {
       router.push('/counsellor');
     } else {
       router.push('/dashboard');
@@ -91,7 +93,7 @@ export function RoleSelectionPopin({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl border border-white/[0.12] bg-[#111111]/95 p-6 sm:p-8 text-white shadow-[0_30px_90px_rgba(0,0,0,0.85),0_0_40px_rgba(195,243,64,0.06)] backdrop-blur-2xl my-auto"
+            className="relative z-10 w-full max-w-4xl overflow-hidden rounded-2xl border border-white/[0.12] bg-[#111111]/95 p-6 sm:p-8 text-white shadow-[0_30px_90px_rgba(0,0,0,0.85),0_0_40px_rgba(195,243,64,0.06)] backdrop-blur-2xl my-auto"
           >
             {/* Ambient Background Glow */}
             <div className="pointer-events-none absolute -top-32 -right-32 h-64 w-64 rounded-full bg-[#c3f340]/[0.09] blur-3xl" />
@@ -124,13 +126,13 @@ export function RoleSelectionPopin({
               <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-white">
                 Choose your Nivara space
               </h2>
-              <p className="mt-2 text-xs sm:text-sm text-white/55 max-w-lg leading-relaxed">
-                Nivara provides distinct, independent environments for students and university wellbeing teams. Select your role to open your dedicated workspace.
+              <p className="mt-2 text-xs sm:text-sm text-white/55 max-w-2xl leading-relaxed">
+                Nivara provides distinct, independent environments for students, university wellbeing teams, and administrative leadership. Select your role to open your dedicated workspace.
               </p>
             </div>
 
-            {/* Two Distinct Workspace Cards */}
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {/* Three Distinct Workspace Cards */}
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
               {/* Student Workspace Card */}
               <div
                 onMouseEnter={() => setHoveredRole('student')}
@@ -175,10 +177,10 @@ export function RoleSelectionPopin({
                     <button
                       type="button"
                       onClick={() => handleSelectRole('student')}
-                      className="btn-sweep w-full flex items-center justify-center gap-2.5 rounded-lg border border-white/20 bg-white/[0.04] px-6 py-3 text-xs font-bold uppercase tracking-[.12em] text-white/90 hover:border-[#c3f340] hover:bg-[#c3f340] hover:text-[#0d1408] hover:shadow-[0_0_18px_rgba(195,243,64,0.35)] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-center"
+                      className="btn-sweep w-full flex items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/[0.04] px-4 py-2.5 text-xs font-bold uppercase tracking-[.12em] text-white/90 hover:border-[#c3f340] hover:bg-[#c3f340] hover:text-[#0d1408] hover:shadow-[0_0_18px_rgba(195,243,64,0.35)] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-center"
                     >
-                      <span>I am a Student</span>
-                      <ArrowRight size={14} strokeWidth={2.5} className="shrink-0 ml-0.5" />
+                      <span>Enter Student</span>
+                      <ArrowRight size={13} strokeWidth={2.5} className="shrink-0 ml-0.5" />
                     </button>
                   </Magnetic>
                 </div>
@@ -228,10 +230,63 @@ export function RoleSelectionPopin({
                     <button
                       type="button"
                       onClick={() => handleSelectRole('counsellor')}
-                      className="btn-sweep w-full flex items-center justify-center gap-2.5 rounded-lg border border-white/20 bg-white/[0.04] px-6 py-3 text-xs font-bold uppercase tracking-[.12em] text-white/90 hover:border-[#c3f340] hover:bg-[#c3f340] hover:text-[#0d1408] hover:shadow-[0_0_18px_rgba(195,243,64,0.35)] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-center"
+                      className="btn-sweep w-full flex items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/[0.04] px-4 py-2.5 text-xs font-bold uppercase tracking-[.12em] text-white/90 hover:border-[#c3f340] hover:bg-[#c3f340] hover:text-[#0d1408] hover:shadow-[0_0_18px_rgba(195,243,64,0.35)] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-center"
                     >
-                      <span>I am a Counsellor</span>
-                      <ArrowRight size={14} strokeWidth={2.5} className="shrink-0 ml-0.5" />
+                      <span>Enter Counsellor</span>
+                      <ArrowRight size={13} strokeWidth={2.5} className="shrink-0 ml-0.5" />
+                    </button>
+                  </Magnetic>
+                </div>
+              </div>
+
+              {/* Administrator Workspace Card */}
+              <div
+                onMouseEnter={() => setHoveredRole('admin')}
+                onMouseLeave={() => setHoveredRole(null)}
+                className="group relative flex flex-col justify-between rounded-xl border border-white/[0.1] bg-[#161616]/90 p-5 transition-all duration-200 hover:border-[#c3f340] hover:bg-[#c3f340]/[0.04] hover:shadow-[0_0_24px_rgba(195,243,64,0.12)] text-left"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="grid h-10 w-10 place-items-center rounded-xl border border-[#40b0f3]/40 bg-[#40b0f3]/10 text-[#7dd3f7] shadow-[0_0_12px_rgba(64,176,243,0.2)]">
+                      <Building2 size={20} />
+                    </div>
+                    <span className="rounded-full border border-[#40b0f3]/30 bg-[#40b0f3]/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[.1em] text-[#7dd3f7]">
+                      Administration
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-base font-bold text-white group-hover:text-[#c3f340] transition-colors">
+                    Administrator Portal
+                  </h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-white/55">
+                    Campus-wide governance and oversight. Monitor aggregate wellness trends, service uptime, capacity planning, and DPDP/FERPA consent audits.
+                  </p>
+
+                  <ul className="mt-4 space-y-2 text-[11px] text-white/50">
+                    <li className="flex items-center gap-2">
+                      <Check size={12} className="text-[#c3f340] shrink-0" />
+                      <span>Campus Support Overview</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check size={12} className="text-[#c3f340] shrink-0" />
+                      <span>System service uptime & telemetry</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check size={12} className="text-[#c3f340] shrink-0" />
+                      <span>Fairness & Consent audit log</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mt-6 pt-3 border-t border-white/[0.06]">
+                  <Magnetic className="w-full block">
+                    <button
+                      type="button"
+                      onClick={() => handleSelectRole('admin')}
+                      className="btn-sweep w-full flex items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/[0.04] px-4 py-2.5 text-xs font-bold uppercase tracking-[.12em] text-white/90 hover:border-[#c3f340] hover:bg-[#c3f340] hover:text-[#0d1408] hover:shadow-[0_0_18px_rgba(195,243,64,0.35)] transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] text-center"
+                    >
+                      <span>Enter Admin</span>
+                      <ArrowRight size={13} strokeWidth={2.5} className="shrink-0 ml-0.5" />
                     </button>
                   </Magnetic>
                 </div>

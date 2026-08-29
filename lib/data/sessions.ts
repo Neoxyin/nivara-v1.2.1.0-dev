@@ -109,7 +109,7 @@ export const mockAppointedSessions: AppointedSession[] = [
     sessionDate: 'Tomorrow',
     status: 'pending',
     sessionType: 'Accessibility & Neurodiversity Pacing',
-    reason: 'ADHD accommodations review and final major project planning timetable.',
+    reason: 'ADHD accommodations review and final major project planning and pacing.',
     notes: 'Accommodations letter in place. Reviewing sensory breaks and focus sprint methods.',
     academics: {
       overallRhythm: 85,

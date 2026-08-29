@@ -20,6 +20,7 @@ import {
   LogOut,
   Landmark,
   HeartPulse,
+  Settings,
 } from 'lucide-react';
 import gsap from 'gsap';
 import { getCurrentUser, logoutUser } from '@/lib/auth';
@@ -348,18 +349,51 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            <Link
-              href="/settings"
-              onMouseEnter={() => router.prefetch('/settings')}
-              className={`relative flex h-10 w-full items-center rounded-xl text-white/55 transition-all duration-150 ease-out hover:bg-white/[0.05] hover:text-white ${
-                collapsed ? 'pointer-events-none opacity-0' : 'opacity-100'
-              }`}
-            >
-              <div className="flex h-10 w-11 shrink-0 items-center justify-center">
-                <span className="h-1.5 w-1.5 rounded-full bg-white/25" />
-              </div>
-              <span className="text-[12px] font-semibold">Settings</span>
-            </Link>
+            <div className="group relative">
+              <Link
+                href="/settings"
+                onMouseEnter={() => router.prefetch('/settings')}
+                className={`relative flex h-10 w-full items-center rounded-xl transition-all duration-150 ease-out hover:scale-[1.02] hover:bg-white/[0.05] active:scale-[0.98] ${
+                  pathname === '/settings' || pathname.startsWith('/settings/')
+                    ? 'bg-white/[0.08] text-white shadow-[0_0_14px_rgba(195,243,64,0.08),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'text-white/55 hover:text-white'
+                }`}
+              >
+                {pathname === '/settings' && (
+                  <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-[#c3f340] shadow-[0_0_10px_#c3f340]" />
+                )}
+                <div className="flex h-10 w-11 shrink-0 items-center justify-center">
+                  <Settings
+                    size={16}
+                    strokeWidth={1.8}
+                    className={`transition-colors duration-150 ${
+                      pathname === '/settings' ? 'text-[#c3f340]' : 'text-white/55 group-hover:text-white'
+                    }`}
+                  />
+                </div>
+                <span
+                  className={`truncate text-[12px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    collapsed
+                      ? 'max-w-0 opacity-0 pointer-events-none blur-sm -translate-x-2'
+                      : 'max-w-[130px] opacity-100 blur-0 translate-x-0'
+                  }`}
+                >
+                  Settings
+                </span>
+              </Link>
+
+              {collapsed && (
+                <div
+                  role="tooltip"
+                  className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 opacity-0 -translate-x-1 scale-95 group-hover:opacity-100 group-hover:translate-x-0 group-hover:scale-100 transition-all duration-150 ease-out z-[60] flex items-center"
+                >
+                  <div className="relative rounded-md border border-white/[0.12] bg-[#141414]/95 px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_4px_16px_rgba(0,0,0,0.7),0_0_10px_rgba(195,243,64,0.15)] backdrop-blur-xl whitespace-nowrap">
+                    Settings
+                    <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rotate-45 border-b border-l border-white/[0.12] bg-[#141414]" />
+                  </div>
+                </div>
+              )}
+            </div>
 
           </div>
         </div>

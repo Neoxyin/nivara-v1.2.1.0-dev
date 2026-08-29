@@ -1,7 +1,6 @@
 // Central API exports for easy importing
 export * from './checkins';
 export * from './academics';
-export * from './timetable';
 export * from './counsellors';
 export * from './resources';
 export * from './student';

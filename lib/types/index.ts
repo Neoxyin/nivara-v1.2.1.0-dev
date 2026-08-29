@@ -61,21 +61,6 @@ export type AcademicSuggestion = {
   tone: 'accent' | 'warm' | 'plum';
 };
 
-export type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
-
-export type TimetableClass = {
-  id: string;
-  day: DayOfWeek;
-  startTime: string;
-  endTime: string;
-  subject: string;
-  moduleCode: string;
-  room: string;
-  instructor?: string;
-  type: 'lecture' | 'lab' | 'seminar' | 'studio';
-  notes?: string;
-};
-
 export type Deadline = { 
   title: string; 
   subject: string; 

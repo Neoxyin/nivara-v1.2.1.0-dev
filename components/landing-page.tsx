@@ -33,26 +33,26 @@ export function LandingPage() {
   const showcaseRef = useRef<HTMLDivElement>(null);
   const [isPopinOpen, setIsPopinOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [loginModalRole, setLoginModalRole] = useState<'student' | 'counsellor' | null>(null);
+  const [loginModalRole, setLoginModalRole] = useState<'student' | 'counsellor' | 'admin' | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const [savedRole, setSavedRole] = useState<'student' | 'counsellor' | null>(null);
+  const [savedRole, setSavedRole] = useState<'student' | 'counsellor' | 'admin' | null>(null);
   const [isAuth, setIsAuth] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const authenticated = window.localStorage.getItem('nivara_authenticated') === 'true';
-    const role = window.localStorage.getItem('nivara_user_role') as 'student' | 'counsellor' | null;
+    const role = window.localStorage.getItem('nivara_user_role') as 'student' | 'counsellor' | 'admin' | null;
     setIsAuth(authenticated);
-    setSavedRole(authenticated && (role === 'student' || role === 'counsellor') ? role : null);
+    setSavedRole(authenticated && (role === 'student' || role === 'counsellor' || role === 'admin') ? role : null);
 
     // React to client-side redirects as well as a full page load. This is
     // important for buttons such as "Try 1-Min Check-in": middleware can
     // redirect to "/?auth=required&role=student" without remounting Home.
     if (searchParams.get('auth') === 'required') {
       const requestedRole = searchParams.get('role');
-      if (requestedRole === 'student' || requestedRole === 'counsellor') {
+      if (requestedRole === 'student' || requestedRole === 'counsellor' || requestedRole === 'admin') {
         setLoginModalRole(requestedRole);
         setIsLoginModalOpen(true);
       }
@@ -136,7 +136,7 @@ export function LandingPage() {
         </Magnetic>
 
         <div className="flex items-center gap-2.5 sm:gap-4">
-          <div className="flex items-center gap-2.5 sm:gap-3 text-[11px] font-bold uppercase tracking-[.1em]">
+          <div className="flex items-center gap-2 sm:gap-3 text-[11px] font-bold uppercase tracking-[.1em]">
             <button
               id="header-student-space-btn"
               type="button"
@@ -161,6 +161,20 @@ export function LandingPage() {
               className="text-white/60 hover:text-[#c3f340] transition-colors"
             >
               Counsellor Portal
+            </button>
+
+            <span className="h-3 w-px bg-white/25" aria-hidden="true" />
+
+            <button
+              id="header-admin-portal-btn"
+              type="button"
+              onClick={() => {
+                setLoginModalRole('admin');
+                setIsLoginModalOpen(true);
+              }}
+              className="text-white/60 hover:text-[#c3f340] transition-colors"
+            >
+              Admin Portal
             </button>
           </div>
 
