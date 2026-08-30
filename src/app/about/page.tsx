@@ -16,6 +16,7 @@ import {
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
 import { FluidBackground } from '@/components/ui/fluid-background';
+import { NivaraLogoIcon } from '@/components/shared/nivara-logo';
 
 export default function AboutPage() {
   return (
@@ -49,8 +50,8 @@ export default function AboutPage() {
 
           {/* Header */}
           <div className="flex items-center gap-3.5 border-b border-white/[0.08] pb-6">
-            <div className="grid h-12 w-12 place-items-center rounded-xl border border-[#c3f340]/30 bg-[#c3f340]/10 text-[#c3f340] shadow-[0_0_20px_rgba(195,243,64,0.2)]">
-              <Sparkles size={24} strokeWidth={2.4} />
+            <div className="relative grid h-12 w-12 place-items-center rounded-xl overflow-hidden shadow-[0_0_20px_rgba(195,243,64,0.35)]">
+              <NivaraLogoIcon size={48} />
             </div>
             <div>
               <h1 className="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">

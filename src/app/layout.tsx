@@ -11,6 +11,11 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Nivara — Student Success & Well-being',
   description: 'A holistic student success platform designed to bridge the gap between academic performance and mental well-being.',
+  icons: {
+    icon: '/nivara-icon-card.svg',
+    shortcut: '/nivara-icon-card.svg',
+    apple: '/nivara-icon-card.svg',
+  },
 }
 
 export default function RootLayout({
