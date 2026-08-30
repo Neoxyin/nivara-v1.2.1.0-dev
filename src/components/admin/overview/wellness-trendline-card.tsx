@@ -20,6 +20,21 @@ interface WellnessTrendlineCardProps {
 }
 
 export function WellnessTrendlineCard({ data }: WellnessTrendlineCardProps) {
+  if (!data || data.length === 0) {
+    return (
+      <TiltCard
+        maxTilt={1}
+        className="rounded-2xl border border-white/[0.08] bg-[#141414]/90 p-8 text-center backdrop-blur-xl"
+      >
+        <Sparkles size={32} className="mx-auto text-white/20 mb-2" />
+        <h3 className="text-sm font-semibold text-white">No wellness trend data yet</h3>
+        <p className="text-xs text-white/40 max-w-md mx-auto mt-1">
+          Aggregate check-in trends will appear once enough consented data is available.
+        </p>
+      </TiltCard>
+    );
+  }
+
   return (
     <TiltCard
       maxTilt={1}

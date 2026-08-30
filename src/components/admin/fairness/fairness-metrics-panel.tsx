@@ -191,55 +191,57 @@ export function FairnessMetricsPanel({ metrics }: FairnessMetricsPanelProps) {
               <span className="text-[11px] font-mono text-white/40">Baseline Comparison</span>
             </div>
 
-            <div className="h-[260px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={selectionRateChartData}
-                  margin={{ top: 10, right: 10, left: -10, bottom: 20 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis
-                    dataKey="name"
-                    stroke="rgba(255,255,255,0.3)"
-                    fontSize={11}
-                    interval={0}
-                    angle={-10}
-                    textAnchor="end"
-                  />
-                  <YAxis
-                    stroke="rgba(255,255,255,0.3)"
-                    fontSize={11}
-                    unit="%"
-                    domain={[0, 50]}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#171717',
-                      border: '1px solid rgba(255,255,255,0.12)',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                    }}
-                    formatter={(value: any, name: any, props: any) => {
-                      if (!props.payload.sufficientData) return ['Insufficient data', 'Selection Rate'];
-                      return [`${value}%`, 'Selection Rate'];
-                    }}
-                  />
-                  <Bar dataKey="rate" name="Selection Rate (%)" radius={[4, 4, 0, 0]}>
-                    {selectionRateChartData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={
-                          !entry.sufficientData
-                            ? 'rgba(255,255,255,0.15)'
-                            : entry.isReference
-                            ? '#c3f340'
-                            : '#38bdf8'
-                        }
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="overflow-x-auto pb-2 -mx-2 px-2 sm:overflow-x-visible">
+              <div className="h-[260px] min-w-[420px] sm:min-w-full w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={selectionRateChartData}
+                    margin={{ top: 10, right: 10, left: -10, bottom: 20 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis
+                      dataKey="name"
+                      stroke="rgba(255,255,255,0.3)"
+                      fontSize={11}
+                      interval={0}
+                      angle={-10}
+                      textAnchor="end"
+                    />
+                    <YAxis
+                      stroke="rgba(255,255,255,0.3)"
+                      fontSize={11}
+                      unit="%"
+                      domain={[0, 50]}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#171717',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                      }}
+                      formatter={(value: any, name: any, props: any) => {
+                        if (!props.payload.sufficientData) return ['Insufficient data', 'Selection Rate'];
+                        return [`${value}%`, 'Selection Rate'];
+                      }}
+                    />
+                    <Bar dataKey="rate" name="Selection Rate (%)" radius={[4, 4, 0, 0]}>
+                      {selectionRateChartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={
+                            !entry.sufficientData
+                              ? 'rgba(255,255,255,0.15)'
+                              : entry.isReference
+                              ? '#c3f340'
+                              : '#38bdf8'
+                          }
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </TiltCard>
 
@@ -407,42 +409,44 @@ export function FairnessMetricsPanel({ metrics }: FairnessMetricsPanelProps) {
               <span className="text-[11px] font-mono text-white/40">Group Parity Audit</span>
             </div>
 
-            <div className="h-[260px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={errorRateChartData}
-                  margin={{ top: 10, right: 10, left: -10, bottom: 20 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis
-                    dataKey="name"
-                    stroke="rgba(255,255,255,0.3)"
-                    fontSize={11}
-                    interval={0}
-                    angle={-10}
-                    textAnchor="end"
-                  />
-                  <YAxis
-                    stroke="rgba(255,255,255,0.3)"
-                    fontSize={11}
-                    unit="%"
-                    domain={[0, 100]}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#171717',
-                      border: '1px solid rgba(255,255,255,0.12)',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                    }}
-                    formatter={(val: any) => [`${val}%`]}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                  <Bar dataKey="fpr" name="False Positive Rate (FPR)" fill="#fb7185" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="fnr" name="False Negative Rate (FNR)" fill="#fbbf24" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="tpr" name="True Positive Rate (TPR)" fill="#4ade80" radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="overflow-x-auto pb-2 -mx-2 px-2 sm:overflow-x-visible">
+              <div className="h-[260px] min-w-[420px] sm:min-w-full w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={errorRateChartData}
+                    margin={{ top: 10, right: 10, left: -10, bottom: 20 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis
+                      dataKey="name"
+                      stroke="rgba(255,255,255,0.3)"
+                      fontSize={11}
+                      interval={0}
+                      angle={-10}
+                      textAnchor="end"
+                    />
+                    <YAxis
+                      stroke="rgba(255,255,255,0.3)"
+                      fontSize={11}
+                      unit="%"
+                      domain={[0, 100]}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#171717',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: '12px',
+                        fontSize: '12px',
+                      }}
+                      formatter={(val: any) => [`${val}%`]}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                    <Bar dataKey="fpr" name="False Positive Rate (FPR)" fill="#fb7185" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="fnr" name="False Negative Rate (FNR)" fill="#fbbf24" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="tpr" name="True Positive Rate (TPR)" fill="#4ade80" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </TiltCard>
 

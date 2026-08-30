@@ -8,8 +8,8 @@ import { consentAuditLogs } from '@/lib/data/admin';
 export default function AdminConsentAuditPage() {
   return (
     <AdminShell
-      title="Consent Ledger"
-      subtitle="Cryptographically verifiable log of all consent changes, category grants, and revocation events."
+      title="Consent & Privacy Audit"
+      subtitle="Immutable institutional audit ledger of all student consent grants, category permissions, and revocation events."
     >
       <ConsentLogTable logs={consentAuditLogs} />
     </AdminShell>

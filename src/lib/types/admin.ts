@@ -144,32 +144,61 @@ export interface SupportProgram {
   updatedAt: string;
 }
 
+export interface CounsellorWorkload {
+  upcomingSessions: number;
+  pendingRequests: number;
+  openFollowUps: number;
+}
+
 export interface AdminCounsellor {
   id: string;
   name: string;
   email: string;
-  specialization: string;
-  activeStudents: number;
-  capacity: number;
-  completedSessions: number;
+  department?: string;
+  specialization?: string;
   status: CounsellorStatus;
-  avgSatisfactionRating: number;
+  workload: {
+    upcomingSessions: number;
+    pendingRequests: number;
+    openFollowUps: number;
+  };
+  activeStudents?: number;
+  capacity?: number;
+  completedSessions?: number;
+  avgSatisfactionRating?: number;
   burnoutRiskScore?: 'low' | 'moderate' | 'elevated';
 }
+
+export type Counsellor = AdminCounsellor;
 
 /**
  * Privacy-preserving student directory entry.
  * STRICT PRIVACY BOUNDARY:
  * Explicitly excludes private clinical notes, raw journal text, or sensitive diagnoses.
  */
-export interface AdminStudentRoster {
+export interface AdminStudent {
   id: string;
   name: string;
+  email: string;
+  studentNumber: string;
   department: string;
+  program?: string;
   year: number;
+  status: 'active' | 'inactive';
   consentLevel: 'full' | 'academic-only' | 'wellbeing-only' | 'revoked';
   assignedCounsellor?: string;
   lastActivityDate: string;
+  joinedAt?: string;
+}
+
+export type AdminStudentRoster = AdminStudent;
+
+export interface CorrectionAuditRecord {
+  requestId: string;
+  action: 'approved' | 'rejected';
+  timestamp: string;
+  reviewedBy: string;
+  reviewNote?: string;
 }
 
 /**
@@ -178,15 +207,22 @@ export interface AdminStudentRoster {
 export interface CorrectionRequest {
   id: string;
   studentId: string;
-  studentName: string;
-  dataType: 'attendance' | 'rhythm-log' | 'consent-record';
+  studentName?: string;
+  field: string;
+  dataType?: 'attendance' | 'rhythm-log' | 'consent-record' | 'academic' | 'program-record' | string;
   currentValue: string;
   requestedValue: string;
   reason: string;
-  submittedAt: string;
   status: CorrectionStatus;
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  reviewNote?: string;
   reviewNotes?: string;
 }
+
+export type ConsentAction = 'granted' | 'withdrawn' | 'updated';
+export type ConsentStatus = 'allowed' | 'withdrawn';
 
 /**
  * Immutable audit trail of student consent modifications with cryptographic verification hash.
@@ -194,12 +230,15 @@ export interface CorrectionRequest {
 export interface ConsentAuditLog {
   id: string;
   studentId: string;
-  studentName: string;
-  category: ConsentCategory;
-  action: 'granted' | 'revoked' | 'updated';
+  studentName?: string;
+  category: 'academic' | 'financial' | 'wellbeing' | 'ai';
+  fields: string[];
+  status: 'allowed' | 'withdrawn';
   timestamp: string;
-  ipAddress: string;
-  verificationHash: string;
+  consentVersion: string;
+  action: 'granted' | 'withdrawn' | 'updated';
+  ipAddress?: string;
+  verificationHash?: string;
 }
 
 export type SystemStatus = "operational" | "degraded" | "offline";

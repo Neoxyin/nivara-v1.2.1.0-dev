@@ -112,7 +112,7 @@ export function DemandTrendChart({ data }: DemandTrendChartProps) {
       </div>
 
       {/* Aggregate Overview Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="rounded-xl border border-white/[0.06] bg-[#121212]/80 p-4">
           <div className="flex items-center justify-between text-white/40 text-[11px]">
             <span>Aggregate Volume</span>
@@ -191,9 +191,10 @@ export function DemandTrendChart({ data }: DemandTrendChartProps) {
             </p>
           </div>
         ) : (
-          <div className="h-[360px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 15, right: 20, left: -10, bottom: 10 }}>
+          <div className="overflow-x-auto pb-2 -mx-2 px-2 sm:overflow-x-visible">
+            <div className="h-[340px] min-w-[500px] sm:min-w-full w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 15, right: 20, left: -10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis
                   dataKey="period"
@@ -260,6 +261,7 @@ export function DemandTrendChart({ data }: DemandTrendChartProps) {
                 />
               </LineChart>
             </ResponsiveContainer>
+            </div>
           </div>
         )}
 
