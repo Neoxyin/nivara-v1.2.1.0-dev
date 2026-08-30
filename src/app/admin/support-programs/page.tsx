@@ -9,7 +9,7 @@ export default function AdminSupportProgramsPage() {
   return (
     <AdminShell
       title="Support Programs"
-      subtitle="Cohort-based transition workshops, peer support circles, and group rhythm coaching."
+      subtitle="Manage student peer circles, transition workshops, and department academic support sessions."
     >
       <ProgramEditor programs={supportPrograms} />
     </AdminShell>

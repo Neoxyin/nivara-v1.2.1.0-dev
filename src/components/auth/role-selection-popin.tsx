@@ -153,7 +153,7 @@ export function RoleSelectionPopin({
                     Student Workspace
                   </h3>
                   <p className="mt-1.5 text-xs leading-relaxed text-white/55">
-                    Your private sanctuary to track academic rhythm, complete daily 30-sec check-ins, and view explainable pacing signals with zero surveillance.
+                    Your private workspace to track coursework deadlines, complete daily 1-minute check-ins, and access academic and financial support resources.
                   </p>
 
                   <ul className="mt-4 space-y-2 text-[11px] text-white/50">
@@ -163,7 +163,7 @@ export function RoleSelectionPopin({
                     </li>
                     <li className="flex items-center gap-2">
                       <Check size={12} className="text-[#c3f340] shrink-0" />
-                      <span>Coursework velocity & signals</span>
+                      <span>Assignment deadlines & attendance tracking</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <Check size={12} className="text-[#c3f340] shrink-0" />

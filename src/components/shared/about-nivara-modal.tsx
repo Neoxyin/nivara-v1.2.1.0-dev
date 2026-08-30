@@ -80,10 +80,10 @@ export function AboutNivaraModal({ isOpen, onClose }: AboutNivaraModalProps) {
                 Core Mission
               </p>
               <p className="mt-2.5 text-[14px] font-medium leading-[1.65] text-white/95 sm:text-[15px]">
-                Nivara is a holistic student success platform bridging the vital gap between academic performance and mental well-being.
+                Nivara is a student support platform connecting academic progress, financial aid, and well-being resources.
               </p>
               <p className="mt-3 text-[12px] leading-[1.65] text-white/65">
-                By contextualizing coursework workload alongside personal recovery rhythms, Nivara helps students recognize strain before burnout occurs, and empowers campus counsellors to provide proactive, compassionate support.
+                Students receive transparent early signals on deadline clustering and sleep patterns, while campus counsellors receive consented triage context to offer timely support.
               </p>
             </div>
 
@@ -99,7 +99,7 @@ export function AboutNivaraModal({ isOpen, onClose }: AboutNivaraModalProps) {
                     <span className="text-xs font-bold">1-Minute Daily Check-ins</span>
                   </div>
                   <p className="mt-2 text-[11px] leading-[1.6] text-white/60">
-                    Frictionless morning check-ins capturing workload, stress levels, and recovery curves without survey fatigue.
+                    1-minute daily check-ins logging self-reported mood, stress, sleep, and workload on a 1–5 scale.
                   </p>
                 </div>
 
@@ -129,7 +129,7 @@ export function AboutNivaraModal({ isOpen, onClose }: AboutNivaraModalProps) {
                     <span className="text-xs font-bold">Academic Tracking</span>
                   </div>
                   <p className="mt-2 text-[11px] leading-[1.6] text-white/60">
-                    Real-time assignment velocity, deadline clustering awareness, and pacing risk calibration.
+                    Coursework deadline tracking, attendance threshold monitoring, and milestone pacing alerts.
                   </p>
                 </div>
               </div>

@@ -192,7 +192,7 @@ export default function CounsellorStudentsPage() {
     <div className="rise-in space-y-6">
       <SectionHeading
         eyebrow="Counsellor Caseload & Authorized Support"
-        title="Students & Support Assessments."
+        title="Student caseload and support assessments"
         description="Review authorized student support context, inspect tri-dimensional support needs (Academic, Financial, Well-being), and examine relevant consented contributing factors upon appointment acceptance."
         action={
           <div className="flex flex-wrap items-center gap-2">

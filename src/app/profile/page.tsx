@@ -78,7 +78,7 @@ export default function ProfilePage() {
       <div className="rise-in space-y-8">
         <SectionHeading
           eyebrow="Your profile"
-          title="Make this space yours."
+          title="Manage your profile and study details."
           description="Keep the basics current so Nivara can keep its language and suggestions relevant."
         />
 

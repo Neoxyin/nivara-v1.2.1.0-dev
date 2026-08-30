@@ -62,7 +62,7 @@ const SUPPORT_OPTIONS: SupportOption[] = [
   {
     id: 'acad-5',
     title: 'Study resources',
-    description: 'Utilize structured study planners, templates, and revision guides.',
+    description: 'Use structured study planners, templates, and revision guides.',
     dimension: 'Academic',
     category: 'Resources',
     actionLabel: 'Explore study tools'
@@ -178,7 +178,7 @@ const SUPPORT_OPTIONS: SupportOption[] = [
   {
     id: 'wb-1',
     title: 'AI Support Space',
-    description: 'Reflect, organize your thoughts, and practice gentle time-boxing in a private, supportive space.',
+    description: 'Work through immediate study stress, draft task priorities, and try guided breathing or grounding exercises.',
     dimension: 'Well-being',
     category: 'Digital',
     actionLabel: 'Open AI Support Space'
@@ -194,7 +194,7 @@ const SUPPORT_OPTIONS: SupportOption[] = [
   {
     id: 'wb-3',
     title: 'Support resources',
-    description: 'Access guided mindfulness audios, sleep hygiene tips, and stress reduction toolkits.',
+    description: 'Browse campus-vetted sleep hygiene guides, somatic grounding audios, and exam stress protocols.',
     dimension: 'Well-being',
     category: 'Self-care',
     actionLabel: 'Explore well-being guides'
@@ -210,7 +210,7 @@ const SUPPORT_OPTIONS: SupportOption[] = [
   {
     id: 'wb-5',
     title: 'Follow-up support',
-    description: 'Schedule a gentle check-in with student support coordinators to track your progress.',
+    description: 'Schedule an informal 15-minute sync with student services to review ongoing academic accommodations or campus resources.',
     dimension: 'Well-being',
     category: 'Coordination',
     actionLabel: 'Explore follow-up options'
@@ -242,7 +242,7 @@ export function SupportMatching({ initialDimension = 'All', className = '' }: Su
             </div>
             <h2 className="text-xl font-semibold text-white tracking-tight">Explore Support Options</h2>
             <p className="text-sm text-white/60 mt-1 max-w-2xl">
-              Support is entirely optional. You may want to explore these available resources whenever you feel they could be helpful. You remain in complete control of your journey.
+              Support is entirely optional. You may want to explore these available resources whenever you feel they could be helpful. You remain in complete control of your choices.
             </p>
           </div>
           
@@ -338,7 +338,7 @@ export function SupportMatching({ initialDimension = 'All', className = '' }: Su
         <div className="text-xs text-white/60 space-y-1">
           <p className="font-semibold text-white/80">Support Availability & Student Agency</p>
           <p>
-            All support options are optional and intended to assist you. Exploring or utilizing support does not affect your grades, benefits, attendance penalties, discipline, or institutional eligibility.
+            All support options are optional and intended to assist you. Exploring or using support does not affect your grades, benefits, attendance penalties, discipline, or institutional eligibility.
           </p>
         </div>
       </div>

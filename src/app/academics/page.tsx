@@ -119,7 +119,7 @@ export default function AcademicsPage() {
                 </div>
                 <div className="mt-4 flex flex-wrap items-center justify-between border-t border-white/[0.07] pt-3 text-[11px] text-white/50">
                   <span className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-[#c3f340]" /> Academic velocity
+                    <span className="h-2 w-2 rounded-full bg-[#c3f340]" /> Academic workload pace
                     <span className="ml-3 h-2 w-2 rounded-full bg-[#e5a27d]" /> Well-being index
                   </span>
                   <span className="text-white/40">Updated after each daily 1-min reflection</span>

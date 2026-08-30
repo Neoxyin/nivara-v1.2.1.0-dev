@@ -197,7 +197,7 @@ export default function DashboardPage() {
             <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full border-[20px] border-[#c3f340]/15 animate-pulse" />
             <p className="serenity-label text-[#9eaa9f]">Early signal</p>
             <h2 className="mt-12 max-w-[260px] font-display text-4xl leading-[.95]">
-              Your workload is concentrating
+              Your workload is picking up
             </h2>
             <p className="mt-4 text-sm leading-6 text-white/60">
               Two high-effort submissions land within the next 48 hours.
@@ -220,13 +220,13 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="serenity-label text-white/40">Next up</p>
-                <h2 className="mt-2 font-display text-3xl">Keep it small</h2>
+                <h2 className="mt-2 font-display text-3xl">Suggested step</h2>
               </div>
               <RingProgress value={64} label="steady" />
             </div>
             <div className="mt-5 border-t border-white/[0.08] pt-5">
               <p className="text-sm leading-6 text-white/55">
-                A 45-minute prototype plan is enough for today. Momentum comes from knowing the next move.
+                Block 45 minutes for your nearest deadline today. Splitting larger coursework into single focused segments helps prevent last-minute overload.
               </p>
               <Magnetic>
                 <Link

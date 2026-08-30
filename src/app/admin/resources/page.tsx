@@ -9,7 +9,7 @@ export default function AdminResourcesPage() {
   return (
     <AdminShell
       title="Resources"
-      subtitle="Publish, curate, and audit verified emergency, academic, and wellness support toolkits."
+      subtitle="Publish, review, and maintain verified campus directories for emergency aid, academic tutoring, and financial programs."
     >
       <ResourceEditor resources={resources} />
     </AdminShell>

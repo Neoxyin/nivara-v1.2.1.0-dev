@@ -57,11 +57,11 @@ const STEPS = [
     tone: 'accent' as const,
     title: 'Quick daily reflection that works for you',
     description:
-      'Take 30 seconds each day to log how your studies feel. Nivara calculates your personal rhythm curve to flag overlapping friction points before you feel overwhelmed.',
+      'Take 1 minute each day to log mood, sleep, stress, and workload. Nivara tracks multi-day patterns to flag overlapping deadlines and low-energy periods.',
     features: [
       {
         icon: Clock3,
-        label: 'Under 30 Seconds',
+        label: 'Under 1 Minute',
         desc: 'Quick mood, energy, and sleep sliders designed for zero cognitive load.',
       },
       {
@@ -87,7 +87,7 @@ const STEPS = [
       {
         icon: Compass,
         label: 'Clear Reason Trails',
-        desc: 'Understand why a module is flagged as high friction or smooth sailing.',
+        desc: 'Understand the exact data points—like deadline clusters or low sleep—behind every recommendation.',
       },
       {
         icon: Activity,

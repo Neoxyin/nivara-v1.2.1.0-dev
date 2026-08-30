@@ -11,7 +11,7 @@ export default function AdminOverviewPage() {
   return (
     <AdminShell
       title="Campus Support Overview"
-      subtitle="Institute-wide aggregate wellness indicators, longitudinal check-in trends, and platform service integrity."
+      subtitle="Institute-wide check-in participation rates, support demand by dimension, and system service health."
     >
       <div className="space-y-6">
         {/* Campus Stats (Total Students, Active Counsellors, Open Cases) */}

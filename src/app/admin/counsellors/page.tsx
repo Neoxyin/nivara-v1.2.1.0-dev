@@ -10,7 +10,7 @@ export default function AdminCounsellorsPage() {
   return (
     <AdminShell
       title="Counsellors & Staff"
-      subtitle="Monitor caseload balance, availability windows, and student feedback to prevent practitioner burnout."
+      subtitle="Track active caseloads, weekly consultation hours, and duty shifts across campus counselling staff."
     >
       <div className="space-y-6">
         <CounsellorWorkloadCard counsellors={counsellors} />

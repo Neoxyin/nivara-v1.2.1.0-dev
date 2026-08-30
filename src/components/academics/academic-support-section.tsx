@@ -61,7 +61,7 @@ export function AcademicSupportSection() {
       <div>
         <h2 className="font-display text-2xl text-white">Institutional Academic Support</h2>
         <p className="mt-2 text-sm text-white/60 max-w-2xl leading-relaxed">
-          NIVARA connects you directly to available institutional support. You have full agency over whether to use these services. Utilizing support will never penalize your standing or restrict your benefits.
+          NIVARA connects you directly to available institutional support. You have full agency over whether to use these services. Using support will never penalize your standing or restrict your benefits.
         </p>
       </div>
 

@@ -46,7 +46,7 @@ function buildPrimaryInsight(
 
   switch (pattern.id) {
     case 'WORKLOAD_CONCENTRATION':
-      title = 'Your workload is concentrating';
+      title = 'Your workload is picking up';
       summary = `Two high-effort submissions land within the next 48 hours. Your latest check-in also reflects elevated workload (${latestCheckIn?.workload ?? 4}/5) and sleep at ${latestCheckIn?.sleep ?? 2}/5.`;
       tone = 'watch';
       actions = ['Break the next deadline into one 45-minute block', 'Move one lower-priority task to later this week'];

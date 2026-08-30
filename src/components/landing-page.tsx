@@ -225,7 +225,7 @@ export function LandingPage() {
             </h1>
 
             <p className="hero-desc mt-4 max-w-[540px] text-[14px] leading-6 text-white/65 md:text-[15px]">
-              Nivara bridges academic performance and mental well-being into one cohesive platform — so you can balance study energy and prevent burnout before crunch weeks arrive.
+              Nivara connects academic schedules, self-reported well-being check-ins, and institutional support options — helping you flag workload spikes and get support before deadline crunch.
             </p>
 
             {/* Direct Role Entry Points */}
@@ -289,18 +289,18 @@ export function LandingPage() {
                   <span className="h-2 w-2 animate-pulse rounded-full bg-[#c3f340] shadow-[0_0_14px_rgba(195,243,64,1)]" />
                 </div>
                 <p className="mt-7 font-display text-3xl sm:text-4xl leading-[1.0] text-white">
-                  A small plan is still a plan.
+                  Workload & Pacing Early Warning
                 </p>
                 <p className="mt-3 text-xs sm:text-sm text-white/55 leading-relaxed">
-                  Your coursework velocity and stress rhythms are gently evaluated with zero surveillance.
+                  Course deadlines, submission density, and self-reported sleep/stress ratings are scored locally to surface pacing risks.
                 </p>
               </div>
 
               <div className="mt-6 pt-5 border-t border-white/10">
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3">
-                    <p className="text-[10px] text-white/40 uppercase tracking-wider">Rhythm Score</p>
-                    <p className="text-xl font-bold text-[#c3f340] mt-0.5">78% Stable</p>
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider">Evaluation Model</p>
+                    <p className="text-sm font-bold text-[#c3f340] mt-0.5">Deterministic Signal Rules</p>
                   </div>
                   <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3">
                     <p className="text-[10px] text-white/40 uppercase tracking-wider">Check-in Status</p>
@@ -321,10 +321,10 @@ export function LandingPage() {
             <div className="mb-12 text-left">
               <p className="serenity-label text-[#c3f340]/80">Core Pillars & Mission</p>
               <h2 className="mt-2 max-w-2xl font-display text-4xl leading-[.94] md:text-5xl text-white">
-                Support designed for the whole student.
+                Integrated support across academics, finances, and well-being.
               </h2>
               <p className="mt-3 max-w-2xl text-xs sm:text-sm text-white/55 leading-relaxed">
-                Bridging academic performance and mental well-being through proactive, private, and explainable tools.
+                Connecting academic performance and personal well-being through proactive, private, and explainable tools.
               </p>
             </div>
 
@@ -340,7 +340,7 @@ export function LandingPage() {
                 </div>
                 <h3 className="mt-8 text-base font-bold text-white">Daily Well-being Check-ins</h3>
                 <p className="mt-2 text-xs leading-5 text-white/50">
-                  Frictionless 1-minute daily morning reflections capturing workload friction, stress rhythms, and recovery curves without survey fatigue.
+                  A 1-minute daily check-in capturing 1–5 ratings for mood, stress, sleep, and energy without lengthy surveys.
                 </p>
               </TiltCard>
 
@@ -355,7 +355,7 @@ export function LandingPage() {
                 </div>
                 <h3 className="mt-8 text-base font-bold text-white">Counsellor Connectivity</h3>
                 <p className="mt-2 text-xs leading-5 text-white/50">
-                  Confidential 20-minute appointment scheduling and drop-in spaces connecting students directly with licensed university support specialists.
+                  Direct booking for 20-minute confidential consultations and student support circles with campus advisors.
                 </p>
               </TiltCard>
 
@@ -370,7 +370,7 @@ export function LandingPage() {
                 </div>
                 <h3 className="mt-8 text-base font-bold text-white">Academic Tracking</h3>
                 <p className="mt-2 text-xs leading-5 text-white/50">
-                  Real-time assignment velocity, deadline clustering awareness, and pacing risk calibration to prevent crunch burnout before crunch weeks arrive.
+                  Tracks coursework deadlines, exam schedules, and attendance thresholds (such as 75% minimums) to identify submission clusters early.
                 </p>
               </TiltCard>
             </div>
@@ -395,7 +395,7 @@ export function LandingPage() {
                     Confidential by Design. Zero Surveillance.
                   </h3>
                   <p className="mt-2 text-xs sm:text-sm text-white/60 leading-relaxed">
-                    Student logs and well-being reflections are private and student-authoritative. Nivara uses strict Role-Based Access Control (RBAC) and client-grade confidentiality to keep workspaces completely segregated.
+                    Check-in reflections, course notes, and support requests remain student-controlled. Role-Based Access Control (RBAC) ensures staff cannot access individual logs without explicit student consent.
                   </p>
                 </div>
 
@@ -419,7 +419,7 @@ export function LandingPage() {
           <div className="flex flex-wrap items-center justify-between gap-6 text-[11px] uppercase tracking-[.14em] text-white/40">
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-[#c3f340]" />
-              <span>Nivara · Holistic Student Success & Well-being</span>
+              <span>Nivara · Academic, Financial, and Well-being Student Support</span>
             </div>
           </div>
         </footer>

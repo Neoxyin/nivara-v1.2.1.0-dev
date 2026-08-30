@@ -2,7 +2,7 @@ import type { Insight } from '../types';
 
 export const mockInsights: Insight[] = [
   { 
-    title: 'Your workload is concentrating', 
+    title: 'Your workload is picking up', 
     summary: 'Two high-effort submissions land within the next 48 hours. Your check-ins also show lower sleep and energy this week.', 
     contributingFactors: ['2 deadlines in 48 hours', 'Sleep rated 2 / 5 twice', 'Creative coding workload at 82%'], 
     certainty: 'High confidence · based on 3 recent signals', 

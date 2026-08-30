@@ -73,7 +73,7 @@ export default function StudentCounsellorsPage() {
       <div className="rise-in">
         <SectionHeading
           eyebrow="Human support"
-          title="People on your side."
+          title="Connect with campus advisors and counsellors."
           description="Connect with your institution's student support team. You choose what to share, and asking for a conversation is not a commitment to anything else."
           action={
             <Pill tone="plum">

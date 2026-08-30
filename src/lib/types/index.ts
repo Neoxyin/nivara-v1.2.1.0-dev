@@ -193,6 +193,7 @@ export type FinancialSupportOption = {
   actionText: string;
   actionHref: string;
   iconType: string;
+  eligibilityNote?: string;
 };
 
 export type SupportNeedLevel = 'LOW' | 'MILD' | 'MODERATE' | 'HIGH';

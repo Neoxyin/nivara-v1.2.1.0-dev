@@ -109,8 +109,8 @@ export default function CounsellorOverviewPage() {
     <div className="rise-in">
       <SectionHeading
         eyebrow="Counsellor workspace"
-        title="Daily overview & student signals."
-        description="Monitor today's accepted sessions, incoming appointment requests, attention alerts, and cohort academic rhythm."
+        title="Caseload triage and appointment overview"
+        description="Monitor confirmed consultations, incoming appointment requests, and early support alerts across your assigned student caseload."
         action={
           <div className="flex items-center gap-2">
             <Pill tone="accent">

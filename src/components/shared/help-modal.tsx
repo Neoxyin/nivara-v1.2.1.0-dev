@@ -14,12 +14,12 @@ const faqs = [
   {
     icon: Sparkles,
     q: 'What is NIVARA?',
-    a: 'NIVARA is an academic rhythm and institutional wellbeing bridge that helps students balance coursework loads while enabling student-care staff to offer proactive, zero-surveillance support.',
+    a: 'NIVARA connects academic milestones, self-reported well-being check-ins, and institutional support options so students can navigate workload spikes with full privacy and agency.',
   },
   {
     icon: Clock,
     q: 'How does the 30-Second Daily Check-In work?',
-    a: 'Each morning, a lightweight, frictionless check-in captures self-reported workload, pace velocity, stress levels, and recovery to calibrate your personalized weekly capacity curves.',
+    a: 'Each morning, a 1-minute check-in records 1–5 ratings for mood, stress, sleep, and workload to help you notice multiday trends and flag high-strain periods.',
   },
   {
     icon: ShieldCheck,

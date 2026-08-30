@@ -41,7 +41,7 @@ export const mockAppointedSessions: AppointedSession[] = [
       },
       insights: [
         {
-          title: 'Workload is concentrating',
+          title: 'Workload is picking up',
           summary: 'Two high-effort submissions land within 48h. Sleep rated below baseline for 3 days.',
           contributingFactors: ['2 high priority deadlines', 'Sleep rating 2/5', 'Creative coding workload at 82%'],
           certainty: 'High confidence · multi-signal trigger',

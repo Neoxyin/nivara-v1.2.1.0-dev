@@ -95,7 +95,7 @@ export default function SettingsPage() {
       <div className="rise-in space-y-8">
         <SectionHeading
           eyebrow="Settings"
-          title="Your choices, clearly."
+          title="Control your data permissions and privacy preferences."
           description="Nivara should be useful without asking for more than it needs. Change these choices at any time."
         />
 
@@ -204,7 +204,7 @@ export default function SettingsPage() {
               </div>
               <h3 className="font-display text-xl text-white">Notifications</h3>
               <p className="mt-2 text-xs leading-5 text-white/45">
-                Gentle reminders about check-ins and upcoming work. Adjust anytime.
+                Daily reminder notifications for your 1-minute check-in and upcoming deadlines.
               </p>
               {notificationsOn && (
                 <p className="mt-4 text-[10px] font-bold uppercase tracking-[.08em] text-[#b9d96b]">

@@ -8,7 +8,8 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     whyItMayHelp: 'Reduces overall tuition burden for the academic year.',
     actionText: 'Explore Scholarships',
     actionHref: '/resources',
-    iconType: 'graduation-cap'
+    iconType: 'graduation-cap',
+    eligibilityNote: 'Eligibility criteria are set by each scholarship awarding body, not Nivara.'
   },
   {
     id: 'fee-assistance',
@@ -17,7 +18,8 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     whyItMayHelp: 'Lowers immediate out-of-pocket costs at the start of the semester.',
     actionText: 'View Fee Assistance',
     actionHref: '/resources',
-    iconType: 'receipt'
+    iconType: 'receipt',
+    eligibilityNote: 'The institution’s accounts office reviews and confirms fee concessions.'
   },
   {
     id: 'installments',
@@ -26,7 +28,8 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     whyItMayHelp: 'Provides predictable cash flow instead of a single large payment.',
     actionText: 'Set Up Payment Plan',
     actionHref: '/resources',
-    iconType: 'calendar'
+    iconType: 'calendar',
+    eligibilityNote: 'Payment schedules and installment plans are approved by campus finance.'
   },
   {
     id: 'emergency-funds',
@@ -35,7 +38,8 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     whyItMayHelp: 'Helps cover immediate crises like medical bills or sudden loss of housing.',
     actionText: 'Apply for Emergency Aid',
     actionHref: '/resources',
-    iconType: 'alert-circle'
+    iconType: 'alert-circle',
+    eligibilityNote: 'Emergency aid grants are evaluated and disbursed by the student support fund.'
   },
   {
     id: 'hostel-assistance',
@@ -44,7 +48,8 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     whyItMayHelp: 'Ensures you have stable accommodation during your studies.',
     actionText: 'Explore Housing Support',
     actionHref: '/resources',
-    iconType: 'home'
+    iconType: 'home',
+    eligibilityNote: 'Housing allocations and subsidies are confirmed by residential services.'
   },
   {
     id: 'food-assistance',
@@ -53,7 +58,8 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     whyItMayHelp: 'Alleviates food insecurity so you can focus on academics.',
     actionText: 'Find Food Resources',
     actionHref: '/resources',
-    iconType: 'coffee'
+    iconType: 'coffee',
+    eligibilityNote: 'Availability and voucher terms are managed by campus pantry coordinators.'
   },
   {
     id: 'transportation',
@@ -62,7 +68,8 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     whyItMayHelp: 'Reduces the daily cost of attending classes and accessing campus resources.',
     actionText: 'View Transit Support',
     actionHref: '/resources',
-    iconType: 'bus'
+    iconType: 'bus',
+    eligibilityNote: 'Transit discounts and passes are subject to regional transit authority guidelines.'
   },
   {
     id: 'books-equipment',
@@ -71,7 +78,8 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     whyItMayHelp: 'Ensures you have the necessary tools for coursework without upfront costs.',
     actionText: 'Request Equipment',
     actionHref: '/resources',
-    iconType: 'book-open'
+    iconType: 'book-open',
+    eligibilityNote: 'Equipment loans and material grants depend on departmental library inventory.'
   },
   {
     id: 'work-study',
@@ -80,7 +88,8 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     whyItMayHelp: 'Provides a steady income stream while building professional experience.',
     actionText: 'Browse Work-study Jobs',
     actionHref: '/resources',
-    iconType: 'briefcase'
+    iconType: 'briefcase',
+    eligibilityNote: 'Department supervisors and campus employment teams confirm role availability.'
   },
   {
     id: 'government-schemes',
@@ -89,7 +98,8 @@ export const mockFinancialSupportOptions: FinancialSupportOption[] = [
     whyItMayHelp: 'Offers broader, long-term financial backing based on regional or national criteria.',
     actionText: 'View Government Schemes',
     actionHref: '/resources',
-    iconType: 'landmark'
+    iconType: 'landmark',
+    eligibilityNote: 'Official government portal requirements determine final application decisions.'
   }
 ];
 

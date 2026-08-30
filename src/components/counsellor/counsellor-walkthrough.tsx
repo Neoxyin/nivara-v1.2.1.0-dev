@@ -33,12 +33,12 @@ const COUNSELLOR_STEPS = [
     tone: 'accent' as const,
     title: 'Proactive Caseload Triage & Rhythm Monitoring',
     description:
-      'Welcome, Dr. Ross. The Counsellor Portal provides early triage visibility into student cohorts, highlighting academic rhythm shifts and well-being dips before acute crisis arises.',
+      'Welcome, Dr. Ross. The Counsellor Portal provides early triage visibility into student cohorts, highlighting attendance drops below 75% and student-shared check-in signals before acute crisis arises.',
     features: [
       {
         icon: UsersRound,
         label: 'Real-Time Cohort Triage',
-        desc: 'Filter by cohort, attendance risk, and academic rhythm volatility across departments.',
+        desc: 'Filter by cohort, attendance thresholds, and student support need levels across departments.',
       },
       {
         icon: ShieldCheck,
@@ -48,7 +48,7 @@ const COUNSELLOR_STEPS = [
       {
         icon: AlertTriangle,
         label: 'Early Attention Radar',
-        desc: 'Immediate highlights of students facing multi-module workload friction.',
+        desc: 'Immediate highlights of students with high support need flags or urgent self-referrals.',
       },
     ],
   },
@@ -63,7 +63,7 @@ const COUNSELLOR_STEPS = [
       {
         icon: TrendingDown,
         label: 'Early Dip Detection',
-        desc: 'Identifies sudden rhythm dips over 7-day and 14-day rolling windows.',
+        desc: 'Identifies attendance and check-in score changes over 7-day and 14-day rolling windows.',
       },
       {
         icon: FileText,
@@ -97,8 +97,8 @@ const COUNSELLOR_STEPS = [
       },
       {
         icon: ShieldCheck,
-        label: 'Zero Friction Handoff',
-        desc: 'Seamless escalation paths for academic accommodations or faculty advising.',
+        label: 'Direct Referral Paths',
+        desc: 'Established escalation workflows for academic accommodations and department advising.',
       },
     ],
   },

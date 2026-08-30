@@ -140,7 +140,7 @@ export default function FinancialSupportPage() {
                       <strong className="text-white/70 font-medium">Why it may help:</strong> {option.whyItMayHelp}
                     </div>
                     <p className="text-[10px] text-white/40 italic mt-2">
-                      You may want to explore this support option. Final eligibility is determined by the provider.
+                      {option.eligibilityNote || "Eligibility is determined by the provider, not Nivara."}
                     </p>
                   </div>
 

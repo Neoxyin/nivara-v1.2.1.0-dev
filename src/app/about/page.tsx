@@ -57,7 +57,7 @@ export default function AboutPage() {
                 About Nivara
               </h1>
               <p className="text-xs text-white/50 mt-1">
-                A holistic student success platform bridging academic performance and mental well-being.
+                A student support platform connecting academic progress, financial aid, and well-being resources.
               </p>
             </div>
           </div>
@@ -69,10 +69,10 @@ export default function AboutPage() {
                 Our Mission
               </p>
               <p className="mt-2.5 text-[14px] font-medium leading-[1.65] text-white/95 sm:text-[15px]">
-                Nivara is dedicated to transforming student care from reactive crisis management into proactive, self-calibrating balance.
+                Nivara helps students and institutions identify academic workload pressure and well-being signals before acute crises arise.
               </p>
               <p className="mt-3 text-[12px] leading-[1.65] text-white/65">
-                We empower students to understand their personal stress velocity and workload rhythms while giving institution counsellors actionable, explainable insights to reach out with compassionate, timely support.
+                Students receive transparent early signals on deadline clustering and sleep patterns, while campus counsellors receive consented triage context to offer timely support.
               </p>
             </div>
 
@@ -88,7 +88,7 @@ export default function AboutPage() {
                     <span className="text-xs font-bold">1-Minute Daily Check-ins</span>
                   </div>
                   <p className="mt-1.5 text-xs leading-relaxed text-white/60">
-                    Frictionless morning check-ins capturing workload, stress levels, and recovery curves.
+                    1-minute daily check-ins logging self-reported mood, stress, sleep, and workload on a 1–5 scale.
                   </p>
                 </div>
 
@@ -118,7 +118,7 @@ export default function AboutPage() {
                     <span className="text-xs font-bold">Academic Tracking</span>
                   </div>
                   <p className="mt-1.5 text-xs leading-relaxed text-white/60">
-                    Real-time assignment velocity, deadline clustering awareness, and pacing risk calibration.
+                    Coursework deadline tracking, attendance threshold monitoring, and milestone pacing alerts.
                   </p>
                 </div>
               </div>
@@ -153,7 +153,7 @@ export default function AboutPage() {
           <div className="flex items-center justify-between border-t border-white/[0.08] pt-5">
             <div className="flex items-center gap-2 text-xs text-white/45">
               <Heart size={13} className="text-[#c3f340]" />
-              <span>Nivara · Holistic Student Success Platform</span>
+              <span>Nivara · Academic, Financial, and Well-being Support Platform</span>
             </div>
 
             <Magnetic>

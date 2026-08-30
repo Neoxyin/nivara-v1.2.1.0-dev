@@ -67,7 +67,7 @@ export function generateExplainability(
 
     case 'RECOVERY_PACING_STRAIN':
       rationale =
-        'Carrying a heavy workload on lower rest creates invisible friction. Even if mood is steady, pacing adjustments prevent fatigue buildup.';
+        'Carrying a heavy workload on less than 6 hours of sleep reduces cognitive stamina. Even if mood is steady, spacing out study sessions prevents fatigue buildup.';
       guidance =
         'Insert deliberate 10-minute micro-breaks between study blocks and protect meal/sleep boundaries.';
       break;

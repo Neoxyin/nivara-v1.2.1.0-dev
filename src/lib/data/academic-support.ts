@@ -6,7 +6,7 @@ export const mockAcademicSupportOptions: AcademicSupportOption[] = [
     category: 'Mentorship & Advising',
     title: 'Academic Advisor',
     shortDescription: 'Guidance on course selection, degree progress, and institutional policy.',
-    purpose: 'Helps you map out your academic journey and resolve administrative roadblocks.',
+    purpose: 'Helps you map out your degree requirements and resolve administrative roadblocks.',
     actionText: 'Book Advising Session',
     actionHref: '/counsellors',
     iconType: 'user-check'
