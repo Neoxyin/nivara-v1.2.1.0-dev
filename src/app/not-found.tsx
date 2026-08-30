@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { Sparkles, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { NivaraLogoIcon } from '@/components/shared/nivara-logo';
 
 export default function NotFound() {
   return (
     <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-[#0a0a0a] px-6 text-center text-[#f0f0f0]">
-      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#c3f340] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.4)]">
-        <Sparkles size={22} strokeWidth={2.5} />
+      <div className="relative grid h-14 w-14 place-items-center rounded-2xl overflow-hidden shadow-[0_0_24px_rgba(195,243,64,0.4)]">
+        <NivaraLogoIcon size={56} />
       </div>
 
       <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-white sm:text-5xl">
@@ -28,5 +29,3 @@ export default function NotFound() {
     </div>
   );
 }
-
-

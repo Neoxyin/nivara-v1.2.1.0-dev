@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { TiltCard } from '@/components/ui/tilt-card';
 import { Magnetic } from '@/components/ui/magnetic';
+import { NivaraLogoIcon } from './nivara-logo';
 
 interface AboutNivaraModalProps {
   isOpen: boolean;
@@ -49,8 +50,8 @@ export function AboutNivaraModal({ isOpen, onClose }: AboutNivaraModalProps) {
           {/* Header */}
           <div className="flex items-start justify-between border-b border-white/[0.08] pb-5">
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-xl border border-[#c3f340]/30 bg-[#c3f340]/10 text-[#c3f340] shadow-[0_0_15px_rgba(195,243,64,0.2)]">
-                <Sparkles size={20} strokeWidth={2.4} />
+              <div className="relative grid h-10 w-10 place-items-center rounded-xl overflow-hidden shadow-[0_0_15px_rgba(195,243,64,0.35)]">
+                <NivaraLogoIcon size={40} />
               </div>
               <div>
                 <div className="flex items-center gap-2">

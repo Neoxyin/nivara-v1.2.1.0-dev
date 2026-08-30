@@ -25,6 +25,7 @@ import { LoginPortalModal } from '@/components/auth/login-portal-modal';
 import { HelpModal } from '@/components/shared/help-modal';
 import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
 import { Pill } from '@/components/shared/pill';
+import { NivaraLogoIcon } from '@/components/shared/nivara-logo';
 
 export function LandingPage() {
   const searchParams = useSearchParams();
@@ -126,8 +127,8 @@ export function LandingPage() {
       <header className="relative z-20 flex items-center justify-between px-6 py-4 md:px-12 md:py-5">
         <Magnetic>
           <Link href="/" className="group inline-flex items-center gap-3" aria-label="Nivara Home">
-            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-[#c3f340] text-[#0d1408] shadow-[0_0_15px_rgba(195,243,64,0.4)] transition-transform duration-200 ease-out group-hover:rotate-12 group-hover:scale-110">
-              <Sparkles size={15} strokeWidth={2.7} />
+            <span className="relative grid h-8 w-8 place-items-center rounded-[10px] overflow-hidden shadow-[0_0_15px_rgba(195,243,64,0.4)] transition-transform duration-200 ease-out group-hover:rotate-6 group-hover:scale-105">
+              <NivaraLogoIcon size={32} />
             </span>
             <span className="text-sm font-extrabold uppercase tracking-[0.3em]">
               Nivara

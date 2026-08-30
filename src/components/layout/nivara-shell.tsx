@@ -25,6 +25,7 @@ import {
 import gsap from 'gsap';
 import { getCurrentUser, logoutUser } from '@/lib/auth';
 import { Mark } from '../shared/mark';
+import { NivaraLogoIcon } from '../shared/nivara-logo';
 import { FluidBackground } from '@/components/ui/fluid-background';
 import { Magnetic } from '@/components/ui/magnetic';
 import { useSidebar } from './sidebar-context';
@@ -413,8 +414,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               title="Return to NIVARA Home"
               aria-label="NIVARA Home"
             >
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#c3f340] text-[#0d1408] shadow-[0_0_10px_rgba(195,243,64,0.35)] transition-transform duration-150 group-hover:scale-105 group-hover:rotate-6">
-                <Sparkles size={13} strokeWidth={2.6} />
+              <span className="relative grid h-7 w-7 place-items-center rounded-lg overflow-hidden shadow-[0_0_10px_rgba(195,243,64,0.35)] transition-transform duration-150 group-hover:scale-105 group-hover:rotate-6">
+                <NivaraLogoIcon size={28} />
               </span>
             </Link>
             <span className="h-1.5 w-1.5 rounded-full bg-[#c3f340] shadow-[0_0_12px_rgba(195,243,64,.7)] animate-pulse" />

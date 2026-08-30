@@ -15,6 +15,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { Pill } from '@/components/shared/pill';
+import { NivaraLogoIcon } from '@/components/shared/nivara-logo';
 import { Magnetic } from '@/components/ui/magnetic';
 import { setUserRole } from '@/lib/auth';
 
@@ -102,8 +103,8 @@ export function RoleSelectionPopin({
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
               <div className="flex items-center gap-2.5">
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#c3f340] text-[#0d1408] shadow-[0_0_12px_rgba(195,243,64,0.4)]">
-                  <Sparkles size={14} strokeWidth={2.7} />
+                <span className="relative grid h-7 w-7 place-items-center rounded-lg overflow-hidden shadow-[0_0_12px_rgba(195,243,64,0.4)]">
+                  <NivaraLogoIcon size={28} />
                 </span>
                 <span className="text-xs font-extrabold uppercase tracking-[0.25em] text-white">
                   Nivara · Workspace Selection
