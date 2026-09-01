@@ -89,22 +89,6 @@ It evaluates signals such as attendance trends, academic performance, overdue as
 - Lucide React
 
 
-## Project Structure
-
-src/
-├── app/              # Next.js routes and portals
-├── components/       # UI and feature components
-├── hooks/            # Shared React hooks
-├── lib/
-│   ├── api/          # Mock API layer
-│   ├── auth/         # Mock authentication
-│   ├── data/         # Seeded mock datasets
-│   ├── intelligence/ # Support Need Engine
-│   ├── types/        # Shared TypeScript types
-│   └── gsap/         # Animation utilities
-├── public/            # Static assets
-└── tests/             # Support engine tests
-
 ## Getting Started
 
 ### Requirements
