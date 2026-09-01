@@ -4,7 +4,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { SidebarProvider } from '@/components/layout/sidebar-context'
 import { LanguageProvider } from '@/components/shared/language-context'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { Toaster } from '@/components/ui/toaster'
 import { syncSessionCookie } from '@/lib/auth'
+import { PostLoginTransitionOverlay } from '@/components/auth/post-login-overlay'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -23,7 +26,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <SidebarProvider>
-          {children}
+          <TooltipProvider>
+            {children}
+            <Toaster />
+            <PostLoginTransitionOverlay />
+          </TooltipProvider>
         </SidebarProvider>
       </LanguageProvider>
     </QueryClientProvider>

@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { useLanguage } from './language-context';
 
 interface SectionHeadingProps {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description?: string;
   action?: ReactNode;
@@ -15,7 +15,7 @@ export function SectionHeading({ eyebrow, title, description, action }: SectionH
   return (
     <div className="mb-7 flex flex-wrap items-end justify-between gap-6">
       <div className="min-w-0 flex-1">
-        <p className="serenity-label text-[#c3f340]/80">{translateText(eyebrow)}</p>
+        {eyebrow && <p className="serenity-label text-[#c3f340]/80">{translateText(eyebrow)}</p>}
         <h1 className="mt-1.5 font-display text-4xl md:text-5xl lg:text-[3.2rem] leading-[.92] tracking-[-.03em] text-white">
           {translateText(title)}
         </h1>

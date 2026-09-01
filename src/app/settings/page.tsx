@@ -197,7 +197,7 @@ export default function SettingsPage() {
                 >
                   <span
                     className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ease-out ${
-                      notificationsOn ? 'translate-x-4.5' : 'translate-x-0.5'
+                      notificationsOn ? 'translate-x-5' : 'translate-x-0.5'
                     }`}
                   />
                 </button>

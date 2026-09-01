@@ -16,7 +16,6 @@ import {
 } from 'recharts';
 import {
   BookOpen,
-  DollarSign,
   HeartPulse,
   TrendingUp,
   Info,
@@ -27,7 +26,6 @@ import {
 interface DemandTrendChartProps {
   data: {
     academic: DemandTrendPoint[];
-    financial: DemandTrendPoint[];
     wellbeing: DemandTrendPoint[];
   };
 }
@@ -63,7 +61,6 @@ export function DemandTrendChart({ data }: DemandTrendChartProps) {
 
   const dimensionTabs: { id: DemandDimension; label: string; icon: React.ElementType; color: string }[] = [
     { id: 'academic', label: 'Academic', icon: BookOpen, color: '#38bdf8' },
-    { id: 'financial', label: 'Financial', icon: DollarSign, color: '#c3f340' },
     { id: 'wellbeing', label: 'Well-being', icon: HeartPulse, color: '#f472b6' },
   ];
 
@@ -71,7 +68,7 @@ export function DemandTrendChart({ data }: DemandTrendChartProps) {
     <div className="space-y-6">
       {/* Dimension Selector & Aggregate Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Toggle / Tabs: Academic | Financial | Well-being */}
+        {/* Toggle / Tabs: Academic | Well-being */}
         <div className="inline-flex p-1 rounded-xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
           {dimensionTabs.map((tab) => {
             const Icon = tab.icon;
@@ -166,7 +163,6 @@ export function DemandTrendChart({ data }: DemandTrendChartProps) {
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-white">
                 {activeDimension === 'academic' && 'Academic Support Demand Trajectory'}
-                {activeDimension === 'financial' && 'Financial Support Demand Trajectory'}
                 {activeDimension === 'wellbeing' && 'Well-being Support Demand Trajectory'}
               </h3>
               <Pill tone="default" className="capitalize text-[10px]">
@@ -215,7 +211,8 @@ export function DemandTrendChart({ data }: DemandTrendChartProps) {
                     fontSize: '12px',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
                   }}
-                  itemStyle={{ padding: '2px 0' }}
+                  itemStyle={{ padding: '2px 0', color: '#c3f340' }}
+                  labelStyle={{ color: '#ffffff', fontWeight: 600, marginBottom: '4px' }}
                 />
                 <Legend
                   wrapperStyle={{

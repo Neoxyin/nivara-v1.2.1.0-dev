@@ -11,7 +11,6 @@ import {
   HeartHandshake,
   Users2,
   GraduationCap,
-  FileCheck2,
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
@@ -34,7 +33,16 @@ interface AdminShellProps {
   action?: React.ReactNode;
 }
 
-export const ADMIN_NAV_ITEMS = [
+interface AdminNavItem {
+  id: string;
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  exact?: boolean;
+  badge?: string;
+}
+
+export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { id: 'overview', label: 'Overview', href: '/admin', icon: LayoutDashboard, exact: true },
   { id: 'demand', label: 'Demand Trends', href: '/admin/demand-trends', icon: TrendingUp },
   { id: 'fairness', label: 'Fairness', href: '/admin/fairness', icon: Scale },
@@ -42,7 +50,6 @@ export const ADMIN_NAV_ITEMS = [
   { id: 'programs', label: 'Support Programs', href: '/admin/support-programs', icon: HeartHandshake },
   { id: 'counsellors', label: 'Counsellors', href: '/admin/counsellors', icon: Users2 },
   { id: 'students', label: 'Students', href: '/admin/students', icon: GraduationCap },
-  { id: 'corrections', label: 'Corrections', href: '/admin/corrections', icon: FileCheck2, badge: '2' },
   { id: 'consent', label: 'Consent Audit', href: '/admin/consent-audit', icon: ShieldCheck },
 ];
 
@@ -182,7 +189,7 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
       <div className="flex min-h-screen">
         {/* Desktop Sidebar */}
         <aside
-          className={`hidden lg:flex fixed inset-y-0 left-0 z-40 flex-col justify-between border-r border-white/[0.07] bg-[#090909]/95 pt-5 pb-5 text-white backdrop-blur-2xl transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`hidden lg:flex fixed inset-y-0 left-0 z-40 flex-col justify-between border-r border-white/[0.07] bg-[#090909]/95 pt-5 pb-5 text-white backdrop-blur-2xl transition-[width] duration-300 ease-in-out ${
             collapsed ? 'w-[72px]' : 'w-[264px]'
           }`}
         >
@@ -320,7 +327,7 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
 
         {/* Main Content Area */}
         <div
-          className={`flex-1 transition-[margin] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`flex-1 transition-[margin] duration-300 ease-in-out ${
             collapsed ? 'lg:ml-[72px]' : 'lg:ml-[264px]'
           }`}
         >
@@ -348,7 +355,7 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
           </header>
 
           {/* Page Content View */}
-          <main ref={mainContentRef} className="p-6 sm:p-8 max-w-7xl mx-auto">
+          <main ref={mainContentRef} className="p-6 sm:p-8 max-w-7xl mx-auto transition-all duration-300 ease-in-out">
             {children}
           </main>
         </div>

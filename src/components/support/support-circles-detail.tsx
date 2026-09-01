@@ -95,12 +95,16 @@ export function SupportCircleDetail({ circleId }: { circleId: string }) {
 
         <div className="border border-white/[0.09] bg-[#141414]/90 p-6 sm:p-8 backdrop-blur-xl rounded-2xl shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#c3f340] bg-[#c3f340]/10 border border-[#c3f340]/20 px-2.5 py-1 rounded-md">
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                title={circle.category}
+                className="inline-flex items-center justify-center whitespace-nowrap text-[10px] font-bold uppercase tracking-[.06em] text-[#c3f340] bg-[#c3f340]/10 border border-[#c3f340]/20 px-2.5 py-1 rounded-md shrink-0"
+              >
                 {circle.category}
               </span>
-              <span className="text-xs text-white/50 flex items-center gap-1 font-medium">
-                <Clock size={13} className="text-[#c3f340]" /> Expires in {circle.expiresInDays} days (Temporary)
+              <span className="inline-flex items-center gap-1.5 text-xs text-white/50 font-medium whitespace-nowrap shrink-0">
+                <Clock size={13} className="text-[#c3f340] shrink-0" />
+                <span>Expires in {circle.expiresInDays} days (Temporary)</span>
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{circle.title}</h1>

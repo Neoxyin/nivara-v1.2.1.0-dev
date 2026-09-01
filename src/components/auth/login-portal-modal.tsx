@@ -17,18 +17,27 @@ import {
   Building2,
   AlertCircle,
   Scale,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { Pill } from '@/components/shared/pill';
 import { NivaraLogoIcon } from '@/components/shared/nivara-logo';
 import { Magnetic } from '@/components/ui/magnetic';
 import { setUserRole } from '@/lib/auth';
 import { loginApi } from '@/lib/api/client';
+import { triggerAuthTransition } from '@/components/auth/post-login-overlay';
 
 interface LoginPortalModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultRole?: 'student' | 'counsellor' | 'admin';
   lockedRole?: 'student' | 'counsellor' | 'admin' | null;
+}
+
+function transitionMessageForRole(role: 'student' | 'counsellor' | 'admin'): string {
+  if (role === 'admin') return 'Preparing your oversight console...';
+  if (role === 'counsellor') return 'Preparing your caseload...';
+  return 'Preparing your space...';
 }
 
 export function LoginPortalModal({
@@ -48,14 +57,35 @@ export function LoginPortalModal({
       : 'a.ross@wellbeing.university.edu'
   );
   const [password, setPassword] = useState('••••••••••••');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // FEATURE 3: Student Space registration flow
+  const [mode, setMode] = useState<'signin' | 'register'>('signin');
+  const [registerName, setRegisterName] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [registerErrorMsg, setRegisterErrorMsg] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const canRegister = selectedRole === 'student';
+
+  const switchMode = (nextMode: 'signin' | 'register') => {
+    setMode(nextMode);
+    setErrorMsg('');
+    setRegisterErrorMsg('');
+  };
 
   React.useEffect(() => {
     const roleToUse = lockedRole || defaultRole;
     if (roleToUse) {
       setSelectedRole(roleToUse);
       setErrorMsg('');
+      if (roleToUse !== 'student') {
+        switchMode('signin');
+      }
       if (roleToUse === 'student') {
         setEmail('aria.chen@university.edu');
       } else if (roleToUse === 'admin') {
@@ -64,12 +94,21 @@ export function LoginPortalModal({
         setEmail('a.ross@wellbeing.university.edu');
       }
     }
+    if (!isOpen) {
+      switchMode('signin');
+      setRegisterName('');
+      setRegisterEmail('');
+      setRegisterPassword('');
+    }
   }, [lockedRole, defaultRole, isOpen]);
 
   const handleRoleSelect = (role: 'student' | 'counsellor' | 'admin') => {
     if (lockedRole) return;
     setSelectedRole(role);
     setErrorMsg('');
+    if (role !== 'student') {
+      switchMode('signin');
+    }
     if (role === 'student') {
       setEmail('aria.chen@university.edu');
       setPassword('••••••••••••');
@@ -96,14 +135,55 @@ export function LoginPortalModal({
     try {
       await loginApi(selectedRole, email, password);
       setUserRole(selectedRole);
-      setIsLoading(false);
-      onClose();
 
       const targetPath = selectedRole === 'admin' ? '/admin' : selectedRole === 'counsellor' ? '/counsellor' : '/dashboard';
+      triggerAuthTransition(targetPath, transitionMessageForRole(selectedRole));
+      setIsLoading(false);
+      onClose();
       router.push(targetPath);
     } catch (err) {
       setErrorMsg('Login failed. Please verify your credentials.');
       setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    if (!registerName.trim()) {
+      setRegisterErrorMsg('Please enter your full name.');
+      return;
+    }
+    if (!registerEmail.trim()) {
+      setRegisterErrorMsg('Please enter your institutional email.');
+      return;
+    }
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(registerEmail.trim())) {
+      setRegisterErrorMsg('Please enter a valid institutional email address.');
+      return;
+    }
+    if (!registerPassword || registerPassword.length < 6) {
+      setRegisterErrorMsg('Choose a passkey with at least 6 characters.');
+      return;
+    }
+
+    setIsRegistering(true);
+    setRegisterErrorMsg('');
+
+    try {
+      // No real backend — reuse the same mock/frontend auth pattern as sign-in
+      // so a newly "registered" student is treated as signed in.
+      await loginApi('student', registerEmail, registerPassword);
+      setUserRole('student');
+
+      triggerAuthTransition('/dashboard', 'Setting up your space...');
+      setIsRegistering(false);
+      onClose();
+      router.push('/dashboard');
+    } catch (err) {
+      setRegisterErrorMsg('Registration failed. Please try again.');
+      setIsRegistering(false);
     }
   };
 
@@ -120,9 +200,10 @@ export function LoginPortalModal({
     try {
       await loginApi(role, demoEmail);
       setUserRole(role);
+      const targetPath = role === 'admin' ? '/admin' : role === 'counsellor' ? '/counsellor' : '/dashboard';
+      triggerAuthTransition(targetPath, transitionMessageForRole(role));
       setIsLoading(false);
       onClose();
-      const targetPath = role === 'admin' ? '/admin' : role === 'counsellor' ? '/counsellor' : '/dashboard';
       router.push(targetPath);
     } catch (err) {
       setErrorMsg('Quick login failed');
@@ -190,7 +271,9 @@ export function LoginPortalModal({
                 <LockKeyhole size={11} className="mr-1 inline text-[#c3f340]" /> Secure SSO & Workspace Entry
               </Pill>
               <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-                {lockedRole === 'student'
+                {mode === 'register' && canRegister
+                  ? 'Register for Student Space'
+                  : lockedRole === 'student'
                   ? 'Sign in to Student Space'
                   : lockedRole === 'counsellor'
                   ? 'Sign in to Counsellor Portal'
@@ -199,7 +282,9 @@ export function LoginPortalModal({
                   : 'Sign in to your space'}
               </h2>
               <p className="mt-1.5 text-xs sm:text-sm text-white/55">
-                {lockedRole === 'student'
+                {mode === 'register' && canRegister
+                  ? 'Create your student account to start your private sanctuary, check-ins, and coursework rhythm.'
+                  : lockedRole === 'student'
                   ? 'Access your private student sanctuary, check-ins, and coursework rhythm.'
                   : lockedRole === 'counsellor'
                   ? 'Access clinical caseload triage, student appointments, and notes.'
@@ -207,8 +292,37 @@ export function LoginPortalModal({
                   ? 'Access institutional oversight, demand trends, and campus system health.'
                   : 'Select your institutional workspace to load your authenticated environment.'}
               </p>
+
+              {canRegister && (
+                <div className="mt-4 inline-flex rounded-full border border-white/[0.08] bg-white/[0.03] p-1">
+                  <button
+                    type="button"
+                    onClick={() => switchMode('signin')}
+                    className={`rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-[.1em] transition-colors ${
+                      mode === 'signin'
+                        ? 'bg-[#c3f340] text-[#0d1408] shadow-[0_0_14px_rgba(195,243,64,0.35)]'
+                        : 'text-white/50 hover:text-white'
+                    }`}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => switchMode('register')}
+                    className={`rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-[.1em] transition-colors ${
+                      mode === 'register'
+                        ? 'bg-[#c3f340] text-[#0d1408] shadow-[0_0_14px_rgba(195,243,64,0.35)]'
+                        : 'text-white/50 hover:text-white'
+                    }`}
+                  >
+                    Register
+                  </button>
+                </div>
+              )}
             </div>
 
+            {mode === 'signin' && (
+            <>
             {/* Role Display / Selector */}
             {lockedRole === 'student' ? (
               <div className="mt-5 flex items-center gap-3 p-3.5 rounded-xl border border-[#c3f340]/40 bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]">
@@ -409,12 +523,44 @@ export function LoginPortalModal({
                     className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35"
                   />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full rounded-lg border border-white/10 bg-white/[0.04] py-2.5 pl-9 pr-3 text-xs text-white placeholder-white/25 outline-none transition focus:border-[#c3f340] focus:bg-white/[0.07]"
+                    className="w-full rounded-lg border border-white/10 bg-white/[0.04] py-2.5 pl-9 pr-10 text-xs text-white placeholder-white/25 outline-none transition focus:border-[#c3f340] focus:bg-white/[0.07]"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Hide security passkey' : 'Show security passkey'}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-md text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors focus:outline-none"
+                  >
+                    <AnimatePresence mode="wait" initial={false}>
+                      {showPassword ? (
+                        <motion.span
+                          key="eye-open"
+                          initial={{ opacity: 0, scale: 0.7, rotate: -15 }}
+                          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                          exit={{ opacity: 0, scale: 0.7, rotate: 15 }}
+                          transition={{ duration: 0.18, ease: 'easeOut' }}
+                          className="flex items-center justify-center text-[#c3f340] drop-shadow-[0_0_8px_rgba(195,243,64,0.6)]"
+                        >
+                          <Eye size={15} />
+                        </motion.span>
+                      ) : (
+                        <motion.span
+                          key="eye-closed"
+                          initial={{ opacity: 0, scale: 0.7, rotate: 15 }}
+                          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                          exit={{ opacity: 0, scale: 0.7, rotate: -15 }}
+                          transition={{ duration: 0.18, ease: 'easeOut' }}
+                          className="flex items-center justify-center text-white/40"
+                        >
+                          <EyeOff size={15} />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </button>
                 </div>
               </div>
 
@@ -424,7 +570,7 @@ export function LoginPortalModal({
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="btn-sweep relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#c3f340] bg-[#c3f340] py-3 text-xs font-bold uppercase tracking-[.14em] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.35)] transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+                    className="btn-sweep relative flex w-full items-center justify-center gap-2.5 rounded-full border border-[#c3f340] bg-[#c3f340] px-8 py-3.5 text-xs font-bold uppercase tracking-[.14em] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.35)] transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
                   >
                     {isLoading ? (
                       <span className="inline-flex items-center gap-2">
@@ -433,7 +579,7 @@ export function LoginPortalModal({
                       </span>
                     ) : (
                       <>
-                        Sign In to {selectedRole === 'student' ? 'Student Space' : selectedRole === 'admin' ? 'Admin Portal' : 'Counsellor Space'}
+                        <span>Sign In to {selectedRole === 'student' ? 'Student Space' : selectedRole === 'admin' ? 'Admin Portal' : 'Counsellor Space'}</span>
                         <ArrowRight size={14} strokeWidth={2.5} />
                       </>
                     )}
@@ -541,6 +687,163 @@ export function LoginPortalModal({
                 </div>
               )}
             </div>
+            </>
+            )}
+
+            {/* Registration Form (Feature 3 — Student Space only) */}
+            {mode === 'register' && canRegister && (
+              <form onSubmit={handleRegister} className="mt-5 space-y-3.5">
+                <div className="flex items-center gap-3 p-3.5 rounded-xl border border-[#c3f340]/40 bg-[#c3f340]/[0.08] shadow-[0_0_16px_rgba(195,243,64,0.12)]">
+                  <div className="grid h-8 w-8 place-items-center rounded-lg border border-[#c3f340]/40 bg-[#c3f340]/20 text-[#c3f340]">
+                    <GraduationCap size={16} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-white">Student Space</p>
+                      <span className="text-[9px] font-bold uppercase tracking-[.1em] text-[#c3f340] border border-[#c3f340]/30 bg-[#c3f340]/10 px-2 py-0.5 rounded-full">
+                        New Account
+                      </span>
+                    </div>
+                    <p className="text-[11px] leading-tight text-white/55 mt-0.5">
+                      Academic rhythm, energy & private check-ins
+                    </p>
+                  </div>
+                </div>
+
+                {registerErrorMsg && (
+                  <div className="flex items-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-300">
+                    <AlertCircle size={14} className="shrink-0" />
+                    <span>{registerErrorMsg}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[.14em] text-white/50">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <GraduationCap
+                      size={14}
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35"
+                    />
+                    <input
+                      type="text"
+                      value={registerName}
+                      onChange={(e) => setRegisterName(e.target.value)}
+                      required
+                      placeholder="Your full name"
+                      className="w-full rounded-lg border border-white/10 bg-white/[0.04] py-2.5 pl-9 pr-3 text-xs text-white placeholder-white/25 outline-none transition focus:border-[#c3f340] focus:bg-white/[0.07]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-[10px] font-bold uppercase tracking-[.14em] text-white/50">
+                    Institutional Email / Campus ID
+                  </label>
+                  <div className="relative">
+                    <Mail
+                      size={14}
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35"
+                    />
+                    <input
+                      type="email"
+                      value={registerEmail}
+                      onChange={(e) => setRegisterEmail(e.target.value)}
+                      required
+                      placeholder="student.id@university.edu"
+                      className="w-full rounded-lg border border-white/10 bg-white/[0.04] py-2.5 pl-9 pr-3 text-xs text-white placeholder-white/25 outline-none transition focus:border-[#c3f340] focus:bg-white/[0.07]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="text-[10px] font-bold uppercase tracking-[.14em] text-white/50">
+                      Choose a Security Passkey
+                    </label>
+                  </div>
+                  <div className="relative">
+                    <KeyRound
+                      size={14}
+                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/35"
+                    />
+                    <input
+                      type={showRegisterPassword ? 'text' : 'password'}
+                      value={registerPassword}
+                      onChange={(e) => setRegisterPassword(e.target.value)}
+                      placeholder="At least 6 characters"
+                      className="w-full rounded-lg border border-white/10 bg-white/[0.04] py-2.5 pl-9 pr-10 text-xs text-white placeholder-white/25 outline-none transition focus:border-[#c3f340] focus:bg-white/[0.07]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegisterPassword((prev) => !prev)}
+                      aria-label={showRegisterPassword ? 'Hide security passkey' : 'Show security passkey'}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-md text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors focus:outline-none"
+                    >
+                      <AnimatePresence mode="wait" initial={false}>
+                        {showRegisterPassword ? (
+                          <motion.span
+                            key="eye-open"
+                            initial={{ opacity: 0, scale: 0.7, rotate: -15 }}
+                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                            exit={{ opacity: 0, scale: 0.7, rotate: 15 }}
+                            transition={{ duration: 0.18, ease: 'easeOut' }}
+                            className="flex items-center justify-center text-[#c3f340] drop-shadow-[0_0_8px_rgba(195,243,64,0.6)]"
+                          >
+                            <Eye size={15} />
+                          </motion.span>
+                        ) : (
+                          <motion.span
+                            key="eye-closed"
+                            initial={{ opacity: 0, scale: 0.7, rotate: 15 }}
+                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                            exit={{ opacity: 0, scale: 0.7, rotate: -15 }}
+                            transition={{ duration: 0.18, ease: 'easeOut' }}
+                            className="flex items-center justify-center text-white/40"
+                          >
+                            <EyeOff size={15} />
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <Magnetic>
+                    <button
+                      type="submit"
+                      disabled={isRegistering}
+                      className="btn-sweep relative flex w-full items-center justify-center gap-2.5 rounded-full border border-[#c3f340] bg-[#c3f340] px-8 py-3.5 text-xs font-bold uppercase tracking-[.14em] text-[#0d1408] shadow-[0_0_20px_rgba(195,243,64,0.35)] transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+                    >
+                      {isRegistering ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#0d1408] border-t-transparent" />
+                          Creating account...
+                        </span>
+                      ) : (
+                        <>
+                          <span>Create Student Account</span>
+                          <ArrowRight size={14} strokeWidth={2.5} />
+                        </>
+                      )}
+                    </button>
+                  </Magnetic>
+                </div>
+
+                <p className="text-center text-[11px] text-white/45">
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => switchMode('signin')}
+                    className="font-bold text-[#c3f340] hover:underline"
+                  >
+                    Sign in instead
+                  </button>
+                </p>
+              </form>
+            )}
 
             {/* Privacy footer guarantee */}
             <div className="mt-4 flex items-center justify-center gap-1.5 text-[10px] text-white/35">

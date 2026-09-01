@@ -245,12 +245,12 @@ export default function CounsellorSettingsPage() {
             {/* Quick Actions & Session Management */}
             <TiltCard
               maxTilt={2}
-              className="border border-white/[0.09] bg-[#111111]/90 p-6 backdrop-blur-xl rounded-xl text-left"
+              className="border border-white/[0.09] bg-[#111111]/90 p-7 sm:p-8 backdrop-blur-xl rounded-2xl text-left"
             >
-              <h3 className="text-xs font-bold uppercase tracking-[.14em] text-white/50 mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-[.14em] text-white/60 mb-3.5">
                 Session Management
               </h3>
-              <p className="text-xs text-white/45 leading-relaxed mb-5">
+              <p className="text-xs text-white/50 leading-relaxed mb-6">
                 Sign out to end your shift and secure clinical student confidentiality across shared terminal workstations.
               </p>
 
@@ -258,9 +258,9 @@ export default function CounsellorSettingsPage() {
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#e5a27d]/40 bg-[#e5a27d]/[0.08] py-2.5 text-xs font-bold uppercase tracking-[.1em] text-[#f0ba9d] transition-all hover:bg-[#e5a27d]/20 hover:border-[#e5a27d] hover:text-white"
+                  className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-[#e5a27d]/40 bg-[#e5a27d]/[0.08] px-5 py-3 text-xs font-bold uppercase tracking-[.08em] text-[#f0ba9d] transition-all hover:bg-[#e5a27d]/20 hover:border-[#e5a27d] hover:text-white shadow-sm"
                 >
-                  <LogOut size={14} /> End Shift & Sign Out
+                  <LogOut size={15} /> End Shift & Sign Out
                 </button>
               </Magnetic>
             </TiltCard>

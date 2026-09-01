@@ -96,12 +96,16 @@ export function SupportCirclesList() {
                 
                 {/* Card Top */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#c3f340] bg-[#c3f340]/10 border border-[#c3f340]/20 px-2.5 py-1 rounded-md">
+                  <div className="flex items-center justify-between gap-2.5">
+                    <span
+                      title={circle.category}
+                      className="inline-flex items-center justify-center whitespace-nowrap text-[10px] font-bold uppercase tracking-[.06em] text-[#c3f340] bg-[#c3f340]/10 border border-[#c3f340]/20 px-2.5 py-1 rounded-md shrink-0 max-w-[62%] truncate"
+                    >
                       {circle.category}
                     </span>
-                    <span className="text-xs text-white/50 flex items-center gap-1 font-medium">
-                      <Clock size={13} className="text-[#c3f340]" /> Expires in {circle.expiresInDays}d
+                    <span className="inline-flex items-center gap-1.5 text-xs text-white/50 font-medium whitespace-nowrap shrink-0">
+                      <Clock size={13} className="text-[#c3f340] shrink-0" />
+                      <span>Expires in {circle.expiresInDays}d</span>
                     </span>
                   </div>
 

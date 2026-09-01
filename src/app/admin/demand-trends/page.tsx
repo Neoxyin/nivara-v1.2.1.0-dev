@@ -9,7 +9,7 @@ export default function AdminDemandTrendsPage() {
   return (
     <AdminShell
       title="Demand Trends"
-      subtitle="Aggregate longitudinal support-need volume and capacity trends across Academic, Financial, and Well-being dimensions."
+      subtitle="Aggregate longitudinal support-need volume and capacity trends across Academic and Well-being dimensions."
     >
       <DemandTrendChart data={demandTrends} />
     </AdminShell>

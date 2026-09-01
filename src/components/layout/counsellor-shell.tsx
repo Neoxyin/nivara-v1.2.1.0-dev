@@ -167,7 +167,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
             clearTimeout(hideTimerRef.current);
           }
         }}
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/[0.07] bg-[#090909]/95 pt-6 text-white backdrop-blur-2xl transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/[0.07] bg-[#090909]/95 pt-6 text-white backdrop-blur-2xl transition-[width] duration-300 ease-in-out ${
           collapsed ? 'w-[68px]' : 'w-[250px] max-[1023px]:w-[68px]'
         }`}
       >
@@ -261,7 +261,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
             <div className="space-y-1">
               <div className="group relative">
                 <Link
-                  href="/counsellor"
+                  href="/counsellor/profile"
                   className="relative flex h-11 w-full items-center rounded-xl text-white/70 transition-all duration-150 ease-out hover:scale-[1.02] hover:bg-white/[0.05] hover:text-white"
                 >
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center">
@@ -345,7 +345,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <div
-        className={`relative z-10 transition-[padding] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`relative z-10 transition-[padding] duration-300 ease-in-out ${
           collapsed ? 'pl-[68px]' : 'pl-[250px] max-[1023px]:pl-[68px]'
         }`}
       >
@@ -433,7 +433,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
           onClose={() => setShowAboutModal(false)}
         />
 
-        <main ref={mainContentRef} className="mx-auto max-w-[1380px] px-4 py-6 sm:px-6 sm:py-7 lg:px-10 lg:py-9">
+        <main ref={mainContentRef} className="mx-auto max-w-[1380px] px-4 py-6 sm:px-6 sm:py-7 lg:px-10 lg:py-9 transition-all duration-300 ease-in-out">
           {children}
         </main>
       </div>

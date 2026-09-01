@@ -135,7 +135,6 @@ export default function CounsellorAppointmentsPage() {
   return (
     <div className="rise-in pb-16">
       <SectionHeading
-        eyebrow="PRD Lifecycle & Consultations"
         title="Appointments & consultations."
         description="Full lifecycle support tracking: REQUESTED → PENDING → ACCEPTED → COMPLETED → FOLLOW-UP → CLOSED."
         action={

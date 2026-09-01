@@ -17,18 +17,12 @@ export type SupportNeedLevel =
 
 export type DemandDimension =
   | "academic"
-  | "financial"
   | "wellbeing";
 
 export type CounsellorStatus =
   | "pending"
   | "active"
   | "inactive";
-
-export type CorrectionStatus =
-  | "pending"
-  | "approved"
-  | "rejected";
 
 export type ConsentCategory =
   | "academic"
@@ -42,7 +36,6 @@ export interface CampusStats {
   openCases: number;
   activeConsentRate?: number;
   weeklyCheckinVolume?: number;
-  pendingCorrectionRequests?: number;
   flaggedDemographicDisparities?: number;
   averageRhythmIndex?: number;
   systemUptime?: number;
@@ -192,34 +185,6 @@ export interface AdminStudent {
 }
 
 export type AdminStudentRoster = AdminStudent;
-
-export interface CorrectionAuditRecord {
-  requestId: string;
-  action: 'approved' | 'rejected';
-  timestamp: string;
-  reviewedBy: string;
-  reviewNote?: string;
-}
-
-/**
- * Data Correction Appeal model under GDPR / DPDP Right to Rectification.
- */
-export interface CorrectionRequest {
-  id: string;
-  studentId: string;
-  studentName?: string;
-  field: string;
-  dataType?: 'attendance' | 'rhythm-log' | 'consent-record' | 'academic' | 'program-record' | string;
-  currentValue: string;
-  requestedValue: string;
-  reason: string;
-  status: CorrectionStatus;
-  submittedAt: string;
-  reviewedAt?: string;
-  reviewedBy?: string;
-  reviewNote?: string;
-  reviewNotes?: string;
-}
 
 export type ConsentAction = 'granted' | 'withdrawn' | 'updated';
 export type ConsentStatus = 'allowed' | 'withdrawn';

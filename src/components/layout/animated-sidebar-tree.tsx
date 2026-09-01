@@ -51,31 +51,8 @@ export function AnimatedSidebarTree({
   const pathname = usePathname();
   const router = useRouter();
 
-  const activeParentIds = useMemo(() => {
-    const ids = new Set<string>();
-    const walk = (nodes: AnimatedSidebarItem[]) => {
-      nodes.forEach((node) => {
-        if (node.children?.length) {
-          const childActive = node.children.some((child) => isItemActive(child, pathname));
-          if (childActive) ids.add(node.id);
-          walk(node.children);
-        }
-      });
-    };
-    walk(items);
-    return ids;
-  }, [items, pathname]);
-
-  const [openIds, setOpenIds] = useState<Set<string>>(new Set(activeParentIds));
+  const [openIds, setOpenIds] = useState<Set<string>>(new Set());
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-
-  useEffect(() => {
-    setOpenIds((current) => {
-      const next = new Set(current);
-      activeParentIds.forEach((id) => next.add(id));
-      return next;
-    });
-  }, [activeParentIds]);
 
   useEffect(() => {
     if (collapsed) setHoveredId(null);
@@ -141,11 +118,10 @@ function TreeItem({
   const label = t(item.label);
   const rowHeight = level > 0 ? 'h-9' : 'h-11';
   const iconSize = level > 0 ? 15 : 17;
+  const targetHref = item.href || item.children?.[0]?.href;
 
-  const row = (
-    <motion.div
-      layout
-      transition={spring}
+  return (
+    <div
       className="group relative"
       onMouseEnter={() => !collapsed && setHoveredId(item.id)}
       onMouseLeave={() => !collapsed && setHoveredId((current) => current === item.id ? null : current)}
@@ -160,12 +136,112 @@ function TreeItem({
 
       <div className={`relative flex ${rowHeight} w-full items-center`}>
         {hasChildren ? (
-          <button
-            type="button"
-            onClick={() => toggle(item.id)}
-            aria-expanded={open}
-            aria-controls={`sidebar-children-${item.id}`}
-            className={`relative flex ${rowHeight} min-w-0 flex-1 items-center rounded-xl text-left transition-colors duration-150 ease-out active:scale-[0.98] ${
+          <div className="relative flex w-full items-center">
+            {targetHref ? (
+              <Link
+                href={targetHref}
+                onMouseEnter={() => {
+                  if (!collapsed) setHoveredId(item.id);
+                  router.prefetch(targetHref);
+                }}
+                onFocus={() => router.prefetch(targetHref)}
+                className={`relative flex ${rowHeight} min-w-0 flex-1 items-center rounded-xl text-left transition-colors duration-150 ${
+                  !collapsed ? 'pr-10' : ''
+                } ${
+                  active
+                    ? 'bg-white/[0.08] text-white shadow-[0_0_14px_rgba(195,243,64,0.08),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'text-white/50 hover:text-white'
+                }`}
+              >
+                {active && (
+                  <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-[#c3f340] shadow-[0_0_10px_#c3f340]" />
+                )}
+                <div className={`flex ${rowHeight} w-11 shrink-0 items-center justify-center`}>
+                  <Icon
+                    size={iconSize}
+                    strokeWidth={1.8}
+                    className={active ? 'text-[#c3f340]' : ''}
+                  />
+                </div>
+                <span
+                  className={`truncate text-[13px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    collapsed
+                      ? 'max-w-0 opacity-0 pointer-events-none blur-sm -translate-x-2'
+                      : 'max-w-[140px] opacity-100 blur-0 translate-x-0'
+                  }`}
+                >
+                  {label}
+                </span>
+                {item.badge && !collapsed && (
+                  <span className="ml-auto mr-1.5 rounded-full bg-[rgba(229,162,125,.18)] px-1.5 py-0.5 text-[9px] font-bold text-[#e5a27d]">
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            ) : (
+              <div
+                className={`relative flex ${rowHeight} min-w-0 flex-1 items-center rounded-xl text-left ${
+                  !collapsed ? 'pr-10' : ''
+                } ${
+                  active
+                    ? 'bg-white/[0.08] text-white shadow-[0_0_14px_rgba(195,243,64,0.08),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'text-white/50'
+                }`}
+              >
+                {active && (
+                  <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-[#c3f340] shadow-[0_0_10px_#c3f340]" />
+                )}
+                <div className={`flex ${rowHeight} w-11 shrink-0 items-center justify-center`}>
+                  <Icon
+                    size={iconSize}
+                    strokeWidth={1.8}
+                    className={active ? 'text-[#c3f340]' : ''}
+                  />
+                </div>
+                <span
+                  className={`truncate text-[13px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    collapsed
+                      ? 'max-w-0 opacity-0 pointer-events-none blur-sm -translate-x-2'
+                      : 'max-w-[140px] opacity-100 blur-0 translate-x-0'
+                  }`}
+                >
+                  {label}
+                </span>
+              </div>
+            )}
+
+            {!collapsed && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggle(item.id);
+                }}
+                aria-expanded={open}
+                aria-controls={`sidebar-children-${item.id}`}
+                aria-label={open ? `Collapse ${label} sub-navigation` : `Expand ${label} sub-navigation`}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center text-white/40 hover:text-white transition-colors focus:outline-none"
+              >
+                <ChevronRight
+                  size={15}
+                  strokeWidth={1.8}
+                  className={`transition-transform duration-200 ease-in-out ${
+                    open ? 'rotate-90 text-white/80' : 'rotate-0 text-white/40'
+                  }`}
+                />
+              </button>
+            )}
+          </div>
+        ) : item.href ? (
+          <Link
+            href={item.href}
+            onMouseEnter={() => {
+              if (!collapsed) setHoveredId(item.id);
+              router.prefetch(item.href!);
+            }}
+            onFocus={() => router.prefetch(item.href!)}
+            className={`relative flex ${rowHeight} w-full items-center rounded-xl transition-colors duration-150 ${
               active
                 ? 'bg-white/[0.08] text-white shadow-[0_0_14px_rgba(195,243,64,0.08),inset_0_1px_0_rgba(255,255,255,0.08)]'
                 : 'text-white/50 hover:text-white'
@@ -179,49 +255,6 @@ function TreeItem({
                 size={iconSize}
                 strokeWidth={1.8}
                 className={active ? 'text-[#c3f340]' : ''}
-              />
-            </div>
-            <span
-              className={`truncate text-[13px] font-semibold transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                collapsed
-                  ? 'max-w-0 opacity-0 pointer-events-none blur-sm -translate-x-2'
-                  : 'max-w-[140px] opacity-100 blur-0 translate-x-0'
-              }`}
-            >
-              {label}
-            </span>
-            {!collapsed && (
-              <motion.span
-                animate={{ rotate: open ? 90 : 0 }}
-                transition={spring}
-                className="ml-auto mr-3 shrink-0 text-white/35"
-              >
-                <ChevronRight size={15} strokeWidth={1.8} />
-              </motion.span>
-            )}
-          </button>
-        ) : item.href ? (
-          <Link
-            href={item.href}
-            onMouseEnter={() => {
-              if (!collapsed) setHoveredId(item.id);
-              router.prefetch(item.href!);
-            }}
-            onFocus={() => router.prefetch(item.href!)}
-            className={`relative flex ${rowHeight} w-full items-center rounded-xl transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98] ${
-              active
-                ? 'bg-white/[0.08] text-white shadow-[0_0_14px_rgba(195,243,64,0.08),inset_0_1px_0_rgba(255,255,255,0.08)]'
-                : 'text-white/50 hover:text-white'
-            }`}
-          >
-            {active && (
-              <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-r-full bg-[#c3f340] shadow-[0_0_10px_#c3f340]" />
-            )}
-            <div className={`flex ${rowHeight} w-11 shrink-0 items-center justify-center`}>
-              <Icon
-                size={iconSize}
-                strokeWidth={1.8}
-                className={`transition-transform duration-200 group-hover:scale-110 ${active ? 'text-[#c3f340]' : ''}`}
               />
             </div>
             <span
@@ -265,39 +298,29 @@ function TreeItem({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 360, damping: 32, mass: 0.7 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <motion.div
-              initial={{ y: -5 }}
-              animate={{ y: 0 }}
-              exit={{ y: -5 }}
-              transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-              className="ml-5 border-l border-white/[0.08] pl-2"
-            >
-              <div className="space-y-1 py-1">
-                {item.children!.map((child) => (
-                  <TreeItem
-                    key={child.id}
-                    item={child}
-                    level={level + 1}
-                    collapsed={collapsed}
-                    pathname={pathname}
-                    router={router}
-                    t={t}
-                    openIds={openIds}
-                    toggle={toggle}
-                    hoveredId={hoveredId}
-                    setHoveredId={setHoveredId}
-                  />
-                ))}
-              </div>
-            </motion.div>
+            <div className="ml-5 border-l border-white/[0.08] pl-2 space-y-1 py-1">
+              {item.children!.map((child) => (
+                <TreeItem
+                  key={child.id}
+                  item={child}
+                  level={level + 1}
+                  collapsed={collapsed}
+                  pathname={pathname}
+                  router={router}
+                  t={t}
+                  openIds={openIds}
+                  toggle={toggle}
+                  hoveredId={hoveredId}
+                  setHoveredId={setHoveredId}
+                />
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
-
-  return row;
 }

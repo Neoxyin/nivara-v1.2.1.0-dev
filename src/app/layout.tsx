@@ -1,8 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { Toaster } from '@/components/ui/toaster'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { Providers } from './providers'
 
@@ -28,10 +26,7 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <ErrorBoundary>
           <Providers>
-            <TooltipProvider>
-              {children}
-              <Toaster />
-            </TooltipProvider>
+            {children}
           </Providers>
         </ErrorBoundary>
       </body>

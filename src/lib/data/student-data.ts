@@ -9,18 +9,6 @@ export interface StudentDataField {
   lastUpdated: string;
 }
 
-export interface CorrectionRequest {
-  id: string;
-  fieldId: string;
-  fieldName: string;
-  currentValue: string;
-  requestedValue: string;
-  explanation: string;
-  status: 'Pending Review' | 'Approved' | 'Rejected' | 'Updated';
-  submittedAt: string;
-  reviewerNotes?: string;
-}
-
 export interface AuditLogEntry {
   id: string;
   timestamp: string;
@@ -82,30 +70,6 @@ export const INITIAL_STUDENT_DATA: StudentDataField[] = [
   }
 ];
 
-export const INITIAL_CORRECTIONS: CorrectionRequest[] = [
-  {
-    id: 'corr-1',
-    fieldId: 'field-2',
-    fieldName: 'Active Course Enrollments',
-    currentValue: 'CS201, MATH302, PHY204, ENG101',
-    requestedValue: 'CS201, MATH302, PHY204 (Dropped ENG101)',
-    explanation: 'I officially dropped English 101 during the add/drop week extension.',
-    status: 'Pending Review',
-    submittedAt: 'Yesterday'
-  },
-  {
-    id: 'corr-2',
-    fieldId: 'field-5',
-    fieldName: 'Emergency Contact & Housing',
-    currentValue: 'Campus Hostel Block B, Room 402',
-    requestedValue: 'Campus Hostel Block B, Room 410',
-    explanation: 'I shifted rooms during the mid-semester hostel reallocation.',
-    status: 'Approved',
-    submittedAt: '5 days ago',
-    reviewerNotes: 'Verified against Student Affairs hostel roster update.'
-  }
-];
-
 export const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
   {
     id: 'audit-1',
@@ -117,9 +81,9 @@ export const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
   {
     id: 'audit-2',
     timestamp: 'Yesterday, 3:20 PM',
-    action: 'Correction Request Submitted',
+    action: 'Consent Preference Updated',
     actor: 'You',
-    details: 'Submitted correction request for Active Course Enrollments.'
+    details: 'Updated telemetry granular consent for academic support.'
   },
   {
     id: 'audit-3',

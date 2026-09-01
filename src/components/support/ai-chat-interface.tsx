@@ -126,21 +126,21 @@ export function AiChatInterface() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => { setMessages([]); setInput(''); setErrorMessage(null); hasStartedConversation.current = false; }}
-              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/70 border border-white/10 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/80 border border-white/10 transition-colors"
+              title="Clear current conversation"
             >
-              Clear conversation
+              <RefreshCw size={13} />
+              <span>Clear conversation</span>
             </button>
-          </div>
-          <div className="hidden sm:flex items-center gap-2">
             <Link 
               href="/counsellors" 
-              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/80 border border-white/10 transition-colors flex items-center gap-1.5"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/80 border border-white/10 transition-colors"
             >
               <UsersRound size={13} /> Counsellors
             </Link>
             <Link 
               href="/resources" 
-              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/80 border border-white/10 transition-colors flex items-center gap-1.5"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-white/80 border border-white/10 transition-colors"
             >
               <Compass size={13} /> Resources
             </Link>

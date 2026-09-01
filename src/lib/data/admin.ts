@@ -8,7 +8,6 @@ import {
   SupportProgram,
   AdminCounsellor,
   AdminStudentRoster,
-  CorrectionRequest,
   ConsentAuditLog,
   SystemHealthNode,
   SystemServiceHealth,
@@ -225,154 +224,7 @@ export const counsellors: AdminCounsellor[] = [
   },
 ];
 
-// 3. Correction Requests Dataset
-export const correctionRequests: CorrectionRequest[] = [
-  {
-    id: 'corr-1',
-    studentId: 'STU-2026-081',
-    studentName: 'Aarav Patel',
-    field: 'Attendance Record (Aug 24)',
-    dataType: 'attendance',
-    currentValue: 'Absent (Creative Coding)',
-    requestedValue: 'Excused / Field Research Verification',
-    reason: 'Approved departmental fieldwork attendance slip submitted to course convenor.',
-    status: 'pending',
-    submittedAt: '2026-08-27 14:00',
-  },
-  {
-    id: 'corr-2',
-    studentId: 'STU-2026-104',
-    studentName: 'Elena Rostova',
-    field: 'Degree Program Specialization',
-    dataType: 'program-record',
-    currentValue: 'B.Des Media Arts',
-    requestedValue: 'B.Des Digital Interaction & Media',
-    reason: 'Curriculum specialization formal transfer approved by Academic Dean.',
-    status: 'pending',
-    submittedAt: '2026-08-28 09:30',
-  },
-  {
-    id: 'corr-3',
-    studentId: 'STU-2026-219',
-    studentName: 'Kavita Iyer',
-    field: 'Academic Year Standing',
-    dataType: 'academic',
-    currentValue: 'Year 3 (Junior)',
-    requestedValue: 'Year 4 (Senior)',
-    reason: 'Accelerated summer research credits verified; student completed 120+ credits.',
-    status: 'approved',
-    submittedAt: '2026-08-24 11:15',
-    reviewedAt: '2026-08-25 15:30',
-    reviewedBy: 'Admin',
-    reviewNote: 'Transcript audit confirmed 120+ credit milestone reached.',
-    reviewNotes: 'Transcript audit confirmed 120+ credit milestone reached.',
-  },
-  {
-    id: 'corr-4',
-    studentId: 'STU-2026-302',
-    studentName: 'Liam Zhang',
-    field: 'Attendance Percentage (MGMT-101)',
-    dataType: 'attendance',
-    currentValue: '78%',
-    requestedValue: '84%',
-    reason: 'Medical excuse certificate for Aug 12-14 missed lectures filed with health center.',
-    status: 'approved',
-    submittedAt: '2026-08-22 16:40',
-    reviewedAt: '2026-08-23 10:20',
-    reviewedBy: 'Admin',
-    reviewNote: 'Medical clearance verified with campus health portal.',
-    reviewNotes: 'Medical clearance verified with campus health portal.',
-  },
-  {
-    id: 'corr-5',
-    studentId: 'STU-2026-411',
-    studentName: 'Sophia Miller',
-    field: 'Department Affiliation',
-    dataType: 'academic',
-    currentValue: 'Humanities (General)',
-    requestedValue: 'BA Psychology & Cognitive Science',
-    reason: 'Major declaration approved following sophomore semester portfolio review.',
-    status: 'rejected',
-    submittedAt: '2026-08-20 13:00',
-    reviewedAt: '2026-08-21 14:15',
-    reviewedBy: 'Admin',
-    reviewNote: 'Major declaration form missing prerequisite advisor signoff. Resubmit with completed Form B-12.',
-    reviewNotes: 'Major declaration form missing prerequisite advisor signoff. Resubmit with completed Form B-12.',
-  },
-  {
-    id: 'corr-6',
-    studentId: 'STU-2026-528',
-    studentName: 'Rohan Das',
-    field: 'Lab Attendance Mark (EE-302)',
-    dataType: 'attendance',
-    currentValue: 'Unexcused Absence (Aug 18)',
-    requestedValue: 'Make-up Session Completed (Aug 20)',
-    reason: 'Attended make-up circuit simulation laboratory session under TA supervision.',
-    status: 'pending',
-    submittedAt: '2026-08-28 16:10',
-  },
-  {
-    id: 'corr-7',
-    studentId: 'STU-2026-642',
-    studentName: 'Mei Lin',
-    field: 'Placement Exemption (Math Track)',
-    dataType: 'academic',
-    currentValue: 'Standard Calculus Sequence',
-    requestedValue: 'Advanced Linear Algebra Waiver',
-    reason: 'AP Calculus BC score 5 verified by admissions department.',
-    status: 'approved',
-    submittedAt: '2026-08-25 10:00',
-    reviewedAt: '2026-08-26 11:30',
-    reviewedBy: 'Admin',
-    reviewNote: 'AP College Board official score verified by registrar office.',
-    reviewNotes: 'AP College Board official score verified by registrar office.',
-  },
-];
-
-// In-memory audit trail for correction requests review actions
-export const correctionAuditTrail: {
-  requestId: string;
-  studentId: string;
-  action: 'approved' | 'rejected';
-  timestamp: string;
-  reviewedBy: string;
-  reviewNote?: string;
-}[] = [
-  {
-    requestId: 'corr-3',
-    studentId: 'STU-2026-219',
-    action: 'approved',
-    timestamp: '2026-08-25 15:30',
-    reviewedBy: 'Admin',
-    reviewNote: 'Transcript audit confirmed 120+ credit milestone reached.',
-  },
-  {
-    requestId: 'corr-4',
-    studentId: 'STU-2026-302',
-    action: 'approved',
-    timestamp: '2026-08-23 10:20',
-    reviewedBy: 'Admin',
-    reviewNote: 'Medical clearance verified with campus health portal.',
-  },
-  {
-    requestId: 'corr-5',
-    studentId: 'STU-2026-411',
-    action: 'rejected',
-    timestamp: '2026-08-21 14:15',
-    reviewedBy: 'Admin',
-    reviewNote: 'Major declaration form missing prerequisite advisor signoff. Resubmit with completed Form B-12.',
-  },
-  {
-    requestId: 'corr-7',
-    studentId: 'STU-2026-642',
-    action: 'approved',
-    timestamp: '2026-08-26 11:30',
-    reviewedBy: 'Admin',
-    reviewNote: 'AP College Board official score verified by registrar office.',
-  },
-];
-
-// 4. Consent Audit Logs Dataset
+// 3. Consent Audit Logs Dataset
 export const consentAuditLogs: ConsentAuditLog[] = [
   {
     id: 'log-101',
@@ -573,7 +425,6 @@ export const wellnessTrend: WellnessTrendPoint[] = [
 // 6. Demand Trends Dataset (Split by Dimension with Low, Mild, Moderate, High counts)
 export const demandTrends: {
   academic: DemandTrendPoint[];
-  financial: DemandTrendPoint[];
   wellbeing: DemandTrendPoint[];
 } = {
   academic: [
@@ -585,16 +436,6 @@ export const demandTrends: {
     { period: 'Week 6 (Midterms)', low: 22, mild: 110, moderate: 105, high: 58 },
     { period: 'Week 7', low: 38, mild: 92, moderate: 80, high: 32 },
     { period: 'Week 8 (Current)', low: 44, mild: 84, moderate: 68, high: 24 },
-  ],
-  financial: [
-    { period: 'Week 1', low: 60, mild: 40, moderate: 25, high: 8 },
-    { period: 'Week 2', low: 58, mild: 42, moderate: 26, high: 9 },
-    { period: 'Week 3', low: 55, mild: 45, moderate: 30, high: 12 },
-    { period: 'Week 4', low: 50, mild: 48, moderate: 34, high: 15 },
-    { period: 'Week 5', low: 48, mild: 50, moderate: 38, high: 18 },
-    { period: 'Week 6 (Midterms)', low: 42, mild: 55, moderate: 42, high: 22 },
-    { period: 'Week 7', low: 52, mild: 46, moderate: 32, high: 14 },
-    { period: 'Week 8 (Current)', low: 56, mild: 44, moderate: 28, high: 10 },
   ],
   wellbeing: [
     { period: 'Week 1', low: 50, mild: 65, moderate: 45, high: 15 },
@@ -966,7 +807,6 @@ export function getCampusStats(): CampusStats {
   const activeCounsellorsCount = counsellors.filter((c) => c.status === 'active').length;
   const activeConsentCount = students.filter((s) => s.consentLevel === 'full' || s.consentLevel === 'academic-only').length;
   const openCasesCount = counsellors.reduce((acc, c) => acc + (c.activeStudents || 0), 0);
-  const pendingCorrections = correctionRequests.filter((r) => r.status === 'pending').length;
   const flaggedDemographicCount = fairnessMetrics.filter((m) => m.humanReviewRequired).length;
 
   return {
@@ -975,7 +815,6 @@ export function getCampusStats(): CampusStats {
     openCases: openCasesCount,
     activeConsentRate: Number(((activeConsentCount / students.length) * 100).toFixed(1)),
     weeklyCheckinVolume: 3240,
-    pendingCorrectionRequests: pendingCorrections,
     flaggedDemographicDisparities: flaggedDemographicCount,
     averageRhythmIndex: 81.5,
     systemUptime: 99.98,
@@ -985,7 +824,6 @@ export function getCampusStats(): CampusStats {
 export function getDemandSummary() {
   return [
     { department: 'Academic', totalRequests: 210, highNeedRequests: 24, peakHour: '16:00 - 18:00' },
-    { department: 'Financial', totalRequests: 110, highNeedRequests: 10, peakHour: '13:00 - 15:00' },
     { department: 'Well-being', totalRequests: 188, highNeedRequests: 20, peakHour: '14:00 - 16:00' },
   ];
 }
@@ -1013,6 +851,5 @@ export const mockAdminResources = resources;
 export const mockSupportPrograms = supportPrograms;
 export const mockAdminCounsellors = counsellors;
 export const mockAdminStudents = students;
-export const mockCorrectionRequests = correctionRequests;
 export const mockConsentLogs = consentAuditLogs;
 export const mockSystemHealthNodes = systemHealthNodes;
