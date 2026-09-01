@@ -223,3 +223,38 @@ export interface SystemHealthNode {
   uptimePercentage: number;
   protocol?: string;
 }
+
+export type CorrectionRequestStatus = 'pending' | 'approved' | 'rejected';
+
+/**
+ * Right to Rectification (GDPR / DPDP Art 16): a student-submitted appeal to
+ * correct an institutional record (attendance, program details, etc).
+ */
+export interface CorrectionRequest {
+  id: string;
+  studentId: string;
+  studentName?: string;
+  field: string;
+  currentValue: string;
+  requestedValue: string;
+  reason: string;
+  status: CorrectionRequestStatus;
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  reviewNote?: string;
+  reviewNotes?: string;
+}
+
+/**
+ * Immutable audit ledger entry recorded whenever a correction request is
+ * approved or rejected.
+ */
+export interface CorrectionAuditRecord {
+  requestId: string;
+  studentId?: string;
+  action: 'approved' | 'rejected';
+  timestamp: string;
+  reviewedBy: string;
+  reviewNote?: string;
+}

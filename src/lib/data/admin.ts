@@ -11,6 +11,8 @@ import {
   ConsentAuditLog,
   SystemHealthNode,
   SystemServiceHealth,
+  CorrectionRequest,
+  CorrectionAuditRecord,
 } from '../types/admin';
 
 // 1. Students Dataset (Privacy-Preserving Admin Roster)
@@ -797,6 +799,81 @@ export const systemHealthNodes: SystemHealthNode[] = [
   { name: 'Differential Privacy Aggregation Engine', latencyMs: 28, status: 'healthy', uptimePercentage: 99.95, protocol: 'Laplace Noise (ε=0.5, k=50)' },
   { name: 'Zero-Knowledge Consent Verifier', latencyMs: 19, status: 'healthy', uptimePercentage: 100.0, protocol: 'zk-SNARKs Proof Verification' },
   { name: 'Audit Trail Cryptographic Ledger', latencyMs: 34, status: 'healthy', uptimePercentage: 99.98, protocol: 'SHA-256 Merkle Chaining' },
+];
+
+// 11. Right-to-Rectification: Student Correction Requests & Audit Ledger
+export const correctionRequests: CorrectionRequest[] = [
+  {
+    id: 'COR-2026-0142',
+    studentId: 'STU-2026-081',
+    studentName: 'Aarav Patel',
+    field: 'Attendance Record — CS304 Distributed Systems',
+    currentValue: '68% (14 sessions marked absent)',
+    requestedValue: '82% (medical leave on file for 6 sessions)',
+    reason: 'I was on approved medical leave from 12–19 Aug but the sessions were marked as unexcused absences instead of leave. Doctor\u2019s note was submitted to the department office on 20 Aug.',
+    status: 'pending',
+    submittedAt: '2026-08-26 10:15',
+  },
+  {
+    id: 'COR-2026-0139',
+    studentId: 'STU-2026-219',
+    studentName: 'Kavita Iyer',
+    field: 'Program Enrolment — Minor Declaration',
+    currentValue: 'No minor on record',
+    requestedValue: 'Minor in Data Science (declared Feb 2026)',
+    reason: 'I submitted my minor declaration form in February but it does not appear on my transcript. Attaching the signed form and advisor confirmation email.',
+    status: 'pending',
+    submittedAt: '2026-08-24 14:40',
+  },
+  {
+    id: 'COR-2026-0131',
+    studentId: 'STU-2026-528',
+    studentName: 'Rohan Das',
+    field: 'Contact Details — Registered Email',
+    currentValue: 'r.das.old@nivara.edu',
+    requestedValue: 'rohan.das@nivara.edu',
+    reason: 'My institutional email was reissued after a department transfer, but notifications are still routing to my old inactive address.',
+    status: 'approved',
+    submittedAt: '2026-08-18 09:05',
+    reviewedAt: '2026-08-19 11:20',
+    reviewedBy: 'Dr. Aisha Rahman',
+    reviewNote: 'Verified against IT helpdesk ticket #4471. Email updated in the directory.',
+    reviewNotes: 'Verified against IT helpdesk ticket #4471. Email updated in the directory.',
+  },
+  {
+    id: 'COR-2026-0127',
+    studentId: 'STU-2026-302',
+    studentName: 'Liam Zhang',
+    field: 'Attendance Record — MGT210 Analytics for Managers',
+    currentValue: '55% (11 sessions marked absent)',
+    requestedValue: '73% (5 sessions were remote-participation, not absences)',
+    reason: 'The hybrid sessions I joined remotely due to a family emergency were logged as absences instead of remote attendance.',
+    status: 'rejected',
+    submittedAt: '2026-08-14 16:30',
+    reviewedAt: '2026-08-16 09:50',
+    reviewedBy: 'Marcus Vance, MA',
+    reviewNote: 'No remote-attendance log found for the cited sessions in the LMS. Please resubmit with a timestamped join record from the video platform.',
+    reviewNotes: 'No remote-attendance log found for the cited sessions in the LMS. Please resubmit with a timestamped join record from the video platform.',
+  },
+];
+
+export const correctionAuditTrail: CorrectionAuditRecord[] = [
+  {
+    requestId: 'COR-2026-0131',
+    studentId: 'STU-2026-528',
+    action: 'approved',
+    timestamp: '2026-08-19 11:20',
+    reviewedBy: 'Dr. Aisha Rahman',
+    reviewNote: 'Verified against IT helpdesk ticket #4471. Email updated in the directory.',
+  },
+  {
+    requestId: 'COR-2026-0127',
+    studentId: 'STU-2026-302',
+    action: 'rejected',
+    timestamp: '2026-08-16 09:50',
+    reviewedBy: 'Marcus Vance, MA',
+    reviewNote: 'No remote-attendance log found for the cited sessions in the LMS. Please resubmit with a timestamped join record from the video platform.',
+  },
 ];
 
 // ==========================================
