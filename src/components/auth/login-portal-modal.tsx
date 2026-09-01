@@ -162,8 +162,17 @@ export function LoginPortalModal({
                 <span className="relative grid h-7 w-7 place-items-center rounded-lg overflow-hidden shadow-[0_0_12px_rgba(195,243,64,0.4)]">
                   <NivaraLogoIcon size={28} />
                 </span>
-                <span className="text-xs font-extrabold uppercase tracking-[0.25em] text-white">
-                  Nivara Portal
+                <span className="flex items-center gap-1.5">
+                  <img
+                    src="/nivara-wordmark-white.png"
+                    alt="Nivara"
+                    width={193}
+                    height={50}
+                    className="h-4 w-auto select-none"
+                  />
+                  <span className="text-xs font-extrabold uppercase tracking-[0.25em] text-white">
+                    Portal
+                  </span>
                 </span>
               </div>
               <button

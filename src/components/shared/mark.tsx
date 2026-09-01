@@ -25,7 +25,19 @@ export function Mark({ inverse = false, href = '/', size = 'md' }: MarkProps) {
       >
         <NivaraLogoIcon size={iconDimensions} />
       </span>
-      <span className="text-[.95rem] uppercase tracking-[.28em] text-white font-extrabold">nivara</span>
+      <img
+        src="/nivara-wordmark-white.png"
+        alt="Nivara"
+        width={193}
+        height={50}
+        className={
+          size === 'sm'
+            ? 'h-4 w-auto select-none'
+            : size === 'lg'
+            ? 'h-6 w-auto select-none'
+            : 'h-5 w-auto select-none'
+        }
+      />
     </Link>
   );
 }
