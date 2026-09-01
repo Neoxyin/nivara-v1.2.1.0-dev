@@ -130,9 +130,13 @@ export function LandingPage() {
             <span className="relative grid h-8 w-8 place-items-center rounded-[10px] overflow-hidden shadow-[0_0_15px_rgba(195,243,64,0.4)] transition-transform duration-200 ease-out group-hover:rotate-6 group-hover:scale-105">
               <NivaraLogoIcon size={32} />
             </span>
-            <span className="text-sm font-extrabold uppercase tracking-[0.3em]">
-              Nivara
-            </span>
+            <img
+              src="/nivara-wordmark-white.png"
+              alt="Nivara"
+              width={193}
+              height={50}
+              className="h-6 w-auto sm:h-7 select-none"
+            />
           </Link>
         </Magnetic>
 
