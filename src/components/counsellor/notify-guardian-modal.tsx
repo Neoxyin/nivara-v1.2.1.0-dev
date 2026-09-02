@@ -101,7 +101,7 @@ export function NotifyGuardianModal({
           <div className="mt-4 rounded-lg border border-amber-400/20 bg-amber-400/[0.06] p-3 text-[11px] leading-relaxed text-white/70">
             Nivara never contacts a parent or guardian automatically. This action is only available to the
             counsellor who has directly consulted with the student, and is logged as your own professional
-            judgement — as disclosed in the Privacy Policy's Severe Risk & Parental Notification section.
+            judgement — as disclosed in the Privacy Policy&apos;s Severe Risk & Parental Notification section.
           </div>
 
           {errorMsg && (
