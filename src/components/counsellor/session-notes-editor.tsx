@@ -16,9 +16,10 @@ import {
   User,
   Plus,
 } from 'lucide-react';
-import { saveConsultationRecord, getConsultationRecord } from '@/lib/api/counsellors';
-import type { AppointedSession, ConsultationRecord } from '@/lib/types';
+import { saveConsultationRecord, getConsultationRecord, getGuardianNotification } from '@/lib/api/counsellors';
+import type { AppointedSession, ConsultationRecord, GuardianNotification } from '@/lib/types';
 import { FollowUpModal } from './follow-up-modal';
+import { NotifyGuardianModal } from './notify-guardian-modal';
 
 interface SessionNotesEditorProps {
   session: AppointedSession;
@@ -44,6 +45,8 @@ export function SessionNotesEditor({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [followUpModalOpen, setFollowUpModalOpen] = useState(false);
+  const [notifyGuardianModalOpen, setNotifyGuardianModalOpen] = useState(false);
+  const [guardianNotification, setGuardianNotification] = useState<GuardianNotification | null>(null);
 
   // Sync state when session changes or remounts
   useEffect(() => {
@@ -61,6 +64,9 @@ export function SessionNotesEditor({
             setIsEditing(!session.notes);
           }
         }
+      });
+      getGuardianNotification(session.id).then((entry) => {
+        if (isMounted) setGuardianNotification(entry || null);
       });
     }
     return () => {
@@ -224,6 +230,19 @@ export function SessionNotesEditor({
                 Note is locked to your account. No student or third-party access.
               </span>
               <div className="flex items-center gap-2">
+                {guardianNotification ? (
+                  <span className="inline-flex items-center gap-1.5 rounded border border-amber-400/30 bg-amber-400/[0.08] px-3.5 py-1.5 text-xs font-bold text-amber-300">
+                    <ShieldAlert size={12} /> Guardian Notified
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setNotifyGuardianModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded border border-amber-400/40 bg-amber-400/10 px-3.5 py-1.5 text-xs font-bold text-amber-300 hover:bg-amber-400 hover:text-[#241a04] transition-colors"
+                  >
+                    <ShieldAlert size={12} /> Notify Parent / Guardian
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setFollowUpModalOpen(true)}
@@ -327,6 +346,16 @@ export function SessionNotesEditor({
         sessionId={session.id}
         activeCounsellorName={activeCounsellorName}
         defaultReason={outcomeSummary || 'Follow-up consultation'}
+      />
+
+      {/* Parent / Guardian Notification — counsellor-initiated, post-consultation only */}
+      <NotifyGuardianModal
+        isOpen={notifyGuardianModalOpen}
+        onClose={() => setNotifyGuardianModalOpen(false)}
+        studentName={session.studentName}
+        sessionId={session.id}
+        activeCounsellorName={activeCounsellorName}
+        onNotified={(entry) => setGuardianNotification(entry)}
       />
     </div>
   );

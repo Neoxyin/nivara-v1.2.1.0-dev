@@ -2,12 +2,13 @@ import { mockCounsellors } from '../data/counsellors';
 import { mockAppointedSessions } from '../data/sessions';
 import { pause } from './mock-latency';
 import { getPreferences } from './preferences';
-import type { Counsellor, AppointedSession, ConsultationRecord, CounsellorFollowUp, SupportAlert, DataPermissionKey } from '../types';
+import type { Counsellor, AppointedSession, ConsultationRecord, CounsellorFollowUp, SupportAlert, DataPermissionKey, GuardianNotification } from '../types';
 
 const SESSIONS_STORAGE_KEY = 'nivara_appointed_sessions';
 const ACTIVE_COUNSELLOR_KEY = 'nivara_active_counsellor_name';
 const FOLLOWUPS_STORAGE_KEY = 'nivara_counsellor_followups';
 const REVIEWED_ALERTS_STORAGE_KEY = 'nivara_reviewed_alerts';
+const GUARDIAN_NOTIFICATIONS_STORAGE_KEY = 'nivara_guardian_notifications';
 
 export function getActiveCounsellorName(): string {
   if (typeof window !== 'undefined') {
@@ -825,4 +826,79 @@ export async function getSupportAlerts(
   }
 
   return alerts;
+}
+
+function loadGuardianNotificationsFromStorage(): GuardianNotification[] {
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = window.localStorage.getItem(GUARDIAN_NOTIFICATIONS_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+  }
+  return [];
+}
+
+function saveGuardianNotificationsToStorage(items: GuardianNotification[]): void {
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(GUARDIAN_NOTIFICATIONS_STORAGE_KEY, JSON.stringify(items));
+    } catch {}
+  }
+}
+
+/**
+ * Records a counsellor's decision to inform a student's parent/guardian
+ * following direct consultation, in a case they have judged to be serious.
+ *
+ * This is intentionally NOT automated: it can only be triggered by an
+ * assigned counsellor, for a session where a consultation record already
+ * exists (i.e. a consultation has actually taken place), and requires the
+ * counsellor to state their reasoning. Nivara's systems never contact a
+ * parent or guardian on their own.
+ */
+export async function notifyGuardian(params: {
+  sessionId: string;
+  requestingCounsellorName?: string;
+  reason: string;
+}): Promise<GuardianNotification> {
+  await pause();
+  const activeCounsellor = params.requestingCounsellorName || getActiveCounsellorName();
+  const sessions = loadSessionsFromStorage();
+  const session = sessions.find((s) => s.id === params.sessionId);
+
+  if (!session) {
+    throw new Error(`Session with id ${params.sessionId} not found.`);
+  }
+  if (session.counsellorName.trim().toLowerCase() !== activeCounsellor.trim().toLowerCase()) {
+    throw new Error(`Access restricted: Only the assigned counsellor (${session.counsellorName}) can take this action.`);
+  }
+  if (!session.consultationRecord?.notes) {
+    throw new Error('A consultation record must be saved before a guardian can be notified.');
+  }
+  if (!params.reason.trim()) {
+    throw new Error('Please provide the clinical reasoning for this decision.');
+  }
+
+  const entry: GuardianNotification = {
+    id: `gn-${Date.now()}`,
+    sessionId: session.id,
+    studentName: session.studentName,
+    studentEmail: session.studentEmail,
+    counsellorName: activeCounsellor,
+    reason: params.reason.trim(),
+    notifiedAt: new Date().toISOString(),
+  };
+
+  const current = loadGuardianNotificationsFromStorage();
+  current.unshift(entry);
+  saveGuardianNotificationsToStorage(current);
+  return entry;
+}
+
+export async function getGuardianNotification(sessionId: string): Promise<GuardianNotification | undefined> {
+  await pause();
+  return loadGuardianNotificationsFromStorage().find((n) => n.sessionId === sessionId);
 }

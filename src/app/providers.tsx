@@ -6,8 +6,8 @@ import { SidebarProvider } from '@/components/layout/sidebar-context'
 import { LanguageProvider } from '@/components/shared/language-context'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/toaster'
+import { AuthTransitionProvider } from '@/components/shared/auth-transition-context'
 import { syncSessionCookie } from '@/lib/auth'
-import { PostLoginTransitionOverlay } from '@/components/auth/post-login-overlay'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -27,9 +27,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <LanguageProvider>
         <SidebarProvider>
           <TooltipProvider>
-            {children}
-            <Toaster />
-            <PostLoginTransitionOverlay />
+            <AuthTransitionProvider>
+              {children}
+              <Toaster />
+            </AuthTransitionProvider>
           </TooltipProvider>
         </SidebarProvider>
       </LanguageProvider>

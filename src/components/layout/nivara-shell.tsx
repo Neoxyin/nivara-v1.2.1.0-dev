@@ -35,6 +35,7 @@ import { HelpModal } from '@/components/shared/help-modal';
 import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
 import { LanguageSelector, useLanguage } from '@/components/shared/language-context';
 import { AnimatedSidebarTree, type AnimatedSidebarItem } from './animated-sidebar-tree';
+import { useAuthTransition } from '@/components/shared/auth-transition-context';
 
 const nav: AnimatedSidebarItem[] = [
   { id: 'today', href: '/dashboard', label: 'nav.today', icon: LayoutDashboard, exact: true },
@@ -70,6 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const mainContentRef = useRef<HTMLDivElement>(null);
   const { collapsed, toggleSidebar } = useSidebar();
   const { t, language } = useLanguage();
+  const { stop: stopAuthTransition } = useAuthTransition();
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
@@ -147,6 +149,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     };
   }, [updateScrollMetrics, collapsed]);
+
+  // Dismiss any in-flight post-login transition overlay the instant this
+  // authenticated workspace has mounted — no artificial delay.
+  useEffect(() => {
+    stopAuthTransition();
+  }, [stopAuthTransition]);
 
   // A walkthrough may be requested explicitly from Student Settings.
   // Consume that one-shot request here; never open it just because the

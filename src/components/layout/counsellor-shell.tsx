@@ -33,6 +33,7 @@ import { HelpModal } from '@/components/shared/help-modal';
 import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
 import { LanguageSelector, useLanguage } from '@/components/shared/language-context';
 import { AnimatedSidebarTree, type AnimatedSidebarItem } from './animated-sidebar-tree';
+import { useAuthTransition } from '@/components/shared/auth-transition-context';
 
 const counsellorNav: AnimatedSidebarItem[] = [
   { id: 'overview', href: '/counsellor', label: 'subtab.overview', icon: LayoutDashboard, exact: true },
@@ -47,9 +48,16 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
   const mainContentRef = useRef<HTMLDivElement>(null);
   const { collapsed, toggleSidebar } = useSidebar();
   const { t, language } = useLanguage();
+  const { stop: stopAuthTransition } = useAuthTransition();
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
+
+  // Dismiss any in-flight post-login transition overlay the instant this
+  // authenticated workspace has mounted — no artificial delay.
+  useEffect(() => {
+    stopAuthTransition();
+  }, [stopAuthTransition]);
 
   
   // Sidebar custom scroller state
@@ -261,7 +269,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
             <div className="space-y-1">
               <div className="group relative">
                 <Link
-                  href="/counsellor/profile"
+                  href="/counsellor"
                   className="relative flex h-11 w-full items-center rounded-xl text-white/70 transition-all duration-150 ease-out hover:scale-[1.02] hover:bg-white/[0.05] hover:text-white"
                 >
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center">

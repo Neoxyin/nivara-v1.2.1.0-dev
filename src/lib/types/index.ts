@@ -253,6 +253,16 @@ export type SupportNeedIndicator = {
   };
 };
 
+export type GuardianNotification = {
+  id: string;
+  sessionId: string;
+  studentName: string;
+  studentEmail: string;
+  counsellorName: string;
+  reason: string;
+  notifiedAt: string;
+};
+
 export type SupportNeedProfileData = {
   academic: SupportNeedIndicator;
   financial: SupportNeedIndicator;

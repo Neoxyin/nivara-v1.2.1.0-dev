@@ -26,6 +26,7 @@ import { HelpModal } from '@/components/shared/help-modal';
 import { AboutNivaraModal } from '@/components/shared/about-nivara-modal';
 import { Pill } from '@/components/shared/pill';
 import { NivaraLogoIcon } from '@/components/shared/nivara-logo';
+import { SiteFooter } from '@/components/shared/site-footer';
 
 export function LandingPage() {
   const searchParams = useSearchParams();
@@ -419,15 +420,8 @@ export function LandingPage() {
           </div>
         </section>
 
-        {/* Minimal Footer */}
-        <footer className="mx-auto max-w-[1440px] px-6 py-10 md:px-12 border-t border-white/[0.06]">
-          <div className="flex flex-wrap items-center justify-between gap-6 text-[11px] uppercase tracking-[.14em] text-white/40">
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#c3f340]" />
-              <span>Nivara · Academic, Financial, and Well-being Student Support</span>
-            </div>
-          </div>
-        </footer>
+        {/* Site Footer */}
+        <SiteFooter />
       </main>
 
       {/* Workspace Selection — opened only by the explicit Get Started action */}

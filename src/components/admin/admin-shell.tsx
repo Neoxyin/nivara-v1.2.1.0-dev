@@ -25,6 +25,7 @@ import { Mark } from '@/components/shared/mark';
 import { FluidBackground } from '@/components/ui/fluid-background';
 import { Magnetic } from '@/components/ui/magnetic';
 import { Pill } from '@/components/shared/pill';
+import { useAuthTransition } from '@/components/shared/auth-transition-context';
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -58,6 +59,13 @@ export function AdminShell({ children, title, subtitle, action }: AdminShellProp
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
+  const { stop: stopAuthTransition } = useAuthTransition();
+
+  // Dismiss any in-flight post-login transition overlay the instant this
+  // authenticated workspace has mounted — no artificial delay.
+  useEffect(() => {
+    stopAuthTransition();
+  }, [stopAuthTransition]);
 
   // Close mobile drawer on route change
   useEffect(() => {
